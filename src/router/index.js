@@ -1,0 +1,142 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
+import Home from '../views/Home.vue'
+
+const routes = [
+  {
+    path: '/',
+    name: 'Home',
+    component: Home,
+    meta: { requiresAuth: false }
+  },
+  {
+    path: '/login',
+    name: 'Login',
+    component: () => import('../views/Login.vue'),
+    meta: { requiresAuth: false, guestOnly: true }
+  },
+  {
+    path: '/register',
+    name: 'Register',
+    component: () => import('../views/Register.vue'),
+    meta: { requiresAuth: false, guestOnly: true }
+  },
+  {
+    path: '/reset-password',
+    name: 'ResetPassword',
+    component: () => import('../views/ResetPassword.vue'),
+    meta: { requiresAuth: false, guestOnly: true }
+  },
+  {
+    path: '/diagnosis',
+    name: 'Diagnosis',
+    component: () => import('../views/Diagnosis.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/diagnosis/history',
+    name: 'DiagnosisHistory',
+    component: () => import('../views/DiagnosisHistory.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/diagnosis/:id',
+    name: 'DiagnosisDetail',
+    component: () => import('../views/DiagnosisDetail.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/education',
+    name: 'Education',
+    component: () => import('../views/Education.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/education/bookmarks',
+    name: 'EducationBookmarks',
+    component: () => import('../views/EducationBookmarks.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/education/:id',
+    name: 'EducationDetail',
+    component: () => import('../views/EducationDetail.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/consultation',
+    name: 'Consultation',
+    component: () => import('../views/Consultation.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: () => import('../views/Profile.vue'),
+    meta: { requiresAuth: true }
+  },
+  // Admin Routes
+  {
+    path: '/admin',
+    name: 'AdminDashboard',
+    component: () => import('../views/admin/Dashboard.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/whatsapp',
+    name: 'WhatsApp',
+    component: () => import('../views/WhatsApp.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
+    path: '/about',
+    name: 'About',
+    component: () => import('../views/About.vue'),
+    meta: { requiresAuth: false }
+  }
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+// Route guards
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore()
+  
+  // Initialize auth jika belum
+  if (!authStore.user && authStore.token) {
+    authStore.fetchUser()
+  }
+  
+  // Check if route requires auth
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    next({ name: 'Login', query: { redirect: to.fullPath } })
+    return
+  }
+  
+  // Check if route requires admin
+  if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    next({ name: 'Home' })
+    return
+  }
+  
+  // Check if route is guest only (login, register, etc)
+  if (to.meta.guestOnly && authStore.isAuthenticated) {
+    // Redirect admin to admin panel, user to home
+    if (authStore.isAdmin) {
+      next({ name: 'AdminDashboard' })
+    } else {
+      next({ name: 'Home' })
+    }
+    return
+  }
+  
+  next()
+})
+
+export default router
+
+
+
