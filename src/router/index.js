@@ -83,6 +83,42 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/education',
+    name: 'AdminEducationalModules',
+    component: () => import('../views/admin/EducationalModules.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/users',
+    name: 'AdminUsers',
+    component: () => import('../views/admin/Users.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/plants',
+    name: 'AdminPlants',
+    component: () => import('../views/admin/Plants.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/symptoms',
+    name: 'AdminSymptoms',
+    component: () => import('../views/admin/Symptoms.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/diseases',
+    name: 'AdminDiseases',
+    component: () => import('../views/admin/Diseases.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
+    path: '/admin/cf-levels',
+    name: 'AdminCFLevels',
+    component: () => import('../views/admin/CFLevels.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/whatsapp',
     name: 'WhatsApp',
     component: () => import('../views/WhatsApp.vue'),

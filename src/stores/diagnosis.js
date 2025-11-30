@@ -134,6 +134,8 @@ export const useDiagnosisStore = defineStore('diagnosis', {
         )
 
         if (response.data.success) {
+          // Store data sesuai format dari backend
+          // Backend mengembalikan: { success: true, data: { diagnosis, disease, plant, symptoms, certainty_value, recommendation, all_possibilities, matched_symptoms_count } }
           this.currentDiagnosis = response.data.data
         }
 
@@ -173,6 +175,66 @@ export const useDiagnosisStore = defineStore('diagnosis', {
       } catch (error) {
         this.error = error.response?.data || error.message
         throw error
+      }
+    },
+
+    // Submit feedback
+    async submitFeedback(diagnosisId, accuracy, comment = null) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.post(
+          `${API_BASE_URL}/feedback`,
+          {
+            diagnosis_id: diagnosisId,
+            accuracy: accuracy, // 'accurate', 'somewhat_accurate', 'inaccurate'
+            comment: comment
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Get feedback for diagnosis
+    async getFeedback(diagnosisId) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.get(
+          `${API_BASE_URL}/feedback/diagnosis/${diagnosisId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        )
+
+        return response.data
+      } catch (error) {
+        // If 404, no feedback yet
+        if (error.response?.status === 404) {
+          return { success: false, data: null }
+        }
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
       }
     }
   }

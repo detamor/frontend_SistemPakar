@@ -1,79 +1,364 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+/* ============================================
+   IMPORT STATEMENTS - Harus di paling atas
+   ============================================ */
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
+/* Import Tailwind CSS v4 - HARUS PERTAMA dan SATU-SATUNYA @import */
+@import "tailwindcss";
 
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
+/* Note: Google Fonts sudah di-load di index.html untuk menghindari masalah @import order */
+
+/* ============================================
+   TAILWIND THEME CUSTOMIZATION
+   ============================================ */
+@theme {
+  /* Green Color Scale untuk Tailwind CSS v4 */
+  --color-green-50: #f0fdf4;
+  --color-green-100: #dcfce7;
+  --color-green-200: #bbf7d0;
+  --color-green-300: #86efac;
+  --color-green-400: #4ade80;
+  --color-green-500: #22c55e;
+  --color-green-600: #27ae60;
+  --color-green-700: #229954;
+  --color-green-800: #166534;
+  --color-green-900: #14532d;
+  
+  /* Gray Color Scale untuk Tailwind CSS v4 */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  
+  /* Red Color Scale untuk Tailwind CSS v4 */
+  --color-red-50: #fef2f2;
+  --color-red-100: #fee2e2;
+  --color-red-500: #ef4444;
+  --color-red-600: #e74c3c;
+  --color-red-700: #dc2626;
+  
+  /* Blue Color Scale untuk Tailwind CSS v4 */
+  --color-blue-50: #eff6ff;
+  --color-blue-100: #dbeafe;
+  --color-blue-200: #bfdbfe;
+  
+  /* Primary Colors (Green - Tema Tanaman) - Custom */
+  --color-primary: #27ae60;
+  --color-primary-dark: #229954;
+  --color-primary-light: #2ecc71;
+  
+  /* Secondary Colors */
+  --color-secondary: #3498db;
+  --color-secondary-dark: #2980b9;
+  
+  /* Accent Colors */
+  --color-accent: #f39c12;
+  --color-accent-dark: #e67e22;
+  
+  /* Status Colors */
+  --color-success: #27ae60;
+  --color-danger: #e74c3c;
+  --color-warning: #f39c12;
+  --color-info: #3498db;
+}
+
+/* Override default style.css dengan design system */
+/* Design system sudah di-import di main.js */
+
+/* Global App Styles */
+#app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+  padding: var(--spacing-8) var(--spacing-4);
+}
+
+@media (min-width: 768px) {
+  main {
+    padding: var(--spacing-8) var(--spacing-6);
+  }
+}
+
+/* Typography - Konsistensi Font dan Ukuran */
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  color: #1f2937; /* gray-800 untuk kontras yang baik */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
-}
-
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-}
-
+/* Heading Hierarchy */
 h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+  font-size: 2rem; /* 32px */
+  font-weight: 700;
+  line-height: 1.2;
+  color: #111827; /* gray-900 */
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+h2 {
+  font-size: 1.75rem; /* 28px */
+  font-weight: 700;
+  line-height: 1.3;
+  color: #111827;
 }
 
-.card {
-  padding: 2em;
+h3 {
+  font-size: 1.5rem; /* 24px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1f2937; /* gray-800 */
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+h4 {
+  font-size: 1.25rem; /* 20px */
+  font-weight: 600;
+  line-height: 1.4;
+  color: #1f2937;
+}
+
+/* Paragraph */
+p {
+  font-size: 1rem; /* 16px */
+  line-height: 1.6;
+  color: #4b5563; /* gray-600 untuk kontras yang baik */
+}
+
+/* Links - default gunakan teks gelap untuk kontras */
+a {
+  color: #1f2937; /* gray-800 untuk kontras yang baik */
+  text-decoration: underline;
+  transition: color 0.2s ease;
+}
+
+a:hover {
+  color: #229954; /* green-700 saat hover */
+}
+
+/* Kontras teks dalam kontainer hijau */
+.bg-green-500,
+.bg-green-600,
+.bg-green-700 {
+  color: #ffffff;
+}
+
+.bg-green-500 a,
+.bg-green-600 a,
+.bg-green-700 a,
+.bg-green-500 span,
+.bg-green-600 span,
+.bg-green-700 span {
+  color: #ffffff;
+}
+
+/* Buttons - Konsistensi Warna */
+.btn-primary {
+  background-color: #27ae60; /* green-600 */
+  color: #ffffff;
+  font-weight: 600;
+  padding: 0.625rem 1.25rem; /* 10px 20px */
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-primary:hover {
+  background-color: #229954; /* green-700 */
+}
+
+.btn-secondary {
+  background-color: #f3f4f6; /* gray-100 */
+  color: #1f2937; /* gray-800 */
+  font-weight: 600;
+  padding: 0.625rem 1.25rem;
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background-color: #e5e7eb; /* gray-200 */
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: currentColor;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Empty State */
+.empty-state {
   text-align: center;
+  padding: var(--spacing-16) var(--spacing-4);
+  color: var(--text-secondary);
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
+.empty-state-icon {
+  font-size: var(--font-size-5xl);
+  margin-bottom: var(--spacing-4);
+  opacity: 0.5;
+}
+
+.empty-state-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-2);
+  color: var(--text-primary);
+}
+
+.empty-state-description {
+  font-size: var(--font-size-base);
+  margin-bottom: var(--spacing-6);
+}
+
+/* Page Header */
+.page-header {
+  margin-bottom: var(--spacing-8);
+}
+
+.page-header h1 {
+  margin-bottom: var(--spacing-2);
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--font-size-lg);
+}
+
+/* Form Styles */
+.form-section {
+  margin-bottom: var(--spacing-8);
+}
+
+.form-section-title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: var(--spacing-4);
+  color: var(--text-primary);
+  padding-bottom: var(--spacing-2);
+  border-bottom: 2px solid var(--border-color-light);
+}
+
+.form-group {
+  margin-bottom: var(--spacing-4);
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--spacing-3);
+  margin-top: var(--spacing-6);
+  justify-content: flex-end;
+}
+
+.form-actions--center {
+  justify-content: center;
+}
+
+.form-actions--space-between {
+  justify-content: space-between;
+}
+
+/* Badge */
+.badge {
+  display: inline-block;
+  padding: var(--spacing-1) var(--spacing-3);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-primary {
+  background-color: var(--color-primary-light);
+  color: var(--text-white);
+}
+
+.badge-secondary {
+  background-color: var(--color-secondary);
+  color: var(--text-white);
+}
+
+.badge-success {
+  background-color: var(--color-success);
+  color: var(--text-white);
+}
+
+.badge-danger {
+  background-color: var(--color-danger);
+  color: var(--text-white);
+}
+
+.badge-warning {
+  background-color: var(--color-warning);
+  color: var(--text-white);
+}
+
+.badge-info {
+  background-color: var(--color-info);
+  color: var(--text-white);
+}
+
+/* Alert */
+.alert {
+  padding: var(--spacing-4);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-4);
+  border-left: 4px solid;
+}
+
+.alert-success {
+  background-color: var(--color-success-light);
+  border-color: var(--color-success);
+  color: var(--color-primary-dark);
+}
+
+.alert-danger {
+  background-color: var(--color-danger-light);
+  border-color: var(--color-danger);
+  color: #922b21;
+}
+
+.alert-warning {
+  background-color: var(--color-warning-light);
+  border-color: var(--color-warning);
+  color: #7d6608;
+}
+
+.alert-info {
+  background-color: var(--color-info-light);
+  border-color: var(--color-info);
+  color: var(--color-secondary-dark);
+}
+
+/* Responsive Utilities */
+@media (max-width: 767px) {
+  .hide-mobile {
+    display: none !important;
   }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
+}
+
+@media (min-width: 768px) {
+  .show-mobile {
+    display: none !important;
   }
 }

@@ -22,7 +22,7 @@
 </template>
 
 <script setup>
-import { defineEmits, defineProps } from 'vue'
+// defineProps dan defineEmits adalah compiler macros, tidak perlu di-import
 
 const props = defineProps({
   modelValue: {

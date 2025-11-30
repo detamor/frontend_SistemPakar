@@ -34,7 +34,42 @@ export const useEducationStore = defineStore('education', {
         )
 
         if (response.data.success) {
-          this.modules = response.data.data
+          const modules = response.data.data
+          
+          // Fetch bookmarks to add is_bookmarked status
+          try {
+            const bookmarksResponse = await axios.get(
+              `${API_BASE_URL}/education/bookmarks/my`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              }
+            )
+            
+            if (bookmarksResponse.data.success) {
+              const bookmarkedIds = new Set(
+                bookmarksResponse.data.data.map(b => b.educational_module_id)
+              )
+              
+              // Add is_bookmarked property to modules
+              if (modules.data) {
+                modules.data = modules.data.map(module => ({
+                  ...module,
+                  is_bookmarked: bookmarkedIds.has(module.id)
+                }))
+              } else if (Array.isArray(modules)) {
+                modules.forEach(module => {
+                  module.is_bookmarked = bookmarkedIds.has(module.id)
+                })
+              }
+            }
+          } catch (bookmarkError) {
+            // If bookmark fetch fails, continue without bookmark status
+            console.warn('Failed to fetch bookmarks:', bookmarkError)
+          }
+          
+          this.modules = modules
         }
 
         return response.data

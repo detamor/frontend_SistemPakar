@@ -66,6 +66,67 @@ export const useConsultationStore = defineStore('consultation', {
       } finally {
         this.loading = false
       }
+    },
+
+    // Upload PDF untuk konsultasi
+    async uploadPdf(consultationId, pdfFile) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const formData = new FormData()
+        formData.append('consultation_id', consultationId)
+        formData.append('pdf_file', pdfFile)
+
+        const response = await axios.post(
+          `${API_BASE_URL}/consultation/upload-pdf`,
+          formData,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        )
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Send consultation to WhatsApp dengan PDF
+    async sendWhatsApp(consultationId, message = null) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.post(
+          `${API_BASE_URL}/consultation/whatsapp`,
+          {
+            consultation_id: consultationId,
+            message: message
+          },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

@@ -75,6 +75,37 @@ export const useProfileStore = defineStore('profile', {
       } finally {
         this.loading = false
       }
+    },
+
+    // Remove photo
+    async removePhoto() {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.delete(
+          `${API_BASE_URL}/profile/photo`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        )
+
+        if (response.data.success) {
+          // Update auth store user data
+          const authStore = useAuthStore()
+          authStore.user = response.data.data
+        }
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

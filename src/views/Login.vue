@@ -1,50 +1,101 @@
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <h1>Login</h1>
-      <p class="subtitle">Masuk ke System Pakar</p>
-
-      <form @submit.prevent="handleLogin" v-if="!loading">
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
-            id="email"
-            v-model="form.email"
-            type="email"
-            placeholder="nama@example.com"
-            required
-            :disabled="loading"
-          />
+  <div class="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 py-8 sm:py-12">
+    <div class="w-full max-w-md">
+      <!-- Logo/Brand -->
+      <div class="text-center mb-6 sm:mb-8">
+        <div class="inline-flex items-center gap-2 mb-3 sm:mb-4">
+          <img :src="logoImage" alt="System Pakar" class="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-xl" />
+          <span class="text-xl sm:text-2xl font-bold bg-linear-to-r from-green-600 to-green-700 bg-clip-text text-transparent font-poppins">
+            System Pakar
+          </span>
         </div>
-
-        <div class="form-group">
-          <label for="password">Password</label>
-          <input
-            id="password"
-            v-model="form.password"
-            type="password"
-            placeholder="Masukkan password"
-            required
-            :disabled="loading"
-          />
-        </div>
-
-        <div v-if="error" class="error-message">
-          {{ error }}
-        </div>
-
-        <button type="submit" :disabled="loading" class="btn-primary">
-          {{ loading ? 'Memproses...' : 'Login' }}
-        </button>
-      </form>
-
-      <div v-if="loading" class="loading">
-        Memproses...
+        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Masuk ke Akun</h1>
+        <p class="text-sm sm:text-base text-gray-600 leading-relaxed px-2">
+          Selamat datang kembali! Masukkan email/nomor WhatsApp dan password untuk mengakses semua fitur sistem pakar.
+        </p>
       </div>
 
-      <div class="links">
-        <router-link to="/register">Belum punya akun? Daftar</router-link>
-        <router-link to="/reset-password">Lupa password?</router-link>
+      <!-- Login Card -->
+      <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 border border-gray-200">
+        <form @submit.prevent="handleLogin" class="space-y-6">
+          <!-- Email/WhatsApp Input -->
+          <div>
+            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
+              Email atau Nomor WhatsApp <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="email"
+              v-model="form.email"
+              type="text"
+              placeholder="Contoh: user@email.com atau 081234567890"
+              required
+              :disabled="loading"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <!-- Password Input -->
+          <div>
+            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
+              Password <span class="text-red-500">*</span>
+            </label>
+            <input
+              id="password"
+              v-model="form.password"
+              type="password"
+              placeholder="Masukkan password akun kamu"
+              required
+              :disabled="loading"
+              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+            />
+          </div>
+
+          <!-- Error Message -->
+          <div v-if="error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+              </svg>
+              <p class="text-sm text-red-700 font-medium">{{ error }}</p>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            :disabled="loading"
+            class="w-full py-3.5 bg-linear-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            <span v-if="loading" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+            <span>{{ loading ? 'Memproses...' : 'Masuk' }}</span>
+          </button>
+        </form>
+
+        <!-- Links -->
+        <div class="mt-6 space-y-3 text-center">
+          <router-link
+            to="/register"
+            class="block text-sm text-green-600 font-semibold hover:text-green-700 transition-colors duration-200"
+          >
+            Belum punya akun? <span class="underline">Daftar sekarang</span>
+          </router-link>
+          <router-link
+            to="/reset-password"
+            class="block text-sm text-gray-600 hover:text-green-600 transition-colors duration-200"
+          >
+            Lupa password?
+          </router-link>
+        </div>
+      </div>
+
+      <!-- Additional Info -->
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-500">
+          Dengan masuk, Anda menyetujui
+          <a href="#" class="text-green-600 hover:text-green-700 font-medium">Ketentuan Layanan</a>
+          dan
+          <a href="#" class="text-green-600 hover:text-green-700 font-medium">Kebijakan Privasi</a>
+        </p>
       </div>
     </div>
   </div>
@@ -54,6 +105,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import logoImage from '../assets/logo-hydrangea.png'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -73,7 +125,7 @@ const handleLogin = async () => {
   try {
     await authStore.login(form.value.email, form.value.password)
   } catch (err) {
-    error.value = err.response?.data?.message || 'Login gagal. Periksa email dan password Anda.'
+    error.value = err.response?.data?.message || 'Login gagal. Periksa email/nomor WhatsApp dan password kamu.'
   } finally {
     loading.value = false
   }
@@ -86,121 +138,3 @@ onMounted(() => {
   }
 })
 </script>
-
-<style scoped>
-.login-container {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
-}
-
-.login-card {
-  background: white;
-  border-radius: 12px;
-  padding: 3rem;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-  font-size: 2rem;
-}
-
-.subtitle {
-  color: #666;
-  margin-bottom: 2rem;
-}
-
-.form-group {
-  margin-bottom: 1.5rem;
-}
-
-.form-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  color: #333;
-  font-weight: 500;
-}
-
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.3s;
-}
-
-.form-group input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.form-group input:disabled {
-  background: #f5f5f5;
-  cursor: not-allowed;
-}
-
-.error-message {
-  background: #fee;
-  color: #c33;
-  padding: 0.75rem;
-  border-radius: 6px;
-  margin-bottom: 1rem;
-  font-size: 0.9rem;
-}
-
-.btn-primary {
-  width: 100%;
-  padding: 0.75rem;
-  background: #667eea;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 1rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.3s;
-}
-
-.btn-primary:hover:not(:disabled) {
-  background: #5568d3;
-}
-
-.btn-primary:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
-
-.loading {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-}
-
-.links {
-  margin-top: 1.5rem;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.links a {
-  color: #667eea;
-  text-decoration: none;
-  font-size: 0.9rem;
-}
-
-.links a:hover {
-  text-decoration: underline;
-}
-</style>
-
-

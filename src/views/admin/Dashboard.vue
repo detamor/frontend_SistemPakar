@@ -1,5 +1,15 @@
 <template>
   <div class="admin-dashboard">
+    <!-- Tombol Kembali -->
+    <div class="mb-6">
+      <router-link
+        to="/"
+        class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
+      >
+        <span>←</span>
+        <span>Kembali ke Home</span>
+      </router-link>
+    </div>
     <h1>Dashboard Admin</h1>
     
     <div class="stats-grid">
@@ -33,7 +43,10 @@
           <p>Kelola modul pembelajaran</p>
         </router-link>
         <router-link to="/admin/plants" class="link-card">
-          <h3>🌱 Tanaman</h3>
+          <h3 class="flex items-center gap-2">
+            <img :src="logoImage" alt="Tanaman" class="w-5 h-5 object-contain rounded-md" />
+            <span>Tanaman</span>
+          </h3>
           <p>Kelola data tanaman</p>
         </router-link>
         <router-link to="/admin/symptoms" class="link-card">
@@ -44,6 +57,10 @@
           <h3>🦠 Penyakit</h3>
           <p>Kelola penyakit & CF</p>
         </router-link>
+        <router-link to="/admin/cf-levels" class="link-card">
+          <h3>📊 Bobot Nilai CF</h3>
+          <p>Kelola keterangan & bobot nilai</p>
+        </router-link>
       </div>
     </div>
   </div>
@@ -52,6 +69,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAdminStore } from '../../stores/admin'
+import logoImage from '../../assets/logo-hydrangea.png'
 
 const adminStore = useAdminStore()
 const stats = ref({
