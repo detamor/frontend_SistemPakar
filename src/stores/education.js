@@ -14,7 +14,7 @@ export const useEducationStore = defineStore('education', {
 
   actions: {
     // Get all modules
-    async fetchModules(category = null, page = 1) {
+    async fetchModules(category = null, page = 1, search = null) {
       this.loading = true
       this.error = null
 
@@ -22,6 +22,7 @@ export const useEducationStore = defineStore('education', {
         const token = localStorage.getItem('auth_token')
         const params = { page }
         if (category) params.category = category
+        if (search && search.trim()) params.search = search.trim()
 
         const response = await axios.get(
           `${API_BASE_URL}/education`,

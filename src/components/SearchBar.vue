@@ -1,12 +1,8 @@
 <template>
   <div class="relative search-bar-container">
     <!-- Search Input -->
-    <div class="relative">
-      <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-        </svg>
-      </div>
+    <div class="relative group">
+      <!-- Input Field -->
       <input
         type="text"
         v-model="searchQuery"
@@ -15,19 +11,57 @@
         @blur="handleBlur"
         :placeholder="placeholder"
         :class="[
-          'w-full pl-12 pr-10 text-base text-gray-800 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200',
-          compact ? 'py-2' : 'py-2.5'
+          'w-full bg-white border border-gray-300 rounded-xl',
+          'focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500',
+          'transition-all duration-200',
+          'shadow-sm hover:shadow-md focus:shadow-lg',
+          'placeholder:text-gray-400',
+          'text-gray-900',
+          compact 
+            ? 'pl-3 pr-10 py-2.5 text-sm' 
+            : 'pl-4 pr-12 py-2.5 text-sm lg:text-base'
         ]"
       />
+      
+      <!-- Clear Button - Di kiri icon search (muncul saat ada teks) -->
       <button
         v-if="searchQuery"
-        @click="clearSearch"
-        class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600 transition-colors"
+        @click.stop="clearSearch"
+        class="absolute inset-y-0 right-0 flex items-center pr-11 text-gray-400 hover:text-green-600 transition-all duration-200 z-20 group/clear"
+        type="button"
+        aria-label="Clear search"
       >
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        <svg 
+          class="w-4 h-4 group-hover/clear:scale-110 transition-transform duration-200" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2.5" 
+            d="M6 18L18 6M6 6l12 12"
+          ></path>
         </svg>
       </button>
+      
+      <!-- Search Icon - Di Kanan -->
+      <div class="absolute inset-y-0 right-0 flex items-center pointer-events-none z-10" :class="searchQuery ? 'pr-3.5' : 'pr-3.5'">
+        <svg 
+          class="w-5 h-5 text-gray-400 group-focus-within:text-green-600 transition-colors duration-200" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <path 
+            stroke-linecap="round" 
+            stroke-linejoin="round" 
+            stroke-width="2.5" 
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          ></path>
+        </svg>
+      </div>
     </div>
 
     <!-- Search Results Dropdown -->
@@ -41,59 +75,65 @@
     >
       <div
         v-if="showResults && (searchResults.length > 0 || searchQuery.length > 0)"
-        class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-96 overflow-y-auto"
+        class="absolute z-50 w-full mt-2 bg-white rounded-xl shadow-2xl border border-gray-200 max-h-96 overflow-y-auto backdrop-blur-sm"
         @mousedown.prevent
       >
         <!-- Loading State -->
-        <div v-if="loading" class="p-4 text-center text-gray-600">
-          <div class="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-600"></div>
-          <p class="mt-2 text-sm">Mencari...</p>
+        <div v-if="loading" class="p-6 text-center">
+          <div class="inline-flex items-center justify-center">
+            <div class="animate-spin rounded-full h-6 w-6 border-2 border-green-600 border-t-transparent"></div>
+            <p class="ml-3 text-sm font-medium text-gray-600">Mencari...</p>
+          </div>
         </div>
 
         <!-- No Results -->
-        <div v-else-if="searchQuery && searchResults.length === 0" class="p-4 text-center text-gray-600">
-          <svg class="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <p class="text-sm font-medium">Tidak ada hasil ditemukan</p>
-          <p class="text-xs text-gray-500 mt-1">Coba kata kunci lain</p>
+        <div v-else-if="searchQuery && searchResults.length === 0" class="p-6 text-center">
+          <div class="flex flex-col items-center">
+            <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mb-3">
+              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <p class="text-sm font-semibold text-gray-700 mb-1">Tidak ada hasil ditemukan</p>
+            <p class="text-xs text-gray-500">Coba gunakan kata kunci lain</p>
+          </div>
         </div>
 
         <!-- Search Results -->
         <div v-else-if="searchResults.length > 0" class="py-2">
           <!-- Quick Actions -->
-          <div v-if="quickActions.length > 0" class="px-4 py-2 border-b border-gray-100">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Aksi Cepat</p>
+          <div v-if="quickActions.length > 0" class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2.5">Aksi Cepat</p>
             <div class="space-y-1">
               <button
                 v-for="action in quickActions"
                 :key="action.label"
                 @click="handleQuickAction(action)"
-                class="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 rounded-lg transition-colors text-left"
+                class="w-full flex items-center gap-3 px-3.5 py-2.5 text-sm font-medium text-gray-700 hover:bg-white hover:text-green-700 rounded-lg transition-all duration-200 text-left border border-transparent hover:border-green-200 hover:shadow-sm"
               >
-                <span class="text-lg">{{ action.icon }}</span>
+                <span class="text-lg leading-none">{{ action.icon }}</span>
                 <span>{{ action.label }}</span>
               </button>
             </div>
           </div>
 
           <!-- Results by Category -->
-          <div v-for="(category, index) in groupedResults" :key="index" class="px-4 py-2">
-            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">{{ category.title }}</p>
-            <div class="space-y-1">
+          <div v-for="(category, index) in groupedResults" :key="index" class="px-4 py-3" :class="index > 0 ? 'border-t border-gray-100' : ''">
+            <p class="text-xs font-semibold text-gray-600 uppercase tracking-wider mb-2.5">{{ category.title }}</p>
+            <div class="space-y-0.5">
               <router-link
                 v-for="item in category.items"
                 :key="item.id"
                 :to="item.route"
                 @click="handleResultClick"
-                class="flex items-center gap-3 px-3 py-2 text-sm text-gray-800 hover:bg-green-50 hover:text-green-700 rounded-lg transition-colors group"
+                class="flex items-center gap-3 px-3.5 py-2.5 text-sm text-gray-800 hover:bg-green-50 hover:text-green-700 rounded-lg transition-all duration-200 group border border-transparent hover:border-green-200"
               >
-                <span class="text-lg">{{ item.icon }}</span>
+                <span class="text-lg leading-none shrink-0">{{ item.icon }}</span>
                 <div class="flex-1 min-w-0">
-                  <p class="font-medium truncate">{{ item.title }}</p>
-                  <p v-if="item.description" class="text-xs text-gray-500 truncate">{{ item.description }}</p>
+                  <p class="font-medium text-gray-900 group-hover:text-green-700 truncate">{{ item.title }}</p>
+                  <p v-if="item.description" class="text-xs text-gray-500 group-hover:text-green-600 truncate mt-0.5">{{ item.description }}</p>
                 </div>
-                <svg class="w-4 h-4 text-gray-400 group-hover:text-green-700 opacity-0 group-hover:opacity-100 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-gray-400 group-hover:text-green-600 opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                 </svg>
               </router-link>
@@ -341,25 +381,55 @@ watch(
 <style scoped>
 .search-bar-container {
   position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+/* Ensure input doesn't overflow and text doesn't get cut off */
+.search-bar-container input {
+  box-sizing: border-box;
+  min-width: 0;
+  width: 100%;
+  font-family: inherit;
+}
+
+/* Placeholder text styling - prevent text cutoff */
+.search-bar-container input::placeholder {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+  opacity: 0.6;
+}
+
+/* Focus state enhancement */
+.search-bar-container input:focus {
+  transform: translateY(-1px);
 }
 
 /* Custom scrollbar for results */
 .overflow-y-auto::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #f9fafb;
   border-radius: 0 0 12px 12px;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb {
-  background: #27ae60;
-  border-radius: 3px;
+  background: #d1d5db;
+  border-radius: 4px;
+  transition: background 0.2s;
 }
 
 .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-  background: #229954;
+  background: #16a34a;
+}
+
+/* Smooth transitions */
+.search-bar-container * {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 </style>
 

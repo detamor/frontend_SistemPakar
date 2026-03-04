@@ -1,7 +1,7 @@
 <template>
   <div class="admin-dashboard">
     <!-- Tombol Kembali -->
-    <div class="mb-6">
+    <div class="mb-6 flex justify-between items-center">
       <router-link
         to="/"
         class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
@@ -9,57 +9,115 @@
         <span>←</span>
         <span>Kembali ke Home</span>
       </router-link>
+      <div class="text-xs text-slate-400 font-medium">
+        Terakhir diperbarui: {{ lastUpdate }}
+      </div>
     </div>
-    <h1>Dashboard Admin</h1>
     
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Total Users</h3>
-        <p class="stat-value">{{ stats.totalUsers || 0 }}</p>
+    <div class="flex items-center gap-3 mb-8">
+      <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+        <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
       </div>
-      <div class="stat-card">
-        <h3>Total Diagnosis</h3>
-        <p class="stat-value">{{ stats.totalDiagnoses || 0 }}</p>
+      <div>
+        <h1 class="text-2xl font-black text-slate-800 m-0">Dashboard Admin</h1>
+        <p class="text-slate-500 text-sm m-0">Insight & Analitik Sistem Pakar</p>
       </div>
-      <div class="stat-card">
-        <h3>Modul Edukasi</h3>
-        <p class="stat-value">{{ stats.totalModules || 0 }}</p>
+    </div>
+    
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-blue-50 text-blue-600 rounded-lg flex items-center justify-center">👤</div>
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Total Users</p>
+            <p class="text-2xl font-black text-slate-800">{{ quickStats.totalUsers || 0 }}</p>
+          </div>
+        </div>
       </div>
-      <div class="stat-card">
-        <h3>Konsultasi</h3>
-        <p class="stat-value">{{ stats.totalConsultations || 0 }}</p>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center">🩺</div>
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Diagnosis</p>
+            <p class="text-2xl font-black text-slate-800">{{ quickStats.totalDiagnoses || 0 }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-amber-50 text-amber-600 rounded-lg flex items-center justify-center">📚</div>
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Modul Edukasi</p>
+            <p class="text-2xl font-black text-slate-800">{{ quickStats.totalModules || 0 }}</p>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+        <div class="flex items-center gap-4">
+          <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-lg flex items-center justify-center">💬</div>
+          <div>
+            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Konsultasi</p>
+            <p class="text-2xl font-black text-slate-800">{{ quickStats.totalConsultations || 0 }}</p>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="quick-links">
-      <h2>Quick Links</h2>
-      <div class="links-grid">
-        <router-link to="/admin/users" class="link-card">
-          <h3>👥 Manajemen User</h3>
-          <p>Kelola pengguna sistem</p>
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      <!-- Top Diseases Chart -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2">
+          <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
+          Sebaran Penyakit Paling Sering Terdeteksi
+        </h3>
+        <div class="h-64 flex items-center justify-center">
+          <Bar v-if="diseaseChartData.labels.length" :data="diseaseChartData" :options="chartOptions" />
+          <div v-else class="text-slate-300 text-xs italic">Menunggu data diagnosis...</div>
+        </div>
+      </div>
+
+      <!-- Feedback Distribution -->
+      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+        <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2">
+          <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+          Tingkat Kepuasan / Akurasi Sistem
+        </h3>
+        <div class="h-64 flex items-center justify-center">
+          <Doughnut v-if="feedbackChartData.labels.length" :data="feedbackChartData" :options="chartOptions" />
+          <div v-else class="text-slate-300 text-xs italic">Belum ada feedback terkumpul</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200/50">
+      <h2 class="text-lg font-bold text-slate-800 mb-6">Navigasi Manajemen</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+        <router-link to="/admin/users" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
+          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">👥</div>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Users</p>
         </router-link>
-        <router-link to="/admin/education" class="link-card">
-          <h3>📚 Modul Edukasi</h3>
-          <p>Kelola modul pembelajaran</p>
+        <router-link to="/admin/education" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
+          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📚</div>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Edukasi</p>
         </router-link>
-        <router-link to="/admin/plants" class="link-card">
-          <h3 class="flex items-center gap-2">
-            <img :src="logoImage" alt="Tanaman" class="w-5 h-5 object-contain rounded-md" />
-            <span>Tanaman</span>
-          </h3>
-          <p>Kelola data tanaman</p>
+        <router-link to="/admin/plants" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
+          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🌿</div>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Tanaman</p>
         </router-link>
-        <router-link to="/admin/symptoms" class="link-card">
-          <h3>🔍 Gejala</h3>
-          <p>Kelola gejala penyakit</p>
+        <router-link to="/admin/symptoms" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
+          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🔍</div>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Gejala</p>
         </router-link>
-        <router-link to="/admin/diseases" class="link-card">
-          <h3>🦠 Penyakit</h3>
-          <p>Kelola penyakit & CF</p>
+        <router-link to="/admin/diseases" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
+          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🦠</div>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Penyakit</p>
         </router-link>
-        <router-link to="/admin/cf-levels" class="link-card">
-          <h3>📊 Bobot Nilai CF</h3>
-          <p>Kelola keterangan & bobot nilai</p>
+        <router-link to="/admin/cf-levels" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
+          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📊</div>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Bobot CF</p>
         </router-link>
       </div>
     </div>
@@ -67,35 +125,67 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAdminStore } from '../../stores/admin'
-import logoImage from '../../assets/logo-hydrangea.png'
+import { Bar, Doughnut } from 'vue-chartjs'
+import { 
+  Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale,
+  ArcElement
+} from 'chart.js'
+
+// Register ChartJS components
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement)
 
 const adminStore = useAdminStore()
-const stats = ref({
-  totalUsers: 0,
-  totalDiagnoses: 0,
-  totalModules: 0,
-  totalConsultations: 0
-})
+const quickStats = computed(() => adminStore.quickStats)
+const lastUpdate = ref(new Date().toLocaleTimeString('id-ID'))
 
-const loadStats = async () => {
-  // Load basic stats
-  try {
-    const [usersRes, modulesRes] = await Promise.all([
-      adminStore.fetchUsers({ per_page: 1 }),
-      adminStore.fetchEducationModules({ per_page: 1 })
-    ])
-    
-    stats.value.totalUsers = usersRes.data?.total || 0
-    stats.value.totalModules = modulesRes.data?.total || 0
-  } catch (error) {
-    console.error('Error loading stats:', error)
+const chartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false }
+  },
+  scales: {
+    y: { beginAtZero: true, grid: { display: false } },
+    x: { grid: { display: false } }
   }
 }
 
-onMounted(() => {
-  loadStats()
+const diseaseChartData = computed(() => {
+  const top = adminStore.topDiseases || []
+  return {
+    labels: top.map(d => d.disease?.name || 'Unknown'),
+    datasets: [{
+      label: 'Deteksi',
+      data: top.map(d => d.total),
+      backgroundColor: '#10b981',
+      borderRadius: 8
+    }]
+  }
+})
+
+const feedbackChartData = computed(() => {
+  const dist = adminStore.feedbackDistribution || []
+  return {
+    labels: dist.map(f => `Rating ${f.rating}`),
+    datasets: [{
+      data: dist.map(f => f.total),
+      backgroundColor: ['#10b981', '#fbbf24', '#f87171', '#60a5fa', '#a78bfa'],
+      hoverOffset: 4
+    }]
+  }
+})
+
+onMounted(async () => {
+  try {
+    await Promise.all([
+      adminStore.fetchQuickStats(),
+      adminStore.fetchDiagnosisStats()
+    ])
+  } catch (err) {
+    console.error('Gagal memuat statistik dashboard', err)
+  }
 })
 </script>
 
@@ -104,85 +194,8 @@ onMounted(() => {
   max-width: 1200px;
   margin: 0 auto;
   padding: 2rem;
-}
-
-h1 {
-  margin-bottom: 2rem;
-  color: #333;
-  font-size: 2rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 3rem;
-}
-
-.stat-card {
-  background: white;
-  padding: 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-align: center;
-}
-
-.stat-card h3 {
-  margin: 0 0 0.5rem 0;
-  color: #666;
-  font-size: 0.9rem;
-  font-weight: 500;
-}
-
-.stat-value {
-  margin: 0;
-  font-size: 2.5rem;
-  font-weight: bold;
-  color: #667eea;
-}
-
-.quick-links {
-  margin-top: 3rem;
-}
-
-.quick-links h2 {
-  margin-bottom: 1.5rem;
-  color: #333;
-}
-
-.links-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.link-card {
-  background: white;
-  padding: 2rem;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  text-decoration: none;
-  color: inherit;
-  transition: all 0.3s;
-  border: 2px solid transparent;
-}
-
-.link-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  border-color: #667eea;
-}
-
-.link-card h3 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-  font-size: 1.25rem;
-}
-
-.link-card p {
-  margin: 0;
-  color: #666;
-  font-size: 0.9rem;
+  background: var(--bg-subtle);
+  min-height: 100vh;
 }
 </style>
 

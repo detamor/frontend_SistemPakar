@@ -1,1212 +1,448 @@
 <template>
-  <div class="detail-container">
-    <div v-if="loading" class="loading">
-      Memuat detail diagnosis...
-    </div>
-
-    <div v-else-if="diagnosis" class="detail-card">
-      <!-- Header -->
-      <div class="detail-header">
-        <div>
-          <h1>Detail Diagnosis</h1>
-          <p class="detail-date">
-            {{ formatDate(diagnosis.created_at) }}
-          </p>
-        </div>
-        <div class="header-actions">
-          <router-link to="/diagnosis/history" class="btn-back">
-            ← Kembali
-          </router-link>
-        </div>
-      </div>
-
-      <!-- Plant Info -->
-      <div class="info-section">
-        <h2>Informasi Tanaman</h2>
-        <div class="info-grid">
-          <div class="info-item">
-            <span class="info-label">Jenis Tanaman:</span>
-            <span class="info-value">{{ diagnosis.plant?.name || '-' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label">Nama Ilmiah:</span>
-            <span class="info-value">{{ diagnosis.plant?.scientific_name || '-' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Diagnosis Result -->
-      <div v-if="diagnosis.disease || diagnosis.disease_id" class="result-section">
-        <h2>Hasil Diagnosis</h2>
-        <div class="result-card">
-          <div class="result-header">
-            <h3>{{ diagnosis.disease?.name || 'Penyakit Tidak Diketahui' }}</h3>
-            <div class="cf-badge" v-if="diagnosis.certainty_value !== null && diagnosis.certainty_value !== undefined">
-              <span class="cf-label">Tingkat Kepastian:</span>
-              <span class="cf-value">{{ (diagnosis.certainty_value * 100).toFixed(1) }}%</span>
-            </div>
-          </div>
-
-          <div v-if="diagnosis.certainty_value !== null && diagnosis.certainty_value !== undefined" class="cf-indicator">
-            <div class="cf-bar">
-              <div
-                class="cf-fill"
-                :style="{ width: (diagnosis.certainty_value * 100) + '%' }"
-                :class="getCFClass(diagnosis.certainty_value)"
-              ></div>
-            </div>
-            <div class="cf-labels">
-              <span>Rendah</span>
-              <span>Sedang</span>
-              <span>Tinggi</span>
-            </div>
-          </div>
-
-          <!-- Recommendation dari Python Engine -->
-          <div v-if="diagnosis.recommendation" class="recommendation-block">
-            <h4>📋 Rekomendasi Sistem:</h4>
-            <div class="recommendation-content" v-html="formatRecommendation(diagnosis.recommendation)"></div>
-          </div>
-
-          <div class="disease-info">
-            <div v-if="diagnosis.disease?.description" class="info-block">
-              <h4>Deskripsi:</h4>
-              <p>{{ diagnosis.disease.description }}</p>
-            </div>
-
-            <div v-if="diagnosis.disease?.cause" class="info-block">
-              <h4>Penyebab:</h4>
-              <p>{{ diagnosis.disease.cause }}</p>
-            </div>
-
-            <div v-if="diagnosis.disease?.solution" class="info-block">
-              <h4>Solusi Penanganan:</h4>
-              <p>{{ diagnosis.disease.solution }}</p>
-            </div>
-
-            <div v-if="diagnosis.disease?.prevention" class="info-block">
-              <h4>Pencegahan:</h4>
-              <p>{{ diagnosis.disease.prevention }}</p>
-            </div>
-          </div>
-
-          <!-- Matched Symptoms Count -->
-          <div v-if="diagnosis.matched_symptoms_count" class="matched-info">
-            <p class="matched-text">
-              <span class="matched-label">Gejala yang Match:</span>
-              <span class="matched-value">{{ diagnosis.matched_symptoms_count }} gejala</span>
+  <div style="background:var(--bg-page);min-height:100vh;">
+    <!-- Page Header -->
+    <div class="sp-page-header" style="padding:calc(64px + 1.75rem) 1.25rem 1.75rem;">
+      <div class="page-container">
+        <RouterLink to="/diagnosis/history" class="sp-btn sp-btn-secondary sp-btn-sm" style="margin-bottom:1rem;display:inline-flex;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Kembali
+        </RouterLink>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem;">
+          <div>
+            <h1 style="margin:0 0 .375rem;">Detail Diagnosis</h1>
+            <p v-if="diagnosis" style="margin:0;font-size:.875rem;color:var(--text-muted);">
+              {{ formatDate(diagnosis.created_at) }}
             </p>
           </div>
-        </div>
-      </div>
-
-      <!-- All Possibilities (Kemungkinan Penyakit Lain) -->
-      <div v-if="diagnosis.all_possibilities && diagnosis.all_possibilities.length > 1" class="possibilities-section">
-        <h2>Kemungkinan Penyakit Lain</h2>
-        <div class="possibilities-list">
-          <div
-            v-for="(possibility, index) in diagnosis.all_possibilities.slice(1, 6)"
-            :key="possibility.disease_id"
-            class="possibility-item"
-          >
-            <div class="possibility-header">
-              <span class="possibility-rank">#{{ index + 2 }}</span>
-              <h4>{{ possibility.disease_name }}</h4>
-              <span class="possibility-cf">{{ (possibility.certainty_value * 100).toFixed(2) }}%</span>
-            </div>
-            <div class="possibility-details">
-              <p class="possibility-matched">
-                Match: {{ possibility.matched_count || 0 }} gejala
-              </p>
-              <div v-if="possibility.solution" class="possibility-solution">
-                <strong>Solusi:</strong> {{ possibility.solution }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div v-else class="result-section">
-        <div class="no-result">
-          <p>Belum ada hasil diagnosis</p>
-        </div>
-      </div>
-
-      <!-- Symptoms -->
-      <div class="symptoms-section" v-if="diagnosis.symptoms && diagnosis.symptoms.length > 0">
-        <h2>Gejala yang Dipilih</h2>
-        <div class="symptoms-list">
-          <div
-            v-for="symptom in diagnosis.symptoms"
-            :key="symptom.id"
-            class="symptom-item"
-          >
-            <div class="symptom-code">{{ symptom.code }}</div>
-            <div class="symptom-desc">{{ symptom.description }}</div>
-            <div class="symptom-cf">
-              CF User: {{ ((symptom.pivot?.user_cf || symptom.user_cf || 0) * 100).toFixed(0) }}%
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- User Notes -->
-      <div v-if="diagnosis.user_notes" class="notes-section">
-        <h2>Catatan</h2>
-        <div class="notes-content">
-          {{ diagnosis.user_notes }}
-        </div>
-      </div>
-
-      <!-- Feedback Section -->
-      <div v-if="!showFeedbackForm && !hasFeedback" class="feedback-section">
-        <div class="feedback-prompt">
-          <h3>Bagaimana hasil diagnosis ini?</h3>
-          <p class="feedback-question">Berikan feedback untuk membantu kami meningkatkan kualitas diagnosis</p>
-          <button
-            @click="showFeedbackForm = true"
-            class="btn-give-feedback"
-          >
-            📝 Berikan Feedback
+          <button v-if="diagnosis" @click="downloadPdf" class="sp-btn sp-btn-secondary sp-btn-sm" style="background:white;gap:.5rem;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+            Unduh PDF
           </button>
         </div>
       </div>
+    </div>
 
-      <!-- Feedback Form -->
-      <div v-if="showFeedbackForm && !hasFeedback" class="feedback-form-section">
-        <div class="feedback-form-card">
-          <h3>Berikan Feedback</h3>
-          <form @submit.prevent="submitFeedbackForm" class="feedback-form">
-            <div class="form-group">
-              <label class="form-label">Rating <span class="required">*</span></label>
-              <div class="rating-options">
-                <label
-                  v-for="rating in feedbackRatings"
-                  :key="rating.value"
-                  :class="['rating-option', { active: feedbackForm.accuracy === rating.value }]"
-                >
-                  <input
-                    type="radio"
-                    :value="rating.value"
-                    v-model="feedbackForm.accuracy"
-                    required
-                  />
-                  <span class="rating-icon">{{ rating.icon }}</span>
-                  <span class="rating-label">{{ rating.label }}</span>
-                </label>
+    <div class="page-container" style="max-width:860px;padding-top:2rem;padding-bottom:3rem;">
+      <!-- Loading -->
+      <div v-if="loading" class="sp-card" style="padding:3rem;text-align:center;">
+        <div class="sp-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 1rem;"></div>
+        <p style="color:var(--text-muted);">Memuat detail diagnosis...</p>
+      </div>
+
+      <div v-else-if="diagnosis" style="display:flex;flex-direction:column;gap:1.25rem;">
+
+        <!-- Plant Info -->
+        <div class="sp-card" style="padding:1.5rem;">
+          <h2 class="section-title">
+            <span class="section-icon section-icon--green">🌱</span>
+            Informasi Tanaman
+          </h2>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div>
+              <span class="info-label">Jenis Tanaman</span>
+              <span class="info-value">{{ diagnosis.plant?.name || '-' }}</span>
+            </div>
+            <div>
+              <span class="info-label">Nama Ilmiah</span>
+              <span class="info-value" style="font-style:italic;">{{ diagnosis.plant?.scientific_name || '-' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result -->
+        <div v-if="diagnosis.disease || diagnosis.disease_id" class="sp-card" style="padding:1.5rem;">
+          <h2 class="section-title">
+            <span class="section-icon section-icon--blue">🔬</span>
+            Hasil Diagnosis
+          </h2>
+          <div class="result-box">
+            <div class="result-top">
+              <div>
+                <h3 class="result-disease">{{ diagnosis.disease?.name || 'Penyakit Tidak Diketahui' }}</h3>
+                <div style="display:flex;align-items:center;gap:.5rem;margin-top:.375rem;">
+                  <span class="cf-label">Tingkat Kepastian:</span>
+                  <span class="cf-pct" :class="getCFClass(diagnosis.certainty_value)">
+                    {{ (diagnosis.certainty_value * 100).toFixed(1) }}%
+                  </span>
+                  <span class="cf-badge" :class="getCFBadgeClass(diagnosis.certainty_value)">
+                    {{ getCFLabel(diagnosis.certainty_value) }}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div class="form-group">
-              <label for="feedback-comment" class="form-label">Komentar (Opsional)</label>
-              <textarea
-                id="feedback-comment"
-                v-model="feedbackForm.comment"
-                placeholder="Bagikan pendapat kamu tentang hasil diagnosis ini..."
-                rows="4"
-                class="form-textarea"
-                maxlength="1000"
-              ></textarea>
-              <p class="char-count">{{ feedbackForm.comment?.length || 0 }}/1000 karakter</p>
+            <!-- Progress Bar -->
+            <div style="margin:1rem 0;">
+              <div class="cf-bar-track">
+                <div class="cf-bar-fill" :class="getCFBarClass(diagnosis.certainty_value)" :style="{ width: (diagnosis.certainty_value * 100) + '%' }"></div>
+              </div>
+              <div class="cf-bar-labels">
+                <span>Rendah</span><span>Sedang</span><span>Tinggi</span>
+              </div>
             </div>
 
-            <div v-if="feedbackError" class="error-message">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-              </svg>
-              <span>{{ feedbackError }}</span>
+            <!-- Disease details -->
+            <div class="disease-details">
+              <div v-if="diagnosis.disease?.description" class="detail-row">
+                <h4 class="detail-title">Deskripsi</h4>
+                <p class="detail-text">{{ diagnosis.disease.description }}</p>
+              </div>
+              <div v-if="diagnosis.disease?.cause" class="detail-row">
+                <h4 class="detail-title detail-title--amber">Penyebab</h4>
+                <p class="detail-text">{{ diagnosis.disease.cause }}</p>
+              </div>
+              <div v-if="diagnosis.disease?.solution" class="detail-row">
+                <h4 class="detail-title detail-title--green">Solusi Penanganan</h4>
+                <p class="detail-text">{{ diagnosis.disease.solution }}</p>
+              </div>
+              <div v-if="diagnosis.disease?.prevention" class="detail-row">
+                <h4 class="detail-title detail-title--blue">Pencegahan</h4>
+                <p class="detail-text">{{ diagnosis.disease.prevention }}</p>
+              </div>
             </div>
 
-            <div class="form-actions">
-              <button
-                type="button"
-                @click="cancelFeedback"
-                class="btn-cancel"
-                :disabled="submittingFeedback"
-              >
-                Batal
-              </button>
-              <button
-                type="submit"
-                class="btn-submit"
-                :disabled="submittingFeedback || !feedbackForm.accuracy"
-              >
-                <span v-if="submittingFeedback" class="loading-spinner-small"></span>
-                <span>{{ submittingFeedback ? 'Mengirim...' : 'Kirim Feedback' }}</span>
+            <!-- Recommendation -->
+            <div v-if="diagnosis.recommendation" class="recommendation-box">
+              <h4 style="font-size:.875rem;font-weight:600;color:var(--gray-800);margin-bottom:.5rem;">📋 Rekomendasi Sistem</h4>
+              <div class="recommendation-text" v-html="formatRecommendation(diagnosis.recommendation)"></div>
+            </div>
+
+            <div v-if="diagnosis.matched_symptoms_count" style="margin-top:.875rem;padding-top:.875rem;border-top:1px solid var(--border);font-size:.8125rem;color:var(--text-muted);">
+              Gejala yang cocok: <strong style="color:var(--primary);">{{ diagnosis.matched_symptoms_count }} gejala</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- Relevant Maintenance Guides -->
+        <div v-if="relevantModules.length > 0" class="sp-card" style="padding:1.5rem;background:linear-gradient(to bottom right, #f8fafc, #ffffff);">
+          <h2 class="section-title">
+            <span class="section-icon section-icon--green">📚</span>
+            Optimalisasi Pemeliharaan {{ diagnosis.plant?.name }}
+          </h2>
+          <p class="text-xs text-slate-500 mb-4">Pelajari cara merawat tanaman Anda agar tidak terserang penyakit lagi:</p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(240px, 1fr));gap:1rem;">
+            <RouterLink 
+              v-for="module in relevantModules" :key="module.id" 
+              :to="'/education/' + module.id"
+              class="relevant-card"
+            >
+              <img v-if="module.image" :src="module.image" class="relevant-img" />
+              <div class="relevant-content">
+                <span v-if="module.is_maintenance_guide" class="mini-badge">📋 Panduan</span>
+                <h4 class="relevant-title">{{ module.title }}</h4>
+                <p class="relevant-category">{{ module.category }}</p>
+              </div>
+            </RouterLink>
+          </div>
+        </div>
+
+        <!-- Other Possibilities -->
+        <div v-if="diagnosis.all_possibilities && diagnosis.all_possibilities.length > 1" class="sp-card" style="padding:1.5rem;">
+          <h2 class="section-title">
+            <span class="section-icon section-icon--amber">📊</span>
+            Kemungkinan Penyakit Lain
+          </h2>
+          <div style="display:flex;flex-direction:column;gap:.625rem;">
+            <div
+              v-for="(poss, i) in diagnosis.all_possibilities.slice(1, 6)" :key="poss.disease_id"
+              class="possibility-row"
+            >
+              <div class="poss-rank">#{{ i + 2 }}</div>
+              <div style="flex:1;min-width:0;">
+                <p class="poss-name">{{ poss.disease_name }}</p>
+                <p v-if="poss.solution" class="poss-solution">{{ truncate(poss.solution, 80) }}</p>
+              </div>
+              <div style="display:flex;align-items:center;gap:.5rem;flex-shrink:0;">
+                <span style="font-size:.8rem;color:var(--text-muted);">{{ poss.matched_count || 0 }} gejala</span>
+                <span class="poss-pct">{{ (poss.certainty_value * 100).toFixed(1) }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- No result -->
+        <div v-if="!diagnosis.disease && !diagnosis.disease_id" class="sp-card" style="padding:2.5rem;text-align:center;">
+          <div style="font-size:2.5rem;margin-bottom:.75rem;">🔍</div>
+          <p style="color:var(--text-muted);">Belum ada hasil diagnosis</p>
+        </div>
+
+        <!-- Symptoms used -->
+        <div v-if="diagnosis.symptoms && diagnosis.symptoms.length > 0" class="sp-card" style="padding:1.5rem;">
+          <h2 class="section-title">
+            <span class="section-icon section-icon--cyan">🩺</span>
+            Gejala yang Dipilih
+          </h2>
+          <div class="symptoms-used-grid">
+            <div v-for="s in diagnosis.symptoms" :key="s.id" class="symptom-used-item">
+              <span class="symptom-used-code">{{ s.code }}</span>
+              <div style="flex:1;min-width:0;">
+                <p class="symptom-used-desc">{{ s.description }}</p>
+                <p class="symptom-used-cf">Keyakinan: {{ ((s.pivot?.user_cf || s.user_cf || 0) * 100).toFixed(0) }}%</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div v-if="diagnosis.user_notes" class="sp-card" style="padding:1.5rem;">
+          <h2 class="section-title">
+            <span class="section-icon section-icon--gray">📝</span>
+            Catatan
+          </h2>
+          <p style="font-size:.875rem;line-height:1.7;color:var(--text-muted);background:var(--bg-subtle);padding:.875rem;border-radius:var(--radius);margin:0;">
+            {{ diagnosis.user_notes }}
+          </p>
+        </div>
+
+        <!-- Feedback prompt -->
+        <div v-if="!showFeedbackForm && !hasFeedback" class="sp-card" style="padding:1.5rem;text-align:center;">
+          <h3 style="margin-bottom:.375rem;">Bagaimana hasil diagnosis ini?</h3>
+          <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:1.25rem;">Feedback Anda membantu meningkatkan kualitas sistem</p>
+          <button @click="showFeedbackForm = true" class="sp-btn sp-btn-primary">Berikan Feedback</button>
+        </div>
+
+        <!-- Feedback Form -->
+        <div v-if="showFeedbackForm && !hasFeedback" class="sp-card" style="padding:1.5rem;">
+          <h3 style="margin-bottom:1.25rem;">Berikan Feedback</h3>
+          <form @submit.prevent="submitFeedbackForm" style="display:flex;flex-direction:column;gap:1.25rem;">
+            <div>
+              <label class="sp-label">Rating <span style="color:#dc2626;">*</span></label>
+              <div style="display:flex;gap:.625rem;flex-wrap:wrap;">
+                <label
+                  v-for="r in feedbackRatings" :key="r.value"
+                  class="rating-option"
+                  :class="{ 'rating-option--selected': feedbackForm.accuracy === r.value }"
+                >
+                  <input type="radio" :value="r.value" v-model="feedbackForm.accuracy" class="sr-only" required />
+                  {{ r.icon }} {{ r.label }}
+                </label>
+              </div>
+            </div>
+            <div>
+              <label for="fb-comment" class="sp-label">Komentar (Opsional)</label>
+              <textarea id="fb-comment" v-model="feedbackForm.comment" placeholder="Bagikan pendapat Anda..." rows="3" class="glass-input" style="resize:vertical;" maxlength="1000"></textarea>
+              <p style="font-size:.75rem;color:var(--text-faint);margin-top:.25rem;">{{ feedbackForm.comment?.length || 0 }}/1000</p>
+            </div>
+            <div v-if="feedbackError" class="sp-alert sp-alert-danger">{{ feedbackError }}</div>
+            <div style="display:flex;gap:.625rem;justify-content:flex-end;">
+              <button type="button" @click="cancelFeedback" :disabled="submittingFeedback" class="sp-btn sp-btn-secondary">Batal</button>
+              <button type="submit" :disabled="submittingFeedback || !feedbackForm.accuracy" class="sp-btn sp-btn-primary">
+                {{ submittingFeedback ? 'Mengirim...' : 'Kirim Feedback' }}
               </button>
             </div>
           </form>
         </div>
-      </div>
 
-      <!-- Feedback Submitted Success -->
-      <div v-if="hasFeedback && feedbackSuccess" class="feedback-success">
-        <div class="success-card">
-          <div class="success-icon">✓</div>
-          <h3>Terima kasih atas feedback Anda!</h3>
-          <p>Feedback kamu sangat membantu untuk meningkatkan kualitas sistem diagnosis.</p>
-          <div class="success-actions">
-        <button
-          @click="openConsultationModal"
-          class="btn-consult"
-        >
-          💬 Chat ke Pakar
-        </button>
-        <router-link to="/diagnosis" class="btn-new">
-          + Diagnosis Baru
-            </router-link>
-            <router-link to="/diagnosis/history" class="btn-back-history">
-              ← Kembali ke Riwayat
-            </router-link>
+        <!-- Feedback success -->
+        <div v-if="hasFeedback && feedbackSuccess" class="sp-card animate-fade-in" style="padding:1.5rem;text-align:center;">
+          <div style="font-size:2.5rem;margin-bottom:.75rem;">✅</div>
+          <h3 style="margin-bottom:.375rem;">Terima kasih atas feedback Anda!</h3>
+          <p style="font-size:.875rem;color:var(--text-muted);margin-bottom:1.25rem;">Feedback Anda membantu meningkatkan kualitas sistem diagnosis.</p>
+          <div style="display:flex;gap:.625rem;justify-content:center;flex-wrap:wrap;">
+            <button @click="openConsultationModal" class="sp-btn sp-btn-secondary">💬 Chat ke Pakar</button>
+            <RouterLink to="/diagnosis" class="sp-btn sp-btn-primary">+ Diagnosis Baru</RouterLink>
+            <RouterLink to="/diagnosis/history" class="sp-btn sp-btn-ghost">← Riwayat</RouterLink>
           </div>
+        </div>
+
+        <!-- Actions -->
+        <div v-if="hasFeedback && !feedbackSuccess" style="display:flex;gap:.625rem;justify-content:center;flex-wrap:wrap;">
+          <button @click="openConsultationModal" class="sp-btn sp-btn-secondary">💬 Chat ke Pakar</button>
+          <RouterLink to="/diagnosis" class="sp-btn sp-btn-primary">+ Diagnosis Baru</RouterLink>
+          <RouterLink to="/diagnosis/history" class="sp-btn sp-btn-ghost">← Riwayat</RouterLink>
         </div>
       </div>
 
-      <!-- Actions - Jika sudah ada feedback sebelumnya -->
-      <div v-if="hasFeedback && !feedbackSuccess" class="actions-section">
-        <button
-          @click="openConsultationModal"
-          class="btn-consult"
-        >
-          💬 Chat ke Pakar
-        </button>
-        <router-link to="/diagnosis" class="btn-new">
-          + Diagnosis Baru
-        </router-link>
-        <router-link to="/diagnosis/history" class="btn-back-history">
-          ← Kembali ke Riwayat
-        </router-link>
+      <!-- Error state -->
+      <div v-else class="sp-card" style="padding:3rem;text-align:center;">
+        <div style="font-size:2.5rem;margin-bottom:.75rem;">❌</div>
+        <p style="color:var(--text-muted);margin-bottom:1.25rem;">Diagnosis tidak ditemukan</p>
+        <RouterLink to="/diagnosis/history" class="sp-btn sp-btn-primary">Kembali ke Riwayat</RouterLink>
       </div>
-    </div>
 
-    <div v-else class="error-state">
-      <p>Diagnosis tidak ditemukan</p>
-      <router-link to="/diagnosis/history" class="btn-primary">
-        Kembali ke Riwayat
-      </router-link>
+      <!-- Consultation Modal -->
+      <ConsultationWhatsAppModal :show="showConsultationModal" :diagnosis="diagnosis" @close="closeConsultationModal" @success="handleConsultationSuccess" />
     </div>
-
-    <!-- Consultation WhatsApp Modal -->
-    <ConsultationWhatsAppModal
-      :show="showConsultationModal"
-      :diagnosis="diagnosis"
-      @close="closeConsultationModal"
-      @success="handleConsultationSuccess"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { useDiagnosisStore } from '../stores/diagnosis'
+import { useEducationStore } from '../stores/education'
 import ConsultationWhatsAppModal from '../components/ConsultationWhatsAppModal.vue'
 
 const route = useRoute()
-const router = useRouter()
 const diagnosisStore = useDiagnosisStore()
+const educationStore = useEducationStore()
 
-// Reactive state
 const loading = ref(true)
 const showConsultationModal = ref(false)
 const hasFeedback = ref(false)
-const feedbackValue = ref(null)
 const showFeedbackForm = ref(false)
 const submittingFeedback = ref(false)
 const feedbackError = ref(null)
 const feedbackSuccess = ref(false)
-
-const feedbackForm = ref({
-  accuracy: null, // 'accurate', 'somewhat_accurate', 'inaccurate'
-  comment: ''
-})
+const feedbackForm = ref({ accuracy: null, comment: '' })
+const relevantModules = ref([])
 
 const feedbackRatings = [
-  { value: 'accurate', label: 'Akurat', icon: '😊' },
+  { value: 'accurate',         label: 'Akurat',       icon: '😊' },
   { value: 'somewhat_accurate', label: 'Cukup Akurat', icon: '😐' },
-  { value: 'inaccurate', label: 'Tidak Akurat', icon: '😞' }
+  { value: 'inaccurate',       label: 'Tidak Akurat',  icon: '😞' },
 ]
 
-// Get diagnosis from store, handle both direct data and nested data structure
 const diagnosis = computed(() => {
-  const storeData = diagnosisStore.currentDiagnosis
-  if (!storeData) return null
-  
-  // Handle nested structure from backend response
-  if (storeData.diagnosis) {
-    return {
-      ...storeData.diagnosis,
-      plant: storeData.plant,
-      disease: storeData.disease,
-      symptoms: storeData.symptoms,
-      certainty_value: storeData.certainty_value,
-      recommendation: storeData.recommendation,
-      all_possibilities: storeData.all_possibilities,
-      matched_symptoms_count: storeData.matched_symptoms_count
-    }
-  }
-  
-  // Direct structure
-  return storeData
+  const d = diagnosisStore.currentDiagnosis
+  if (!d) return null
+  if (d.diagnosis) return { ...d.diagnosis, plant: d.plant, disease: d.disease, symptoms: d.symptoms, certainty_value: d.certainty_value, recommendation: d.recommendation, all_possibilities: d.all_possibilities, matched_symptoms_count: d.matched_symptoms_count }
+  return d
 })
 
 const loadDetail = async () => {
   loading.value = true
   try {
-    await diagnosisStore.fetchDetail(route.params.id)
-    
-    // Check if feedback already exists
-    try {
-      const feedbackResponse = await diagnosisStore.getFeedback(route.params.id)
-      if (feedbackResponse.success && feedbackResponse.data) {
+    const res = await diagnosisStore.fetchDetail(route.params.id)
+    if (res.success && res.data) {
+      const d = res.data
+      // Cek feedback bawaan dari eager load
+      if (d.feedback) {
         hasFeedback.value = true
-        feedbackValue.value = feedbackResponse.data.accuracy
-        feedbackForm.value.accuracy = feedbackResponse.data.accuracy
-        feedbackForm.value.comment = feedbackResponse.data.comment || ''
+        feedbackForm.value.accuracy = d.feedback.accuracy
+        feedbackForm.value.comment = d.feedback.comment || ''
       }
-    } catch (error) {
-      // No feedback yet, that's okay
-      console.log('No feedback found for this diagnosis')
+      
+      // Ambil panduan pemeliharaan relevan
+      const plantName = d.plant?.name
+      if (plantName) {
+        const eduRes = await educationStore.fetchModules(null, 1, plantName)
+        if (eduRes.success && eduRes.data?.data) {
+          relevantModules.value = eduRes.data.data.slice(0, 3)
+        }
+      }
     }
-  } catch (error) {
-    console.error('Error loading diagnosis detail:', error)
-  } finally {
-    loading.value = false
-  }
+  } catch (e) { console.error('Error loading detail:', e) }
+  finally { loading.value = false }
 }
 
-const formatDate = (dateString) => {
-  const date = new Date(dateString)
-  return date.toLocaleDateString('id-ID', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  })
+const downloadPdf = async () => {
+  try { await diagnosisStore.downloadPdf(route.params.id) }
+  catch (e) { alert('Gagal mengunduh PDF.') }
 }
 
-const getCFClass = (cf) => {
-  if (cf >= 0.7) return 'cf-high'
-  if (cf >= 0.4) return 'cf-medium'
-  return 'cf-low'
-}
+const formatDate = (d) => new Date(d).toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
+const formatRecommendation = (t) => t ? t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') : ''
+const truncate = (s, n) => s && s.length > n ? s.slice(0, n) + '…' : (s || '')
 
-/**
- * Format recommendation text (handle markdown-like formatting)
- */
-const formatRecommendation = (text) => {
-  if (!text) return ''
-  // Convert **text** to <strong>text</strong>
-  return text
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\n/g, '<br>')
-}
+const getCFLabel = (v) => v >= 0.7 ? 'Tinggi' : v >= 0.4 ? 'Sedang' : 'Rendah'
+const getCFClass = (v) => v >= 0.7 ? 'cf-pct--high' : v >= 0.4 ? 'cf-pct--medium' : 'cf-pct--low'
+const getCFBadgeClass = (v) => v >= 0.7 ? 'cf-badge--high' : v >= 0.4 ? 'cf-badge--medium' : 'cf-badge--low'
+const getCFBarClass = (v) => v >= 0.7 ? 'sp-cf-bar-high' : v >= 0.4 ? 'sp-cf-bar-medium' : 'sp-cf-bar-low'
 
-const openConsultationModal = () => {
-  showConsultationModal.value = true
-}
+const openConsultationModal = () => { showConsultationModal.value = true }
+const closeConsultationModal = () => { showConsultationModal.value = false }
+const handleConsultationSuccess = () => { closeConsultationModal() }
 
-const closeConsultationModal = () => {
-  showConsultationModal.value = false
-}
-
-const handleConsultationSuccess = () => {
-  // Optionally reload detail or show success message
-  closeConsultationModal()
-}
-
-/**
- * Submit feedback form
- */
 const submitFeedbackForm = async () => {
-  // Validasi
-  if (!feedbackForm.value.accuracy) {
-    feedbackError.value = 'Pilih rating terlebih dahulu'
-    return
-  }
-
-  if (feedbackForm.value.comment && feedbackForm.value.comment.length > 1000) {
-    feedbackError.value = 'Komentar maksimal 1000 karakter'
-    return
-  }
-
-  submittingFeedback.value = true
-  feedbackError.value = null
-
+  if (!feedbackForm.value.accuracy) { feedbackError.value = 'Pilih rating terlebih dahulu'; return }
+  submittingFeedback.value = true; feedbackError.value = null
   try {
-    await diagnosisStore.submitFeedback(
-      route.params.id,
-      feedbackForm.value.accuracy,
-      feedbackForm.value.comment || null
-    )
-    
-    // Success
-    hasFeedback.value = true
-    feedbackValue.value = feedbackForm.value.accuracy
-    showFeedbackForm.value = false
-    feedbackSuccess.value = true
-    
-    // Auto hide success message after 5 seconds
-    setTimeout(() => {
-      feedbackSuccess.value = false
-    }, 5000)
-  } catch (error) {
-    console.error('Error submitting feedback:', error)
-    if (error.response?.data?.errors) {
-      const errors = error.response.data.errors
-      const errorMessages = []
-      for (const field in errors) {
-        errorMessages.push(...errors[field])
-      }
-      feedbackError.value = errorMessages.join(', ')
-    } else {
-      feedbackError.value = error.response?.data?.message || 'Gagal mengirim feedback. Silakan coba lagi.'
-    }
-  } finally {
-    submittingFeedback.value = false
-  }
+    await diagnosisStore.submitFeedback(route.params.id, feedbackForm.value.accuracy, feedbackForm.value.comment || null)
+    hasFeedback.value = true; showFeedbackForm.value = false; feedbackSuccess.value = true
+    setTimeout(() => { feedbackSuccess.value = false }, 5000)
+  } catch (e) {
+    feedbackError.value = e.response?.data?.message || 'Gagal mengirim feedback.'
+  } finally { submittingFeedback.value = false }
 }
 
-/**
- * Cancel feedback form
- */
-const cancelFeedback = () => {
-  showFeedbackForm.value = false
-  feedbackForm.value = {
-    accuracy: null,
-    comment: ''
-  }
-  feedbackError.value = null
-}
+const cancelFeedback = () => { showFeedbackForm.value = false; feedbackForm.value = { accuracy: null, comment: '' }; feedbackError.value = null }
 
-onMounted(() => {
-  loadDetail()
-})
+onMounted(() => { loadDetail() })
 </script>
 
 <style scoped>
-.detail-container {
-  max-width: 1000px;
-  margin: 0 auto;
-  padding: 2rem;
-}
+a { text-decoration: none; }
 
-.detail-card {
-  background: white;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
+.section-title { display: flex; align-items: center; gap: .625rem; font-size: 1rem; font-weight: 700; margin-bottom: 1.125rem; }
+.section-icon { font-size: 1rem; }
 
-.detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 2rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 2px solid #eee;
-}
+.info-label { display: block; font-size: .75rem; font-weight: 600; color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; margin-bottom: .25rem; }
+.info-value { font-size: .9375rem; color: var(--gray-800); font-weight: 500; }
 
-.detail-header h1 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-  font-size: 2rem;
-}
+/* Result box */
+.result-box { background: var(--bg-subtle); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem; }
+.result-top { margin-bottom: .75rem; }
+.result-disease { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0; }
 
-.detail-date {
-  margin: 0;
-  color: #666;
-  font-size: 0.9rem;
-}
+.cf-label { font-size: .8125rem; color: var(--text-muted); }
+.cf-pct { font-size: 1rem; font-weight: 700; }
+.cf-pct--high   { color: #15803d; }
+.cf-pct--medium { color: #c2410c; }
+.cf-pct--low    { color: #b45309; }
 
-.header-actions {
-  display: flex;
-  gap: 1rem;
-}
+.cf-badge { font-size: .7rem; font-weight: 700; padding: .2rem .5rem; border-radius: 9999px; }
+.cf-badge--high   { background: #dcfce7; color: #15803d; }
+.cf-badge--medium { background: #ffedd5; color: #c2410c; }
+.cf-badge--low    { background: #fef9c3; color: #a16207; }
 
-.btn-back {
-  background: #6c757d;
-  color: white;
-}
+.cf-bar-track { height: 8px; background: var(--gray-200); border-radius: 9999px; overflow: hidden; }
+.cf-bar-fill  { height: 100%; border-radius: 9999px; transition: width .6s ease; }
+.cf-bar-labels { display: flex; justify-content: space-between; font-size: .7rem; color: var(--text-faint); margin-top: .25rem; }
 
-.btn-back:hover {
-  background: #5a6268;
-}
+/* Disease details */
+.disease-details { display: flex; flex-direction: column; gap: .875rem; margin-top: 1rem; }
+.detail-row  {}
+.detail-title { font-size: .8125rem; font-weight: 700; color: var(--gray-700); margin-bottom: .25rem; }
+.detail-title--amber { color: #b45309; }
+.detail-title--green { color: #15803d; }
+.detail-title--blue  { color: #1d4ed8; }
+.detail-text { font-size: .875rem; color: var(--text-muted); line-height: 1.65; margin: 0; }
 
-.btn-back-history {
-  padding: 0.75rem 1.5rem;
-  background: #6c757d;
-  color: white;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
-  transition: background 0.3s;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
+.recommendation-box {
+  margin-top: 1rem; padding: 1rem;
+  background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius);
 }
+.recommendation-text { font-size: .875rem; color: #166534; line-height: 1.7; }
 
-.btn-back-history:hover {
-  background: #5a6268;
-}
+/* Possibilities */
+.possibility-row { display: flex; align-items: center; gap: .875rem; padding: .75rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg-surface); }
+.poss-rank { width: 32px; height: 32px; border-radius: var(--radius-sm); background: var(--bg-subtle); color: var(--text-muted); font-size: .8125rem; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.poss-name { font-size: .875rem; font-weight: 600; color: var(--gray-900); margin: 0 0 2px; }
+.poss-solution { font-size: .775rem; color: var(--text-muted); margin: 0; }
+.poss-pct { font-size: .8125rem; font-weight: 700; color: var(--primary); background: var(--primary-50); padding: .2rem .5rem; border-radius: 9999px; }
 
-.info-section,
-.result-section,
-.symptoms-section,
-.notes-section {
-  margin-bottom: 2rem;
-}
+/* Symptoms used */
+.symptoms-used-grid { display: grid; grid-template-columns: 1fr; gap: .5rem; }
+@media (min-width: 640px) { .symptoms-used-grid { grid-template-columns: 1fr 1fr; } }
+.symptom-used-item { display: flex; align-items: flex-start; gap: .625rem; padding: .625rem .75rem; background: var(--bg-subtle); border-radius: var(--radius-sm); }
+.symptom-used-code { font-size: .7rem; font-weight: 700; color: var(--primary); font-family: monospace; flex-shrink: 0; margin-top: 2px; }
+.symptom-used-desc { font-size: .8125rem; color: var(--gray-800); margin: 0 0 2px; }
+.symptom-used-cf   { font-size: .75rem; color: var(--text-muted); margin: 0; }
 
-.info-section h2,
-.result-section h2,
-.symptoms-section h2,
-.notes-section h2 {
-  color: #333;
-  font-size: 1.5rem;
-  margin-bottom: 1rem;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.info-label {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.info-value {
-  color: #333;
-  font-weight: 500;
-}
-
-.result-card {
-  background: #f8f9fa;
-  border-radius: 8px;
-  padding: 1.5rem;
-  border-left: 4px solid #667eea;
-}
-
-.result-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.result-header h3 {
-  margin: 0;
-  color: #333;
-  font-size: 1.5rem;
-}
-
-.cf-badge {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: white;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-}
-
-.cf-label {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-.cf-value {
-  color: #667eea;
-  font-weight: bold;
-  font-size: 1.1rem;
-}
-
-.cf-indicator {
-  margin: 1.5rem 0;
-}
-
-.cf-bar {
-  width: 100%;
-  height: 30px;
-  background: #e0e0e0;
-  border-radius: 15px;
-  overflow: hidden;
-  margin-bottom: 0.5rem;
-}
-
-.cf-fill {
-  height: 100%;
-  transition: width 0.5s;
-  border-radius: 15px;
-}
-
-.cf-low {
-  background: #ffc107;
-}
-
-.cf-medium {
-  background: #ff9800;
-}
-
-.cf-high {
-  background: #28a745;
-}
-
-.cf-labels {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.disease-info {
-  margin-top: 1.5rem;
-}
-
-.info-block {
-  margin-bottom: 1.5rem;
-}
-
-.info-block h4 {
-  color: #667eea;
-  margin: 0 0 0.5rem 0;
-  font-size: 1.1rem;
-}
-
-.info-block p {
-  color: #333;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.symptoms-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.symptom-item {
-  background: #f8f9fa;
-  border-radius: 6px;
-  padding: 1rem;
-  border-left: 3px solid #667eea;
-}
-
-.symptom-code {
-  font-weight: bold;
-  color: #667eea;
-  margin-bottom: 0.25rem;
-}
-
-.symptom-desc {
-  color: #333;
-  margin-bottom: 0.5rem;
-}
-
-.symptom-cf {
-  color: #666;
-  font-size: 0.85rem;
-}
-
-.notes-content {
-  background: #f8f9fa;
-  padding: 1rem;
-  border-radius: 6px;
-  color: #333;
-  line-height: 1.6;
-}
-
-/* Feedback Section */
-.feedback-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid #eee;
-}
-
-.feedback-prompt {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border-radius: 12px;
-  padding: 2rem;
-  text-align: center;
-  border: 2px solid #86efac;
-}
-
-.feedback-prompt h3 {
-  margin: 0 0 0.5rem 0;
-  color: #166534;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.feedback-question {
-  margin: 0 0 1.5rem 0;
-  color: #15803d;
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-.btn-give-feedback {
-  padding: 0.875rem 2rem;
-  background: #27ae60;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s;
-  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.3);
-}
-
-.btn-give-feedback:hover {
-  background: #229954;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.4);
-}
-
-/* Feedback Form */
-.feedback-form-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid #eee;
-}
-
-.feedback-form-card {
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.feedback-form-card h3 {
-  margin: 0 0 1.5rem 0;
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.feedback-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.form-label {
-  color: #333;
-  font-weight: 600;
-  font-size: 0.95rem;
-}
-
-.required {
-  color: #dc3545;
-}
-
-.rating-options {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
+/* Rating options */
 .rating-option {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
+  display: inline-flex; align-items: center; gap: .375rem;
+  padding: .5rem 1rem;
+  border: 1.5px solid var(--border-strong);
+  border-radius: var(--radius);
+  font-size: .875rem; font-weight: 500;
+  color: var(--gray-700);
   cursor: pointer;
-  transition: all 0.2s;
-  background: white;
+  transition: all .15s;
+  background: var(--bg-surface);
 }
+.rating-option:hover { border-color: var(--primary); background: var(--primary-50); color: var(--primary); }
+.rating-option--selected { border-color: var(--primary); background: var(--primary-50); color: var(--primary); font-weight: 600; }
 
-.rating-option:hover {
-  border-color: #27ae60;
-  background: #f0fdf4;
+.relevant-card {
+  display: flex; gap: .75rem; padding: .75rem; border: 1px solid var(--border);
+  border-radius: var(--radius-sm); background: white; transition: all .2s;
 }
-
-.rating-option.active {
-  border-color: #27ae60;
-  background: #d4edda;
-}
-
-.rating-option input[type="radio"] {
-  margin: 0;
-  cursor: pointer;
-}
-
-.rating-icon {
-  font-size: 1.5rem;
-}
-
-.rating-label {
-  font-weight: 500;
-  color: #333;
-}
-
-.form-textarea {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e5e7eb;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-family: inherit;
-  resize: vertical;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-}
-
-.form-textarea:focus {
-  outline: none;
-  border-color: #27ae60;
-  box-shadow: 0 0 0 3px rgba(39, 174, 96, 0.1);
-}
-
-.char-count {
-  margin: 0;
-  font-size: 0.85rem;
-  color: #666;
-  text-align: right;
-}
-
-.error-message {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.875rem;
-  background: #f8d7da;
-  color: #721c24;
-  border-radius: 8px;
-  font-size: 0.9rem;
-  border-left: 4px solid #dc3545;
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-  margin-top: 0.5rem;
-}
-
-.btn-cancel,
-.btn-submit {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: none;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.btn-cancel {
-  background: #f8f9fa;
-  color: #666;
-}
-
-.btn-cancel:hover:not(:disabled) {
-  background: #e5e7eb;
-}
-
-.btn-submit {
-  background: #27ae60;
-  color: white;
-}
-
-.btn-submit:hover:not(:disabled) {
-  background: #229954;
-}
-
-.btn-submit:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.loading-spinner-small {
-  width: 16px;
-  height: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: white;
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-/* Feedback Success */
-.feedback-success {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid #eee;
-}
-
-.success-card {
-  background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
-  border-radius: 12px;
-  padding: 2.5rem;
-  text-align: center;
-  border: 2px solid #27ae60;
-}
-
-.success-icon {
-  width: 64px;
-  height: 64px;
-  background: #27ae60;
-  color: white;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  font-weight: bold;
-  margin: 0 auto 1rem;
-  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
-}
-
-.success-card h3 {
-  margin: 0 0 0.75rem 0;
-  color: #155724;
-  font-size: 1.5rem;
-  font-weight: 700;
-}
-
-.success-card p {
-  margin: 0 0 1.5rem 0;
-  color: #155724;
-  font-size: 1rem;
-  line-height: 1.6;
-}
-
-.success-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.actions-section {
-  display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid #eee;
-}
-
-.btn-consult,
-.btn-new {
-  flex: 1;
-  padding: 1rem;
-  border-radius: 6px;
-  text-decoration: none;
-  text-align: center;
-  font-weight: 500;
-  transition: all 0.3s;
-}
-
-.btn-consult {
-  background: #25D366;
-  color: white;
-}
-
-.btn-consult:hover {
-  background: #20BA5A;
-}
-
-.btn-new {
-  background: #667eea;
-  color: white;
-}
-
-.btn-new:hover {
-  background: #5568d3;
-}
-
-.loading,
-.error-state {
-  text-align: center;
-  padding: 3rem;
-  color: #666;
-}
-
-.error-state p {
-  margin-bottom: 1rem;
-  font-size: 1.1rem;
-}
-
-.btn-primary {
-  background: #667eea;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  text-decoration: none;
-  font-weight: 500;
-  display: inline-block;
-  transition: background 0.3s;
-}
-
-.btn-primary:hover {
-  background: #5568d3;
-}
-
-.no-result {
-  text-align: center;
-  padding: 2rem;
-  color: #666;
-}
-
-.recommendation-block {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background: #e8f5e9;
-  border-radius: 8px;
-  border-left: 4px solid #4caf50;
-}
-
-.recommendation-block h4 {
-  color: #2e7d32;
-  margin: 0 0 1rem 0;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.recommendation-content {
-  color: #333;
-  line-height: 1.8;
-  white-space: pre-wrap;
-}
-
-.recommendation-content :deep(strong) {
-  color: #1b5e20;
-  font-weight: 600;
-}
-
-.matched-info {
-  margin-top: 1rem;
-  padding: 0.75rem 1rem;
-  background: #fff3e0;
-  border-radius: 6px;
-  border-left: 3px solid #ff9800;
-}
-
-.matched-text {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.matched-label {
-  color: #666;
-  font-weight: 500;
-}
-
-.matched-value {
-  color: #e65100;
-  font-weight: 600;
-}
-
-.possibilities-section {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background: #f5f5f5;
-  border-radius: 12px;
-}
-
-.possibilities-section h2 {
-  color: #333;
-  font-size: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.possibilities-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.possibility-item {
-  background: white;
-  border-radius: 8px;
-  padding: 1.25rem;
-  border-left: 4px solid #9e9e9e;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s;
-}
-
-.possibility-item:hover {
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.possibility-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.possibility-rank {
-  background: #9e9e9e;
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  font-weight: 600;
-}
-
-.possibility-header h4 {
-  flex: 1;
-  margin: 0;
-  color: #333;
-  font-size: 1.1rem;
-}
-
-.possibility-cf {
-  color: #9e9e9e;
-  font-weight: 600;
-  font-size: 0.9rem;
-}
-
-.possibility-details {
-  font-size: 0.9rem;
-  color: #666;
-}
-
-.possibility-matched {
-  margin: 0.5rem 0;
-  color: #666;
-}
-
-.possibility-solution {
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e0e0e0;
-  color: #555;
-  line-height: 1.5;
-}
-
-.possibility-solution strong {
-  color: #333;
-}
+.relevant-card:hover { border-color: var(--primary); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+.relevant-img { width: 60px; height: 60px; border-radius: 6px; object-fit: cover; }
+.relevant-content { flex: 1; min-width: 0; }
+.relevant-title { font-size: .8125rem; font-weight: 700; color: var(--gray-900); margin: 0 0 2px; line-height: 1.4; }
+.relevant-category { font-size: .7rem; color: var(--text-faint); margin: 0; }
+.mini-badge { display: inline-block; font-size: .65rem; font-weight: 800; background: #fff7ed; color: #c2410c; padding: 1px 6px; border-radius: 4px; margin-bottom: 4px; border: 1px solid #ffedd5; }
 </style>
-
-

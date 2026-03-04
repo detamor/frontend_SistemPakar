@@ -225,14 +225,29 @@ export const useDiagnosisStore = defineStore('diagnosis', {
           }
         )
 
+        // Handle response - data bisa null jika belum ada feedback
+        if (response.data.success) {
+          return {
+            success: true,
+            data: response.data.data, // null jika belum ada
+            has_feedback: response.data.has_feedback || false
+          }
+        }
+
         return response.data
       } catch (error) {
-        // If 404, no feedback yet
+        // If 404, no feedback yet (untuk backward compatibility)
         if (error.response?.status === 404) {
-          return { success: false, data: null }
+          return { success: false, data: null, has_feedback: false }
         }
-        this.error = error.response?.data || error.message
-        throw error
+        // If 500 or other errors, log but return null (jangan throw error)
+        if (error.response?.status === 500) {
+          console.error('Error getting feedback:', error.response?.data)
+          return { success: false, data: null, has_feedback: false, error: error.response?.data?.message }
+        }
+        // Untuk error lainnya, return success false tapi tidak throw
+        console.error('Error getting feedback:', error)
+        return { success: false, data: null, has_feedback: false, error: error.response?.data?.message || error.message }
       } finally {
         this.loading = false
       }

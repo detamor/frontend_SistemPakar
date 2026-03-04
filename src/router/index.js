@@ -119,12 +119,6 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
-    path: '/whatsapp',
-    name: 'WhatsApp',
-    component: () => import('../views/WhatsApp.vue'),
-    meta: { requiresAuth: true }
-  },
-  {
     path: '/about',
     name: 'About',
     component: () => import('../views/About.vue'),
@@ -140,24 +134,24 @@ const router = createRouter({
 // Route guards
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  
+
   // Initialize auth jika belum
   if (!authStore.user && authStore.token) {
     authStore.fetchUser()
   }
-  
+
   // Check if route requires auth
   if (to.meta.requiresAuth && !authStore.isAuthenticated) {
     next({ name: 'Login', query: { redirect: to.fullPath } })
     return
   }
-  
+
   // Check if route requires admin
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
     next({ name: 'Home' })
     return
   }
-  
+
   // Check if route is guest only (login, register, etc)
   if (to.meta.guestOnly && authStore.isAuthenticated) {
     // Redirect admin to admin panel, user to home
@@ -168,7 +162,7 @@ router.beforeEach((to, from, next) => {
     }
     return
   }
-  
+
   next()
 })
 

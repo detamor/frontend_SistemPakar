@@ -1,102 +1,76 @@
 <template>
-  <div class="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 py-8 sm:py-12">
-    <div class="w-full max-w-md">
-      <!-- Logo/Brand -->
-      <div class="text-center mb-6 sm:mb-8">
-        <div class="inline-flex items-center gap-2 mb-3 sm:mb-4">
-          <img :src="logoImage" alt="System Pakar" class="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-xl" />
-          <span class="text-xl sm:text-2xl font-bold bg-linear-to-r from-green-600 to-green-700 bg-clip-text text-transparent font-poppins">
-            System Pakar
-          </span>
+  <div class="auth-page">
+    <div class="auth-container">
+      <!-- Logo -->
+      <div class="auth-logo">
+        <img :src="logoImage" alt="System Pakar" class="auth-logo-img" />
+        <div>
+          <h1 class="auth-logo-name">System Pakar</h1>
+          <p class="auth-logo-sub">Tanaman Hias</p>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Masuk ke Akun</h1>
-        <p class="text-sm sm:text-base text-gray-600 leading-relaxed px-2">
-          Selamat datang kembali! Masukkan email/nomor WhatsApp dan password untuk mengakses semua fitur sistem pakar.
-        </p>
       </div>
 
-      <!-- Login Card -->
-      <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 border border-gray-200">
-        <form @submit.prevent="handleLogin" class="space-y-6">
-          <!-- Email/WhatsApp Input -->
+      <!-- Card -->
+      <div class="sp-card auth-card">
+        <h2 class="auth-title">Masuk ke Akun</h2>
+        <p class="auth-sub">Silakan masukkan email/nomor WhatsApp dan password Anda</p>
+
+        <form @submit.prevent="handleLogin" style="display:flex;flex-direction:column;gap:1.125rem;margin-top:1.5rem;">
           <div>
-            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-              Email atau Nomor WhatsApp <span class="text-red-500">*</span>
+            <label for="email" class="sp-label">
+              Email atau Nomor WhatsApp <span style="color:#dc2626;">*</span>
             </label>
             <input
               id="email"
               v-model="form.email"
               type="text"
-              placeholder="Contoh: user@email.com atau 081234567890"
+              placeholder="user@email.com atau 081234567890"
               required
               :disabled="loading"
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+              class="glass-input"
+              autocomplete="username"
             />
           </div>
 
-          <!-- Password Input -->
           <div>
-            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-              Password <span class="text-red-500">*</span>
+            <label for="password" class="sp-label">
+              Password <span style="color:#dc2626;">*</span>
             </label>
             <input
               id="password"
               v-model="form.password"
               type="password"
-              placeholder="Masukkan password akun kamu"
+              placeholder="Masukkan password"
               required
               :disabled="loading"
-              class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
+              class="glass-input"
+              autocomplete="current-password"
             />
           </div>
 
-          <!-- Error Message -->
-          <div v-if="error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-            <div class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-              </svg>
-              <p class="text-sm text-red-700 font-medium">{{ error }}</p>
-            </div>
+          <div v-if="error" class="sp-alert sp-alert-danger" role="alert">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ error }}
           </div>
 
-          <!-- Submit Button -->
-          <button
-            type="submit"
-            :disabled="loading"
-            class="w-full py-3.5 bg-linear-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            <span v-if="loading" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            <span>{{ loading ? 'Memproses...' : 'Masuk' }}</span>
+          <button type="submit" :disabled="loading" class="sp-btn sp-btn-primary sp-btn-lg" style="width:100%;justify-content:center;margin-top:.25rem;">
+            <span v-if="loading" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
+            {{ loading ? 'Memproses...' : 'Masuk' }}
           </button>
         </form>
 
-        <!-- Links -->
-        <div class="mt-6 space-y-3 text-center">
-          <router-link
-            to="/register"
-            class="block text-sm text-green-600 font-semibold hover:text-green-700 transition-colors duration-200"
-          >
-            Belum punya akun? <span class="underline">Daftar sekarang</span>
-          </router-link>
-          <router-link
-            to="/reset-password"
-            class="block text-sm text-gray-600 hover:text-green-600 transition-colors duration-200"
-          >
-            Lupa password?
-          </router-link>
+        <div class="auth-links">
+          <RouterLink to="/register">
+            Belum punya akun? <strong>Daftar sekarang</strong>
+          </RouterLink>
+          <RouterLink to="/reset-password" style="color:var(--text-muted);">Lupa password?</RouterLink>
         </div>
       </div>
 
-      <!-- Additional Info -->
-      <div class="mt-6 text-center">
-        <p class="text-sm text-gray-500">
-          Dengan masuk, Anda menyetujui
-          <a href="#" class="text-green-600 hover:text-green-700 font-medium">Ketentuan Layanan</a>
-          dan
-          <a href="#" class="text-green-600 hover:text-green-700 font-medium">Kebijakan Privasi</a>
-        </p>
-      </div>
+      <p class="auth-footer-note">
+        Dengan masuk, Anda menyetujui
+        <a href="#">Ketentuan Layanan</a> dan <a href="#">Kebijakan Privasi</a> kami.
+      </p>
     </div>
   </div>
 </template>
@@ -110,31 +84,78 @@ import logoImage from '../assets/logo-hydrangea.png'
 const router = useRouter()
 const authStore = useAuthStore()
 
-const form = ref({
-  email: '',
-  password: ''
-})
-
+const form    = ref({ email: '', password: '' })
 const loading = ref(false)
-const error = ref(null)
+const error   = ref(null)
 
 const handleLogin = async () => {
   error.value = null
   loading.value = true
-
   try {
     await authStore.login(form.value.email, form.value.password)
   } catch (err) {
-    error.value = err.response?.data?.message || 'Login gagal. Periksa email/nomor WhatsApp dan password kamu.'
+    error.value = err.response?.data?.message || 'Login gagal. Periksa email dan password Anda.'
   } finally {
     loading.value = false
   }
 }
 
-onMounted(() => {
-  // Jika sudah login, redirect
-  if (authStore.isAuthenticated) {
-    router.push('/')
-  }
-})
+onMounted(() => { if (authStore.isAuthenticated) router.push('/') })
 </script>
+
+<style scoped>
+a { text-decoration: none; }
+
+.auth-page {
+  min-height: 100vh;
+  background: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .75rem;
+  text-align: center;
+}
+.auth-logo-img  { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
+.auth-logo-name { font-size: 1.25rem; font-weight: 800; color: var(--gray-900); margin: 0; }
+.auth-logo-sub  { font-size: .75rem; color: var(--text-muted); margin: 0; }
+
+.auth-card  { padding: 2rem; }
+.auth-title { font-size: 1.375rem; font-weight: 700; color: var(--gray-900); margin: 0 0 .25rem; }
+.auth-sub   { font-size: .875rem; color: var(--text-muted); margin: 0; }
+
+.auth-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: .625rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--border);
+  font-size: .875rem;
+}
+.auth-links a { color: var(--primary); transition: color .15s; }
+.auth-links a:hover { color: var(--primary-dark); }
+
+.auth-footer-note {
+  text-align: center;
+  font-size: .775rem;
+  color: var(--text-faint);
+  margin: 0;
+}
+.auth-footer-note a { color: var(--primary); }
+</style>

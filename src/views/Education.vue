@@ -1,251 +1,136 @@
 <template>
-  <div class="education-container">
-    <!-- Header Section -->
-    <div class="education-header">
-      <div>
-        <!-- Tombol Kembali -->
-        <div class="mb-4">
-          <router-link
-            to="/"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
-          >
-            <span>←</span>
-            <span>Kembali ke Home</span>
-          </router-link>
-        </div>
-        <h1>Modul Edukasi</h1>
-        <p class="header-subtitle">Pelajari cara merawat tanaman hias dengan modul edukasi yang lengkap</p>
-      </div>
-      <div class="header-actions">
-        <router-link to="/education/bookmarks" class="btn-bookmarks">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-          </svg>
-          <span>Bookmark Saya</span>
-        </router-link>
-      </div>
-    </div>
+  <div class="page-wrapper">
 
-    <!-- Select Category Section -->
-    <div class="category-section">
-      <h2 class="section-title">Pilih Kategori</h2>
-      <div class="category-grid">
-        <div
-          v-for="cat in categoryStats"
-          :key="cat.name"
-          class="category-card"
-          @click="selectedCategory = cat.name === 'Semua' ? null : cat.name"
-          :class="{ active: (selectedCategory === null && cat.name === 'Semua') || selectedCategory === cat.name }"
-        >
-          <div class="category-icon">📚</div>
-          <div class="category-info">
-            <h3>{{ cat.name }}</h3>
-            <p>{{ cat.count }} modul</p>
+    <!-- Header -->
+    <section class="edu-hero">
+      <div class="sp-container">
+        <div class="edu-hero-inner">
+          <div>
+            <RouterLink to="/" class="sp-btn sp-btn-secondary sp-btn-sm" style="margin-bottom:1rem;display:inline-flex;">
+              <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+              Kembali
+            </RouterLink>
+            <h1 class="edu-title">Modul Edukasi</h1>
+            <p class="edu-sub">Pelajari cara merawat tanaman hias dari para pakar</p>
           </div>
+          <RouterLink to="/education/bookmarks" class="sp-btn sp-btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+            Bookmark Saya
+          </RouterLink>
         </div>
       </div>
-    </div>
+    </section>
 
-    <!-- All Education Content Section -->
-    <div class="content-section">
-      <div class="section-header">
-        <h2 class="section-title">Semua Modul Edukasi</h2>
-        <div class="view-toggle">
-          <button 
-            @click="viewMode = 'grid'" 
-            :class="['view-btn', { active: viewMode === 'grid' }]"
-            title="Tampilan Grid"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
-            </svg>
+    <!-- Content -->
+    <div class="sp-container edu-content">
+
+      <!-- Category Filter -->
+      <div class="cat-filter">
+        <button v-for="cat in categoryStats" :key="cat.name"
+          @click="selectedCategory = cat.name === 'Semua' ? null : cat.name"
+          class="cat-btn"
+          :class="{ 'cat-btn--active': (selectedCategory === null && cat.name === 'Semua') || selectedCategory === cat.name }">
+          {{ cat.name }} <span class="cat-count">({{ cat.count }})</span>
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="sp-card search-box">
+        <div class="search-inner">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input v-model="searchQuery" @input="handleSearch" @keyup.enter="performSearch"
+            type="text" placeholder="Cari modul edukasi..." class="glass-input search-input" />
+          <button v-if="searchQuery" @click="clearSearch" class="search-clear">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
           </button>
-          <button 
-            @click="viewMode = 'list'" 
-            :class="['view-btn', { active: viewMode === 'list' }]"
-            title="Tampilan Daftar"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-            </svg>
+        </div>
+        <div v-if="searchQuery" class="search-hint">
+          Hasil untuk: <strong style="color:var(--primary);">"{{ searchQuery }}"</strong>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <h2 class="toolbar-title">{{ searchQuery ? 'Hasil Pencarian' : 'Semua Modul' }}</h2>
+        <div class="view-toggle">
+          <button @click="viewMode = 'grid'" class="view-btn" :class="{ 'view-btn--active': viewMode === 'grid' }">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>
+          </button>
+          <button @click="viewMode = 'list'" class="view-btn" :class="{ 'view-btn--active': viewMode === 'list' }">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
           </button>
         </div>
       </div>
 
       <!-- Loading -->
-      <div v-if="loading && modules.length === 0" class="loading">
-        <div class="loading-spinner"></div>
-        <p>Memuat modul edukasi...</p>
+      <div v-if="loading && modules.length === 0" class="sp-card empty-state">
+        <div class="sp-spinner" style="margin:0 auto .75rem;width:28px;height:28px;border-width:3px;"></div>
+        <p style="color:var(--text-muted);">Memuat modul edukasi...</p>
       </div>
 
-      <!-- Empty State -->
-      <div v-else-if="modules.length === 0" class="empty-state">
-        <div class="empty-icon">📚</div>
-        <p>Belum ada modul edukasi</p>
-        <p class="empty-subtitle">Modul edukasi akan muncul di sini</p>
+      <!-- Empty -->
+      <div v-else-if="modules.length === 0" class="sp-card empty-state">
+        <div style="font-size:3rem;margin-bottom:.75rem;opacity:.5;">{{ searchQuery ? '🔍' : '📚' }}</div>
+        <p style="font-weight:700;color:var(--gray-900);margin:0 0 .25rem;">{{ searchQuery ? 'Tidak ada modul ditemukan' : 'Belum ada modul edukasi' }}</p>
+        <p style="font-size:.875rem;color:var(--text-muted);margin:0;">{{ searchQuery ? 'Coba kata kunci lain' : 'Modul akan muncul di sini' }}</p>
       </div>
 
-      <!-- Modules Grid View -->
-      <div v-else-if="viewMode === 'grid'" class="modules-grid">
-        <div
-          v-for="module in modules"
-          :key="module.id"
-          class="module-card-grid"
-        >
-          <!-- Thumbnail -->
-          <div class="module-thumbnail" @click="goToDetail(module.id)">
-            <img 
-              v-if="module.image" 
-              :src="module.image" 
-              :alt="module.title"
-              @error="handleImageError"
-            />
-            <div v-else class="module-thumbnail-placeholder">
-              <svg class="w-16 h-16 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-              </svg>
+      <!-- Grid View -->
+      <div v-else-if="viewMode === 'grid'" class="edu-grid">
+        <div v-for="module in modules" :key="module.id" class="module-card">
+          <div class="module-thumb" @click="goToDetail(module.id)">
+            <img v-if="getThumbnailImage(module)" :src="getImageUrl(getThumbnailImage(module))" :alt="module.title" @error="handleImageError" class="module-thumb-img" />
+            <div v-else class="module-thumb-placeholder">
+              <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             </div>
-            <div class="module-overlay">
-              <span class="overlay-text">Baca Selengkapnya</span>
-            </div>
-            <span v-if="module.category" class="module-category-badge">
-              {{ module.category }}
-            </span>
+            <div class="module-thumb-overlay">Baca Selengkapnya →</div>
+            <span v-if="module.category" class="module-cat-badge">{{ module.category }}</span>
+            <span v-if="module.is_maintenance_guide" class="maintenance-badge" title="Panduan Pemeliharaan Terstruktur">📋 Panduan</span>
           </div>
-
-          <!-- Content -->
-          <div class="module-content">
-            <h3 class="module-title" @click="goToDetail(module.id)">{{ module.title }}</h3>
-            <p class="module-description">
-              {{ module.description || truncateText(module.content, 120) }}
-            </p>
-            
-            <!-- Meta Info -->
+          <div class="module-body">
+            <h3 class="module-title-text" @click="goToDetail(module.id)">{{ module.title }}</h3>
+            <p class="module-desc">{{ module.description || truncateText(module.content, 110) }}</p>
             <div class="module-meta">
-              <span class="meta-item">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                {{ estimateReadingTime(module.content) }} menit
-              </span>
-              <span class="meta-item">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                </svg>
-                {{ module.view_count || 0 }} views
-              </span>
+              <span>⏱ {{ estimateReadingTime(module.content) }} min</span>
+              <span>👁 {{ module.view_count || 0 }}</span>
             </div>
-
-            <!-- Actions -->
             <div class="module-actions">
-              <button 
-                @click.stop="toggleBookmark(module)"
-                :class="['btn-bookmark', { active: module.is_bookmarked }]"
-                :title="module.is_bookmarked ? 'Hapus dari bookmark' : 'Tambah ke bookmark'"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="module.is_bookmarked ? 'M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z' : 'M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z'"></path>
-                </svg>
-                <span>{{ module.is_bookmarked ? 'Tersimpan' : 'Simpan' }}</span>
+              <button @click.stop="toggleBookmark(module)" class="bookmark-btn" :class="{ 'bookmark-btn--saved': module.is_bookmarked }">
+                {{ module.is_bookmarked ? '★ Tersimpan' : '☆ Simpan' }}
               </button>
-              <button 
-                @click.stop="downloadModule(module)"
-                class="btn-download"
-                title="Download Modul"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                <span>Download</span>
-              </button>
-              <router-link 
-                :to="`/education/${module.id}`"
-                class="btn-read"
-              >
-                Baca
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-              </router-link>
+              <RouterLink :to="`/education/${module.id}`" class="sp-btn sp-btn-primary sp-btn-sm" style="margin-left:auto;">Baca →</RouterLink>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Modules List View -->
-      <div v-else class="modules-list">
-        <div
-          v-for="module in modules"
-          :key="module.id"
-          class="module-card-list"
-        >
-          <div class="module-thumbnail-list" @click="goToDetail(module.id)">
-            <img 
-              v-if="module.image" 
-              :src="module.image" 
-              :alt="module.title"
-              @error="handleImageError"
-            />
-            <div v-else class="module-thumbnail-placeholder">
-              <svg class="w-12 h-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-              </svg>
+      <!-- List View -->
+      <div v-else class="edu-list">
+        <div v-for="module in modules" :key="module.id" class="module-list-item">
+          <div class="module-list-thumb" @click="goToDetail(module.id)">
+            <img v-if="getThumbnailImage(module)" :src="getImageUrl(getThumbnailImage(module))" :alt="module.title" @error="handleImageError" class="module-list-thumb-img" />
+            <div v-else class="module-list-thumb-placeholder">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253"/></svg>
             </div>
           </div>
-          <div class="module-info-list">
-            <div class="module-header-list">
-              <h3 @click="goToDetail(module.id)">{{ module.title }}</h3>
-              <span v-if="module.category" class="module-category">
-                {{ module.category }}
-              </span>
+          <div class="module-list-body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">
+              <h3 class="module-title-text" @click="goToDetail(module.id)" style="font-size:.9375rem;">{{ module.title }}</h3>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.25rem;">
+                <span v-if="module.category" class="module-cat-badge" style="position:static;">{{ module.category }}</span>
+                <span v-if="module.is_maintenance_guide" class="maintenance-badge" style="position:static;font-size:.625rem;padding:.15rem .45rem;">📋 Panduan</span>
+              </div>
             </div>
-            <p class="module-description">
-              {{ module.description || truncateText(module.content, 150) }}
-            </p>
-            <div class="module-meta-list">
-              <span class="meta-item">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-                {{ estimateReadingTime(module.content) }} menit
-              </span>
-              <span class="meta-item">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-                </svg>
-                {{ module.view_count || 0 }} views
-              </span>
-            </div>
-            <div class="module-actions-list">
-              <button 
-                @click.stop="toggleBookmark(module)"
-                :class="['btn-bookmark', { active: module.is_bookmarked }]"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path>
-                </svg>
-                {{ module.is_bookmarked ? 'Tersimpan' : 'Simpan' }}
-              </button>
-              <button 
-                @click.stop="downloadModule(module)"
-                class="btn-download"
-              >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                </svg>
-                Download
-              </button>
-              <router-link 
-                :to="`/education/${module.id}`"
-                class="btn-read"
-              >
-                Baca Selengkapnya
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-              </router-link>
+            <p class="module-desc">{{ module.description || truncateText(module.content, 140) }}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
+              <div class="module-meta">
+                <span>⏱ {{ estimateReadingTime(module.content) }} min</span>
+                <span>👁 {{ module.view_count || 0 }}</span>
+              </div>
+              <div style="display:flex;gap:.5rem;">
+                <button @click.stop="toggleBookmark(module)" class="bookmark-btn" :class="{ 'bookmark-btn--saved': module.is_bookmarked }">{{ module.is_bookmarked ? '★' : '☆' }}</button>
+                <RouterLink :to="`/education/${module.id}`" class="sp-btn sp-btn-primary sp-btn-sm">Baca →</RouterLink>
+              </div>
             </div>
           </div>
         </div>
@@ -259,668 +144,236 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useEducationStore } from '../stores/education'
 
-const router = useRouter()
+const router        = useRouter()
 const educationStore = useEducationStore()
 
 const selectedCategory = ref(null)
-const currentPage = ref(1)
-const viewMode = ref('grid') // 'grid' or 'list'
+const currentPage      = ref(1)
+const viewMode         = ref('grid')
+const searchQuery      = ref('')
+const searchTimeout    = ref(null)
 
 const loading = computed(() => educationStore.loading)
 const modules = computed(() => {
-  let moduleList = []
-  if (educationStore.modules?.data) {
-    moduleList = educationStore.modules.data
-  } else if (Array.isArray(educationStore.modules)) {
-    moduleList = educationStore.modules
-  }
-  
-  // Add is_bookmarked property if not present
-  return moduleList.map(module => ({
-    ...module,
-    is_bookmarked: module.is_bookmarked || false
-  }))
+  let list = educationStore.modules?.data ? educationStore.modules.data : Array.isArray(educationStore.modules) ? educationStore.modules : []
+  return list.map(m => ({ ...m, is_bookmarked: m.is_bookmarked || false }))
 })
 
-// Get all modules untuk menghitung kategori
-const allModules = ref([])
-
+const allModules    = ref([])
 const categoryStats = computed(() => {
-  const stats = {
-    'Semua': allModules.value.length
-  }
-  
-  allModules.value.forEach(module => {
-    if (module.category) {
-      stats[module.category] = (stats[module.category] || 0) + 1
-    }
-  })
-  
+  const stats = { 'Semua': allModules.value.length }
+  allModules.value.forEach(m => { if (m.category) stats[m.category] = (stats[m.category] || 0) + 1 })
   return Object.entries(stats).map(([name, count]) => ({ name, count }))
 })
 
 const loadModules = async (page = 1) => {
-  try {
-    await educationStore.fetchModules(selectedCategory.value, page)
-  } catch (error) {
-    console.error('Error loading modules:', error)
-  }
+  try { await educationStore.fetchModules(selectedCategory.value, page, searchQuery.value) }
+  catch (err) { console.error(err) }
 }
+const handleSearch  = () => {
+  if (searchTimeout.value) clearTimeout(searchTimeout.value)
+  searchTimeout.value = setTimeout(() => { currentPage.value = 1; loadModules(1) }, 500)
+}
+const performSearch = () => { if (searchTimeout.value) clearTimeout(searchTimeout.value); currentPage.value = 1; loadModules(1) }
+const clearSearch   = () => { searchQuery.value = ''; currentPage.value = 1; loadModules(1) }
 
 const loadAllModules = async () => {
-  try {
-    const response = await educationStore.fetchModules(null, 1)
-    if (response.data) {
-      // Ambil semua data tanpa filter untuk statistik kategori
-      allModules.value = response.data.data || []
-    }
-  } catch (error) {
-    console.error('Error loading all modules:', error)
-  }
+  try { const r = await educationStore.fetchModules(null, 1); if (r.data) allModules.value = r.data.data || [] }
+  catch (e) {}
 }
 
-const goToDetail = (id) => {
-  router.push(`/education/${id}`)
-}
-
-const truncateText = (text, length) => {
-  if (!text) return ''
-  if (text.length <= length) return text
-  return text.substring(0, length) + '...'
-}
-
-const estimateReadingTime = (content) => {
-  if (!content) return 0
-  // Estimasi: 200 kata per menit, rata-rata 5 karakter per kata
-  const words = content.length / 5
-  const minutes = Math.ceil(words / 200)
-  return minutes || 1
-}
+const goToDetail          = (id) => router.push(`/education/${id}`)
+const truncateText        = (t, l) => !t ? '' : t.length <= l ? t : t.substring(0, l) + '...'
+const estimateReadingTime = (c) => !c ? 0 : Math.ceil(c.length / 5 / 200) || 1
 
 const toggleBookmark = async (module) => {
   try {
-    if (module.is_bookmarked) {
-      await educationStore.unbookmark(module.id)
-      module.is_bookmarked = false
-    } else {
-      await educationStore.bookmark(module.id)
-      module.is_bookmarked = true
-    }
-  } catch (error) {
-    console.error('Error toggling bookmark:', error)
-    alert('Gagal mengubah bookmark')
-  }
+    if (module.is_bookmarked) { await educationStore.unbookmark(module.id); module.is_bookmarked = false }
+    else                      { await educationStore.bookmark(module.id);   module.is_bookmarked = true  }
+  } catch { alert('Gagal mengubah bookmark') }
 }
 
-const downloadModule = (module) => {
-  try {
-    // Create content for download
-    const content = `
-MODUL EDUKASI: ${module.title}
-${module.category ? `Kategori: ${module.category}` : ''}
-${module.description ? `\nDeskripsi:\n${module.description}` : ''}
-
-${module.content || ''}
-
----
-Sumber: System Pakar - Tanaman Hias Expert
-Diunduh pada: ${new Date().toLocaleString('id-ID')}
-    `.trim()
-
-    // Create blob and download
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `${module.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-    URL.revokeObjectURL(url)
-  } catch (error) {
-    console.error('Error downloading module:', error)
-    alert('Gagal mengunduh modul')
-  }
+const getThumbnailImage = (m) => {
+  if (m.image) return m.image
+  if (m.content_images?.length) return m.content_images[0]
+  return null
 }
 
-const handleImageError = (event) => {
-  event.target.style.display = 'none'
-  if (event.target.parentElement) {
-    event.target.parentElement.querySelector('.module-thumbnail-placeholder')?.classList.remove('hidden')
-  }
+const getImageUrl = (p) => {
+  if (!p) return ''
+  if (p.startsWith('http://') || p.startsWith('https://')) return p
+  const base = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api').replace('/api', '')
+  const clean = p.startsWith('/') ? p.substring(1) : p
+  return clean.startsWith('storage/') ? `${base}/${clean}` : `${base}/storage/${clean}`
 }
 
-watch(selectedCategory, () => {
-  currentPage.value = 1
-  loadModules(1)
-})
+const handleImageError = (e) => { e.target.style.display = 'none' }
 
-onMounted(async () => {
-  await loadAllModules()
-  loadModules()
-})
+watch(selectedCategory, () => { currentPage.value = 1; loadModules(1) })
+watch(searchQuery, () => { if (!searchQuery.value) { currentPage.value = 1; loadModules(1) } })
+onMounted(async () => { await loadAllModules(); loadModules() })
 </script>
 
 <style scoped>
-.education-container {
-  max-width: 1400px;
-  margin: 0 auto;
-  padding: 2rem 1rem;
-}
+a { text-decoration: none; }
 
-/* Header Section */
-.education-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 3rem;
-  gap: 2rem;
-}
+.page-wrapper { min-height: 100vh; background: var(--bg-subtle); }
 
-.education-header h1 {
-  margin: 0 0 0.5rem 0;
-  color: #1f2937;
-  font-size: 2.5rem;
-  font-weight: 700;
+/* Hero */
+.edu-hero {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 5rem 0 1.75rem;
 }
+.edu-hero-inner { display: flex; align-items: flex-end; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.edu-title { font-size: 1.625rem; font-weight: 800; color: var(--gray-900); margin: 0 0 .25rem; }
+.edu-sub   { font-size: .9375rem; color: var(--text-muted); margin: 0; }
 
-.header-subtitle {
-  color: #6b7280;
-  font-size: 1.1rem;
-  margin: 0;
+/* Content */
+.edu-content { display: flex; flex-direction: column; gap: 1.25rem; padding-top: 1.75rem; padding-bottom: 4rem; }
+
+/* Category filter */
+.cat-filter { display: flex; flex-wrap: wrap; gap: .5rem; }
+.cat-btn {
+  padding: .375rem .875rem;
+  border-radius: 9999px;
+  font-size: .8125rem; font-weight: 500;
+  border: 1px solid var(--border);
+  background: #fff; color: var(--text-secondary);
+  cursor: pointer; transition: all .15s;
 }
+.cat-btn:hover { border-color: var(--primary-300); color: var(--primary-700); }
+.cat-btn--active { background: var(--primary-50); border-color: var(--primary-300); color: var(--primary-700); font-weight: 600; }
+.cat-count { font-size: .75rem; opacity: .65; margin-left: .125rem; }
 
-.btn-bookmarks {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: #16a34a;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.5rem;
-  text-decoration: none;
-  font-weight: 600;
-  transition: all 0.3s;
-  box-shadow: 0 2px 4px rgba(22, 163, 74, 0.2);
+/* Search */
+.search-box { padding: .875rem 1rem; }
+.search-inner { position: relative; }
+.search-icon {
+  position: absolute; left: .875rem; top: 50%; transform: translateY(-50%);
+  width: 18px; height: 18px; color: var(--gray-400); pointer-events: none;
 }
-
-.btn-bookmarks:hover {
-  background: #15803d;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(22, 163, 74, 0.3);
+.search-input { padding-left: 2.75rem !important; padding-right: 2.5rem !important; }
+.search-clear {
+  position: absolute; right: .875rem; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  color: var(--gray-400); display: flex; transition: color .15s;
 }
+.search-clear:hover { color: var(--gray-700); }
+.search-hint { font-size: .8125rem; color: var(--text-muted); margin-top: .5rem; padding-left: .25rem; }
 
-/* Category Section */
-.category-section {
-  margin-bottom: 3rem;
-}
-
-.section-title {
-  font-size: 1.75rem;
-  color: #1f2937;
-  margin-bottom: 1.5rem;
-  font-weight: 700;
-}
-
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
-}
-
-.category-card {
-  background: white;
-  border: 2px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.category-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  transform: translateY(-2px);
-  border-color: #16a34a;
-}
-
-.category-card.active {
-  border-color: #16a34a;
-  background: #f0fdf4;
-}
-
-.category-icon {
-  font-size: 2.5rem;
-}
-
-.category-info h3 {
-  margin: 0 0 0.25rem 0;
-  color: #1f2937;
-  font-size: 1.1rem;
-  font-weight: 600;
-}
-
-.category-info p {
-  margin: 0;
-  color: #6b7280;
-  font-size: 0.9rem;
-}
-
-/* Content Section */
-.content-section {
-  margin-top: 2rem;
-}
-
-.section-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 2rem;
-  flex-wrap: wrap;
-  gap: 1rem;
-}
-
-.view-toggle {
-  display: flex;
-  gap: 0.5rem;
-  background: #f3f4f6;
-  padding: 0.25rem;
-  border-radius: 0.5rem;
-}
-
+/* Toolbar */
+.toolbar { display: flex; align-items: center; justify-content: space-between; }
+.toolbar-title { font-size: 1.125rem; font-weight: 700; color: var(--gray-900); margin: 0; }
+.view-toggle { display: flex; gap: .25rem; background: var(--gray-100); border-radius: 8px; padding: .25rem; }
 .view-btn {
-  padding: 0.5rem;
-  border: none;
-  background: transparent;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  color: #6b7280;
-  transition: all 0.2s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 32px; height: 32px; border-radius: 6px; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-400); background: transparent; transition: all .15s;
 }
+.view-btn:hover { color: var(--gray-700); }
+.view-btn--active { background: #fff; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,.1); }
 
-.view-btn:hover {
-  background: #e5e7eb;
-  color: #1f2937;
-}
+/* Empty */
+.empty-state { padding: 3rem; text-align: center; }
 
-.view-btn.active {
-  background: #16a34a;
-  color: white;
-}
-
-/* Grid View */
-.modules-grid {
+/* Grid */
+.edu-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.125rem;
+}
+.module-card {
+  background: #fff; border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden;
+  transition: border-color .15s, box-shadow .15s;
+}
+.module-card:hover { border-color: var(--primary-300); box-shadow: var(--shadow-md); }
+
+.module-thumb {
+  position: relative; height: 160px; overflow: hidden;
+  background: var(--gray-100); cursor: pointer;
+}
+.module-thumb-img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+.module-card:hover .module-thumb-img { transform: scale(1.04); }
+.module-thumb-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-300);
+}
+.module-thumb-overlay {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,.38);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: .875rem; font-weight: 600;
+  opacity: 0; transition: opacity .2s;
+}
+.module-card:hover .module-thumb-overlay { opacity: 1; }
+.module-cat-badge {
+  position: absolute; top: .5rem; left: .5rem;
+  background: rgba(22,163,74,.9); color: #fff;
+  font-size: .6875rem; font-weight: 700;
+  padding: .2rem .6rem; border-radius: 9999px;
+  z-index: 10;
+}
+.maintenance-badge {
+  position: absolute; top: .5rem; right: .5rem;
+  background: rgba(245,158,11,.95); color: #fff;
+  font-size: .6875rem; font-weight: 700;
+  padding: .2rem .6rem; border-radius: 9999px;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.module-card-grid {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 1rem;
-  overflow: hidden;
-  transition: all 0.3s;
-  display: flex;
-  flex-direction: column;
+.module-body { padding: 1rem; display: flex; flex-direction: column; gap: .625rem; }
+.module-title-text {
+  font-size: .9375rem; font-weight: 700; color: var(--gray-900);
+  margin: 0; cursor: pointer; transition: color .15s;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-
-.module-card-grid:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  transform: translateY(-4px);
-  border-color: #16a34a;
+.module-title-text:hover { color: var(--primary); }
+.module-desc {
+  font-size: .8125rem; color: var(--text-muted); margin: 0; line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
-
-.module-thumbnail {
-  position: relative;
-  width: 100%;
-  height: 200px;
-  overflow: hidden;
-  background: #f3f4f6;
-  cursor: pointer;
-}
-
-.module-thumbnail img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s;
-}
-
-.module-card-grid:hover .module-thumbnail img {
-  transform: scale(1.05);
-}
-
-.module-thumbnail-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-}
-
-.module-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.3s;
-}
-
-.module-card-grid:hover .module-overlay {
-  opacity: 1;
-}
-
-.overlay-text {
-  color: white;
-  font-weight: 600;
-  font-size: 1.1rem;
-}
-
-.module-category-badge {
-  position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  background: #16a34a;
-  color: white;
-  padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-.module-content {
-  padding: 1.5rem;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.module-title {
-  margin: 0 0 0.75rem 0;
-  color: #1f2937;
-  font-size: 1.25rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color 0.2s;
-  line-height: 1.4;
-}
-
-.module-title:hover {
-  color: #16a34a;
-}
-
-.module-description {
-  color: #6b7280;
-  line-height: 1.6;
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-  flex: 1;
-}
-
-.module-meta {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.meta-item {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  color: #9ca3af;
-  font-size: 0.875rem;
-}
-
+.module-meta { display: flex; gap: .875rem; font-size: .75rem; color: var(--gray-400); }
 .module-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
+  display: flex; align-items: center; gap: .5rem;
+  padding-top: .625rem; border-top: 1px solid var(--border);
 }
 
-.btn-bookmark,
-.btn-download,
-.btn-read {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-  transition: all 0.2s;
-  border: none;
-  cursor: pointer;
-  text-decoration: none;
-  flex: 1;
-  justify-content: center;
+/* List */
+.edu-list { display: flex; flex-direction: column; gap: .875rem; }
+.module-list-item {
+  background: #fff; border: 1px solid var(--border); border-radius: 12px;
+  display: flex; gap: 1rem; padding: 1rem;
+  transition: border-color .15s, box-shadow .15s;
 }
-
-.btn-bookmark {
-  background: #f3f4f6;
-  color: #6b7280;
-  border: 1px solid #e5e7eb;
+.module-list-item:hover { border-color: var(--primary-300); box-shadow: var(--shadow-sm); }
+.module-list-thumb {
+  width: 120px; height: 84px; border-radius: 8px; overflow: hidden;
+  background: var(--gray-100); flex-shrink: 0; cursor: pointer;
 }
-
-.btn-bookmark:hover {
-  background: #e5e7eb;
-  color: #1f2937;
+.module-list-thumb-img { width: 100%; height: 100%; object-fit: cover; }
+.module-list-thumb-placeholder {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--gray-300);
 }
+.module-list-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: .5rem; }
 
-.btn-bookmark.active {
-  background: #fef3c7;
-  color: #d97706;
-  border-color: #fbbf24;
+/* Bookmark */
+.bookmark-btn {
+  font-size: .8125rem; padding: .3rem .75rem;
+  border-radius: 9999px; border: 1px solid var(--border);
+  background: #fff; color: var(--text-muted); cursor: pointer; transition: all .15s;
 }
+.bookmark-btn:hover { border-color: var(--primary-300); color: var(--primary); }
+.bookmark-btn--saved { background: var(--primary-50); border-color: var(--primary-300); color: var(--primary-700); }
 
-.btn-download {
-  background: #eff6ff;
-  color: #2563eb;
-  border: 1px solid #bfdbfe;
-}
-
-.btn-download:hover {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.btn-read {
-  background: #16a34a;
-  color: white;
-  border: 1px solid #16a34a;
-}
-
-.btn-read:hover {
-  background: #15803d;
-  border-color: #15803d;
-}
-
-/* List View */
-.modules-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
-}
-
-.module-card-list {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 1rem;
-  padding: 1.5rem;
-  display: flex;
-  gap: 1.5rem;
-  transition: all 0.3s;
-}
-
-.module-card-list:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-  border-color: #16a34a;
-}
-
-.module-thumbnail-list {
-  width: 200px;
-  height: 150px;
-  border-radius: 0.75rem;
-  overflow: hidden;
-  background: #f3f4f6;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.module-thumbnail-list img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.module-info-list {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.module-header-list {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.module-header-list h3 {
-  margin: 0;
-  color: #1f2937;
-  font-size: 1.5rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-
-.module-header-list h3:hover {
-  color: #16a34a;
-}
-
-.module-category {
-  background: #dbeafe;
-  color: #1e40af;
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.module-meta-list {
-  display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  flex-wrap: wrap;
-}
-
-.module-actions-list {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.module-actions-list .btn-bookmark,
-.module-actions-list .btn-download,
-.module-actions-list .btn-read {
-  flex: 0 1 auto;
-  min-width: auto;
-}
-
-/* Loading & Empty States */
-.loading {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #6b7280;
-}
-
-.loading-spinner {
-  width: 48px;
-  height: 48px;
-  border: 4px solid #e5e7eb;
-  border-top-color: #16a34a;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: 0 auto 1rem;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
-  color: #6b7280;
-}
-
-.empty-icon {
-  font-size: 4rem;
-  margin-bottom: 1rem;
-}
-
-.empty-state p {
-  margin: 0.5rem 0;
-  font-size: 1.1rem;
-}
-
-.empty-subtitle {
-  color: #9ca3af;
-  font-size: 0.95rem;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .education-container {
-    padding: 1rem;
-  }
-
-  .education-header {
-    flex-direction: column;
-  }
-
-  .education-header h1 {
-    font-size: 2rem;
-  }
-
-  .modules-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .module-card-list {
-    flex-direction: column;
-  }
-
-  .module-thumbnail-list {
-    width: 100%;
-    height: 200px;
-  }
-
-  .module-actions {
-    flex-direction: column;
-  }
-
-  .btn-bookmark,
-  .btn-download,
-  .btn-read {
-    width: 100%;
-  }
+@media (max-width: 640px) {
+  .edu-hero-inner { flex-direction: column; align-items: flex-start; }
+  .module-list-item { flex-direction: column; }
+  .module-list-thumb { width: 100%; height: 140px; }
 }
 </style>

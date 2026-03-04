@@ -1,222 +1,125 @@
 <template>
-  <div class="min-h-screen bg-linear-to-br from-green-50 via-white to-blue-50 flex items-center justify-center px-4 py-8 sm:py-12">
-    <div class="w-full max-w-md">
-      <!-- Logo/Brand -->
-      <div class="text-center mb-6 sm:mb-8">
-        <div class="inline-flex items-center gap-2 mb-3 sm:mb-4">
-          <img :src="logoImage" alt="System Pakar" class="w-10 h-10 sm:w-12 sm:h-12 object-contain rounded-xl" />
-          <span class="text-xl sm:text-2xl font-bold bg-linear-to-r from-green-600 to-green-700 bg-clip-text text-transparent font-poppins">
-            System Pakar
-          </span>
+  <div class="auth-page">
+    <div class="auth-container">
+
+      <!-- Logo -->
+      <div class="auth-logo">
+        <img :src="logoImage" alt="System Pakar" class="auth-logo-img" />
+        <div>
+          <h1 class="auth-logo-name">System Pakar</h1>
+          <p class="auth-logo-sub">Tanaman Hias</p>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
-          {{ step === 1 ? 'Buat Akun Baru' : 'Verifikasi OTP' }}
-        </h1>
-        <p class="text-sm sm:text-base text-gray-600 leading-relaxed px-2">
-          {{ step === 1 ? 'Daftar sekarang dan mulai diagnosis tanaman hias kamu' : 'Masukkan kode OTP yang telah dikirim ke WhatsApp kamu' }}
-        </p>
       </div>
 
-      <!-- Register Card -->
-      <div class="bg-white rounded-xl sm:rounded-2xl shadow-lg p-6 sm:p-8 md:p-10 border border-gray-200">
-        <!-- Step 1: Register Form -->
-        <form v-if="step === 1" @submit.prevent="handleRegister" class="space-y-5">
-          <!-- Name Input -->
-          <div>
-            <label for="name" class="block text-sm font-semibold text-gray-700 mb-2">
-              Nama Lengkap <span class="text-red-500">*</span>
-            </label>
-            <input
-              id="name"
-              v-model="form.name"
-              type="text"
-              placeholder="Contoh: Budi Santoso"
-              required
-              :disabled="loading"
-              class="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
-            />
+      <!-- Step Indicator -->
+      <div class="step-indicator">
+        <div v-for="(s, i) in steps" :key="i" class="step-item">
+          <div class="step-dot" :class="{ 'step-dot--active': step > i, 'step-dot--current': step === i + 1 }">
+            <svg v-if="step > i + 1" width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
+            <span v-else>{{ i + 1 }}</span>
           </div>
+          <span class="step-label" :class="{ 'step-label--active': step === i + 1 }">{{ s }}</span>
+          <div v-if="i < steps.length - 1" class="step-line" :class="{ 'step-line--done': step > i + 1 }"></div>
+        </div>
+      </div>
 
-          <!-- Email Input -->
-          <div>
-            <label for="email" class="block text-sm font-semibold text-gray-700 mb-2">
-              Email <span class="text-red-500">*</span>
-            </label>
-            <input
-              id="email"
-              v-model="form.email"
-              type="email"
-              placeholder="Contoh: budi.santoso@email.com"
-              required
-              :disabled="loading"
-              class="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
-            />
+      <!-- Card -->
+      <div class="sp-card auth-card">
+
+        <!-- Step 1: Data Akun -->
+        <template v-if="step === 1">
+          <div class="auth-card-header">
+            <h2 class="auth-title">Buat Akun Baru</h2>
+            <p class="auth-sub">Isi data di bawah untuk mendaftar</p>
           </div>
-
-          <!-- WhatsApp Input -->
-          <div>
-            <label for="whatsapp" class="block text-sm font-semibold text-gray-700 mb-2">
-              Nomor WhatsApp <span class="text-red-500">*</span>
-            </label>
-            <input
-              id="whatsapp"
-              v-model="form.whatsapp_number"
-              type="tel"
-              placeholder="Contoh: 081234567890 atau +62 812-3456-7890"
-              required
-              :disabled="loading"
-              class="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
-            />
-          </div>
-
-          <!-- Password Input -->
-          <div>
-            <label for="password" class="block text-sm font-semibold text-gray-700 mb-2">
-              Password <span class="text-red-500">*</span>
-            </label>
-            <input
-              id="password"
-              v-model="form.password"
-              type="password"
-              placeholder="Minimal 8 karakter, kombinasi huruf dan angka"
-              required
-              minlength="8"
-              :disabled="loading"
-              class="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
-            />
-          </div>
-
-          <!-- Password Confirmation Input -->
-          <div>
-            <label for="password_confirmation" class="block text-sm font-semibold text-gray-700 mb-2">
-              Konfirmasi Password <span class="text-red-500">*</span>
-            </label>
-            <input
-              id="password_confirmation"
-              v-model="form.password_confirmation"
-              type="password"
-              placeholder="Ketik ulang password yang sama"
-              required
-              :disabled="loading"
-              class="w-full px-4 py-3 text-base border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed"
-            />
-          </div>
-
-          <!-- Error Message -->
-          <div v-if="error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-            <div class="flex items-start gap-2">
-              <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-              </svg>
-              <p class="text-sm text-red-700 font-medium">{{ error }}</p>
-            </div>
-          </div>
-
-          <!-- Submit Button -->
-          <button
-            type="submit"
-            :disabled="loading"
-            class="w-full py-3.5 bg-linear-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-          >
-            <span v-if="loading" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-            <span>{{ loading ? 'Mengirim OTP...' : 'Daftar & Kirim OTP' }}</span>
-          </button>
-        </form>
-
-        <!-- Step 2: OTP Verification -->
-        <div v-if="step === 2" class="space-y-6">
-          <!-- Info Text -->
-          <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg">
-            <div class="flex items-start gap-3">
-              <svg class="w-5 h-5 text-green-600 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-              </svg>
-              <div>
-                <p class="text-sm font-semibold text-green-800 mb-1">Kode OTP telah dikirim!</p>
-                <p class="text-sm text-green-700">
-                  Kode OTP telah dikirim ke WhatsApp:<br>
-                  <strong class="font-semibold">{{ form.whatsapp_number }}</strong>
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <form @submit.prevent="handleVerifyOtp" class="space-y-5">
-            <!-- OTP Input -->
+          <form @submit.prevent="handleRegister" style="display:flex;flex-direction:column;gap:1.125rem;margin-top:1.5rem;">
             <div>
-              <label for="otp" class="block text-sm font-semibold text-gray-700 mb-2">
-                Kode OTP (6 digit) <span class="text-red-500">*</span>
-              </label>
-              <input
-                id="otp"
-                v-model="otpCode"
-                type="text"
-                placeholder="123456"
-                maxlength="6"
-                pattern="[0-9]{6}"
-                required
-                :disabled="loading"
-                class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 outline-none disabled:bg-gray-50 disabled:cursor-not-allowed text-center text-2xl font-bold tracking-widest"
-                @input="otpCode = otpCode.replace(/\D/g, '')"
-              />
-              <p class="mt-1.5 text-xs text-gray-500 text-center">
-                Masukkan 6 digit kode OTP yang diterima
-              </p>
+              <label for="reg-name" class="sp-label">Nama Lengkap <span style="color:#dc2626;">*</span></label>
+              <input id="reg-name" v-model="form.name" type="text" placeholder="Masukkan nama lengkap" required :disabled="loading" class="glass-input" autocomplete="name" />
             </div>
-
-            <!-- Error Message -->
-            <div v-if="error" class="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg">
-              <div class="flex items-start gap-2">
-                <svg class="w-5 h-5 text-red-500 mt-0.5 shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                  <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
-                </svg>
-                <p class="text-sm text-red-700 font-medium">{{ error }}</p>
-              </div>
+            <div>
+              <label for="reg-email" class="sp-label">Email <span style="color:#dc2626;">*</span></label>
+              <input id="reg-email" v-model="form.email" type="email" placeholder="contoh@email.com" required :disabled="loading" class="glass-input" autocomplete="email" />
+              <p class="sp-field-hint">Kode OTP akan dikirim ke email ini</p>
             </div>
-
-            <!-- Buttons -->
-            <div class="space-y-3">
-              <button
-                type="submit"
-                :disabled="loading"
-                class="w-full py-3.5 bg-linear-to-r from-green-600 to-green-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg hover:from-green-700 hover:to-green-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <span v-if="loading" class="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                <span>{{ loading ? 'Memverifikasi...' : 'Verifikasi OTP' }}</span>
-              </button>
-              
-              <button
-                type="button"
-                @click="resendOtp"
-                :disabled="loading || resendCooldown > 0"
-                class="w-full py-3 border-2 border-green-600 text-green-600 font-semibold rounded-lg hover:bg-green-50 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {{ resendCooldown > 0 ? `Kirim ulang dalam ${resendCooldown}s` : 'Kirim Ulang OTP' }}
-              </button>
+            <div>
+              <label for="reg-phone" class="sp-label">Nomor WhatsApp <span style="color:var(--text-muted);font-weight:400;font-size:.8125rem;">(opsional)</span></label>
+              <input id="reg-phone" v-model="form.whatsapp_number" type="tel" placeholder="08xxxxxxxxxx" :disabled="loading" class="glass-input" autocomplete="tel" />
+              <p class="sp-field-hint">Untuk fitur konsultasi langsung ke pakar via WhatsApp</p>
             </div>
+            <div>
+              <label for="reg-pass" class="sp-label">Password <span style="color:#dc2626;">*</span></label>
+              <input id="reg-pass" v-model="form.password" type="password" placeholder="Minimal 8 karakter" required :disabled="loading" class="glass-input" autocomplete="new-password" />
+            </div>
+            <div>
+              <label for="reg-pass2" class="sp-label">Konfirmasi Password <span style="color:#dc2626;">*</span></label>
+              <input id="reg-pass2" v-model="form.password_confirmation" type="password" placeholder="Ulangi password" required :disabled="loading" class="glass-input" autocomplete="new-password" />
+            </div>
+            <div v-if="error" class="sp-alert sp-alert-danger" role="alert">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              {{ error }}
+            </div>
+            <button type="submit" :disabled="loading" class="sp-btn sp-btn-primary sp-btn-lg" style="width:100%;justify-content:center;margin-top:.25rem;">
+              <span v-if="loading" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
+              {{ loading ? 'Mengirim OTP...' : 'Daftar & Kirim OTP' }}
+            </button>
           </form>
-        </div>
+        </template>
 
-        <!-- Links -->
-        <div class="mt-6 text-center">
-          <router-link
-            to="/login"
-            class="text-sm text-green-600 font-semibold hover:text-green-700 transition-colors duration-200"
-          >
-            Sudah punya akun? <span class="underline">Masuk</span>
-          </router-link>
-        </div>
+        <!-- Step 2: Verifikasi OTP -->
+        <template v-if="step === 2">
+          <div class="auth-card-header">
+            <h2 class="auth-title">Verifikasi OTP</h2>
+            <p class="auth-sub">Masukkan kode OTP yang dikirim ke:</p>
+            <div class="otp-email-badge">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              {{ form.email }}
+            </div>
+          </div>
+          <form @submit.prevent="handleVerifyOtp" style="display:flex;flex-direction:column;gap:1.25rem;margin-top:1.5rem;">
+            <div>
+              <label for="otp" class="sp-label" style="text-align:center;display:block;">Kode OTP (6 digit) <span style="color:#dc2626;">*</span></label>
+              <input
+                id="otp" v-model="otpCode"
+                type="text" maxlength="6"
+                placeholder="_ _ _ _ _ _"
+                required :disabled="loading"
+                class="glass-input otp-input"
+                inputmode="numeric" pattern="[0-9]*"
+                @input="otpCode = otpCode.replace(/\D/g, '')"
+                autocomplete="one-time-code"
+              />
+              <p class="sp-field-hint" style="text-align:center;">Cek inbox dan folder spam email Anda</p>
+            </div>
+            <div v-if="error" class="sp-alert sp-alert-danger" role="alert">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              {{ error }}
+            </div>
+            <button type="submit" :disabled="loading || otpCode.length < 6" class="sp-btn sp-btn-primary sp-btn-lg" style="width:100%;justify-content:center;">
+              <span v-if="loading" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
+              {{ loading ? 'Memverifikasi...' : 'Verifikasi OTP' }}
+            </button>
+            <button type="button" @click="resendOtp" :disabled="resendCooldown > 0 || loading" class="sp-btn sp-btn-secondary" style="width:100%;justify-content:center;">
+              {{ resendCooldown > 0 ? `Kirim ulang dalam ${resendCooldown}d` : 'Kirim Ulang OTP' }}
+            </button>
+          </form>
+          <div style="margin-top:1rem;text-align:center;">
+            <button @click="step = 1; error = null" style="background:none;border:none;cursor:pointer;font-size:.875rem;color:var(--primary);text-decoration:underline;">← Kembali ubah data</button>
+          </div>
+        </template>
+
       </div>
 
-      <!-- Additional Info -->
-      <div class="mt-6 text-center">
-        <p class="text-sm text-gray-500">
-          Dengan mendaftar, Anda menyetujui
-          <a href="#" class="text-green-600 hover:text-green-700 font-medium">Ketentuan Layanan</a>
-          dan
-          <a href="#" class="text-green-600 hover:text-green-700 font-medium">Kebijakan Privasi</a>
-        </p>
+      <!-- Login link -->
+      <div class="auth-links-bottom">
+        <RouterLink to="/login">Sudah punya akun? <strong>Masuk di sini</strong></RouterLink>
       </div>
+
+      <p class="auth-footer-note">
+        Dengan mendaftar, Anda menyetujui
+        <a href="#">Ketentuan Layanan</a> dan <a href="#">Kebijakan Privasi</a> kami.
+      </p>
+
     </div>
   </div>
 </template>
@@ -227,101 +130,150 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import logoImage from '../assets/logo-hydrangea.png'
 
-const router = useRouter()
+const router   = useRouter()
 const authStore = useAuthStore()
 
-const step = ref(1)
-const form = ref({
-  name: '',
-  email: '',
-  whatsapp_number: '',
-  password: '',
-  password_confirmation: ''
-})
-const otpCode = ref('')
-const loading = ref(false)
-const error = ref(null)
+const step  = ref(1)
+const steps = ['Data Akun', 'Verifikasi OTP']
+const form  = ref({ name: '', email: '', whatsapp_number: '', password: '', password_confirmation: '' })
+const otpCode        = ref('')
+const loading        = ref(false)
+const error          = ref(null)
 const resendCooldown = ref(0)
 let cooldownInterval = null
 
 const handleRegister = async () => {
-  error.value = null
-  loading.value = true
-
+  error.value = null; loading.value = true
   try {
-    const response = await authStore.register(form.value)
-    if (response.success) {
-      step.value = 2
-      startResendCooldown()
+    // Kirim data dengan nama field yang benar sesuai backend
+    const payload = {
+      name: form.value.name,
+      email: form.value.email,
+      password: form.value.password,
+      password_confirmation: form.value.password_confirmation,
+      whatsapp_number: form.value.whatsapp_number || null
     }
+    const res = await authStore.register(payload)
+    if (res.success) { step.value = 2; startResendCooldown() }
   } catch (err) {
-    // Tampilkan error detail dari validasi
     if (err.response?.data?.errors) {
-      const errors = err.response.data.errors
-      const errorMessages = []
-      for (const field in errors) {
-        errorMessages.push(...errors[field])
-      }
-      error.value = errorMessages.join(', ')
+      const msgs = []
+      for (const field in err.response.data.errors) msgs.push(...err.response.data.errors[field])
+      error.value = msgs.join(', ')
     } else {
       error.value = err.response?.data?.message || 'Registrasi gagal. Periksa data Anda.'
     }
-    console.error('Register error:', err.response?.data)
-  } finally {
-    loading.value = false
-  }
+  } finally { loading.value = false }
 }
 
 const handleVerifyOtp = async () => {
-  error.value = null
-  loading.value = true
-
-  try {
-    await authStore.verifyOtp(form.value.whatsapp_number, otpCode.value)
-    // Redirect akan dilakukan di store
-  } catch (err) {
-    error.value = err.response?.data?.message || 'OTP tidak valid. Periksa kembali kode OTP Anda.'
-  } finally {
-    loading.value = false
-  }
+  error.value = null; loading.value = true
+  try { await authStore.verifyOtp(form.value.email, otpCode.value) }
+  catch (err) { error.value = err.response?.data?.message || 'OTP tidak valid atau sudah kadaluarsa.' }
+  finally { loading.value = false }
 }
 
 const resendOtp = async () => {
   if (resendCooldown.value > 0) return
-
-  error.value = null
-  loading.value = true
-
+  error.value = null; loading.value = true
   try {
-    await authStore.register(form.value)
-    startResendCooldown()
-  } catch (err) {
-    error.value = err.response?.data?.message || 'Gagal mengirim ulang OTP.'
-  } finally {
-    loading.value = false
+    const payload = {
+      name: form.value.name,
+      email: form.value.email,
+      password: form.value.password,
+      password_confirmation: form.value.password_confirmation,
+      whatsapp_number: form.value.whatsapp_number || null
+    }
+    await authStore.register(payload); startResendCooldown()
   }
+  catch (err) { error.value = err.response?.data?.message || 'Gagal mengirim ulang OTP.' }
+  finally { loading.value = false }
 }
 
 const startResendCooldown = () => {
   resendCooldown.value = 60
   cooldownInterval = setInterval(() => {
     resendCooldown.value--
-    if (resendCooldown.value <= 0) {
-      clearInterval(cooldownInterval)
-    }
+    if (resendCooldown.value <= 0) clearInterval(cooldownInterval)
   }, 1000)
 }
 
-onMounted(() => {
-  // Jika sudah login, redirect
-  if (authStore.isAuthenticated) {
-    router.push('/')
-  }
-})
-
-onUnmounted(() => {
-  if (cooldownInterval) {
-    clearInterval(cooldownInterval)
-  }
-})
+onMounted(() => { if (authStore.isAuthenticated) router.push('/') })
+onUnmounted(() => { if (cooldownInterval) clearInterval(cooldownInterval) })
 </script>
+
+<style scoped>
+a { text-decoration: none; }
+
+.auth-page {
+  min-height: 100vh;
+  background: var(--bg-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1.25rem;
+}
+
+.auth-container {
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+/* Logo */
+.auth-logo { display: flex; align-items: center; justify-content: center; gap: .75rem; }
+.auth-logo-img  { width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border); }
+.auth-logo-name { font-size: 1.125rem; font-weight: 800; color: var(--gray-900); margin: 0; }
+.auth-logo-sub  { font-size: .75rem; color: var(--text-muted); margin: 0; }
+
+/* Steps */
+.step-indicator { display: flex; align-items: center; gap: 0; justify-content: center; }
+.step-item { display: flex; align-items: center; gap: .5rem; }
+.step-dot {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--gray-200); color: var(--gray-500);
+  font-size: .8125rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: background .2s, color .2s;
+}
+.step-dot--active  { background: var(--primary); color: #fff; }
+.step-dot--current { background: var(--primary); color: #fff; box-shadow: 0 0 0 3px var(--primary-100); }
+.step-label { font-size: .8125rem; font-weight: 500; color: var(--text-muted); white-space: nowrap; }
+.step-label--active { color: var(--gray-900); font-weight: 600; }
+.step-line { width: 40px; height: 2px; background: var(--gray-200); margin: 0 .625rem; transition: background .2s; flex-shrink: 0; }
+.step-line--done { background: var(--primary); }
+
+/* Card */
+.auth-card { padding: 2rem; }
+.auth-card-header { margin-bottom: 0; }
+.auth-title { font-size: 1.25rem; font-weight: 700; color: var(--gray-900); margin: 0 0 .25rem; }
+.auth-sub { font-size: .875rem; color: var(--text-muted); margin: 0; }
+
+/* OTP email badge */
+.otp-email-badge {
+  display: inline-flex; align-items: center; gap: .375rem;
+  margin-top: .625rem; padding: .375rem .75rem;
+  background: var(--primary-50); color: var(--primary-700);
+  border: 1px solid var(--primary-200); border-radius: 9999px;
+  font-size: .8125rem; font-weight: 600;
+}
+
+/* OTP input */
+.otp-input {
+  text-align: center !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  letter-spacing: .5em !important;
+  font-family: monospace !important;
+}
+
+/* Links */
+.auth-links-bottom { text-align: center; font-size: .875rem; color: var(--text-muted); }
+.auth-links-bottom a { color: var(--primary); transition: color .15s; }
+.auth-links-bottom a:hover { color: var(--primary-dark); }
+
+.auth-footer-note { text-align: center; font-size: .775rem; color: var(--text-faint); margin: 0; }
+.auth-footer-note a { color: var(--primary); }
+</style>

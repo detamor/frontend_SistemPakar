@@ -35,7 +35,7 @@ export const useAuthStore = defineStore('auth', {
       delete axios.defaults.headers.common['Authorization']
     },
 
-    // Register - Step 1: Request OTP
+    // Register - Step 1: Request OTP via Email
     async register(data) {
       this.loading = true
       this.error = null
@@ -51,14 +51,14 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    // Register - Step 2: Verify OTP
-    async verifyOtp(whatsappNumber, otpCode) {
+    // Register - Step 2: Verify OTP via Email
+    async verifyOtp(email, otpCode) {
       this.loading = true
       this.error = null
 
       try {
         const response = await axios.post(`${API_BASE_URL}/auth/verify-otp`, {
-          whatsapp_number: whatsappNumber,
+          email: email,
           otp_code: otpCode
         })
 
@@ -128,14 +128,14 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    // Request Password Reset OTP
-    async requestPasswordReset(whatsappNumber) {
+    // Request Password Reset OTP via Email
+    async requestPasswordReset(email) {
       this.loading = true
       this.error = null
 
       try {
         const response = await axios.post(`${API_BASE_URL}/auth/password/reset`, {
-          whatsapp_number: whatsappNumber
+          email: email
         })
         return response.data
       } catch (error) {
@@ -147,13 +147,13 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // Reset Password dengan OTP
-    async resetPassword(whatsappNumber, otpCode, password, passwordConfirmation) {
+    async resetPassword(email, otpCode, password, passwordConfirmation) {
       this.loading = true
       this.error = null
 
       try {
         const response = await axios.post(`${API_BASE_URL}/auth/password/verify`, {
-          whatsapp_number: whatsappNumber,
+          email: email,
           otp_code: otpCode,
           password: password,
           password_confirmation: passwordConfirmation
@@ -210,4 +210,3 @@ export const useAuthStore = defineStore('auth', {
     }
   }
 })
-

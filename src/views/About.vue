@@ -1,267 +1,114 @@
 <template>
-  <div class="min-h-screen bg-gray-50 pt-20">
-    <!-- Hero Section -->
-    <section class="bg-gradient-to-br from-green-600 to-green-700 text-white py-16 md:py-20 relative overflow-hidden">
-      <!-- Decorative Elements -->
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute top-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
-      </div>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="max-w-3xl mx-auto text-center">
-          <div class="inline-flex items-center gap-3 mb-6">
-            <img :src="logoImage" alt="System Pakar" class="w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-xl" />
-            <h1 class="text-3xl sm:text-4xl md:text-5xl font-bold">Tentang System Pakar</h1>
-          </div>
-          <p class="text-lg md:text-xl text-green-50 leading-relaxed">
-            Sistem pakar berbasis web untuk diagnosis penyakit tanaman hias dengan integrasi WhatsApp menggunakan Fonte API
-          </p>
+  <div class="page-wrapper">
+
+    <!-- Hero -->
+    <section class="about-hero">
+      <div class="sp-container">
+        <RouterLink to="/" class="sp-btn sp-btn-secondary sp-btn-sm" style="margin-bottom:1.25rem;display:inline-flex;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Kembali
+        </RouterLink>
+        <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;">
+          <img :src="logoImage" alt="System Pakar" style="width:40px;height:40px;border-radius:8px;border:1px solid var(--border);object-fit:cover;" />
+          <h1 style="font-size:1.75rem;font-weight:800;color:var(--gray-900);margin:0;">Tentang System Pakar</h1>
         </div>
+        <p style="color:var(--text-muted);font-size:.9375rem;max-width:560px;">
+          Sistem pakar berbasis web untuk diagnosis penyakit tanaman hias menggunakan metode Certainty Factor dan integrasi WhatsApp.
+        </p>
       </div>
     </section>
 
-    <!-- Main Content -->
-    <section class="py-16 md:py-20">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="max-w-4xl mx-auto space-y-12">
-          
-          <!-- Deskripsi Sistem -->
-          <div class="bg-white rounded-xl shadow-md p-8 md:p-10 border-2 border-gray-200">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                <span class="text-2xl">🌱</span>
-              </div>
-              <span>Tentang Sistem</span>
-            </h2>
-            <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed space-y-4">
-              <p>
-                <strong>System Pakar</strong> adalah sistem berbasis web yang dirancang khusus untuk membantu petani, penghobi, dan pelaku usaha dalam mengidentifikasi penyakit tanaman hias serta mendapatkan solusi perawatan yang tepat.
-              </p>
-              <p>
-                Sistem ini mengintegrasikan pengetahuan pakar lokal dengan teknologi modern untuk memberikan diagnosis yang akurat menggunakan metode <strong>Certainty Factor</strong> dan <strong>Forward Chaining</strong>.
-              </p>
-              <p>
-                Dengan lebih dari tiga puluh tahun pengalaman praktis dari pakar budidaya tanaman hias di kawasan Parongpong, sistem ini dirancang untuk meniru cara berpikir pakar dalam mendiagnosis penyakit tanaman hias.
-              </p>
+    <!-- Content -->
+    <div class="sp-container about-content">
+
+      <!-- Deskripsi -->
+      <div class="sp-card about-section">
+        <div class="section-badge" style="background:var(--primary-50);color:var(--primary-700);">🌱 Tentang Sistem</div>
+        <p style="color:var(--text-secondary);font-size:.9375rem;line-height:1.75;margin:.75rem 0 0;">
+          <strong style="color:var(--gray-900);">System Pakar</strong> adalah sistem berbasis web yang dirancang khusus untuk membantu petani, penghobi, dan pelaku usaha dalam mengidentifikasi penyakit tanaman hias serta mendapatkan solusi perawatan yang tepat.
+        </p>
+        <p style="color:var(--text-secondary);font-size:.9375rem;line-height:1.75;margin:.625rem 0 0;">
+          Sistem ini mengintegrasikan pengetahuan pakar lokal dengan teknologi modern untuk memberikan diagnosis yang akurat menggunakan metode <strong style="color:var(--primary-700);">Certainty Factor</strong> dan <strong style="color:var(--primary-700);">Forward Chaining</strong>.
+        </p>
+        <p style="color:var(--text-secondary);font-size:.9375rem;line-height:1.75;margin:.625rem 0 0;">
+          Dengan lebih dari tiga puluh tahun pengalaman praktis dari pakar budidaya tanaman hias di kawasan Parongpong, sistem ini meniru cara berpikir pakar sesungguhnya.
+        </p>
+      </div>
+
+      <!-- Fitur Utama -->
+      <div class="sp-card about-section">
+        <div class="section-badge" style="background:#fffbeb;color:#92400e;">✨ Fitur Utama</div>
+        <div class="feature-grid">
+          <div v-for="f in features" :key="f.title" class="feature-item">
+            <div class="feature-icon" :style="`background:${f.bg};`">{{ f.icon }}</div>
+            <div>
+              <h3 style="font-size:.9375rem;font-weight:700;color:var(--gray-900);margin:0 0 .25rem;">{{ f.title }}</h3>
+              <p style="font-size:.8125rem;color:var(--text-muted);margin:0;line-height:1.6;">{{ f.desc }}</p>
             </div>
           </div>
-
-          <!-- Fitur Utama -->
-          <div class="bg-white rounded-xl shadow-md p-8 md:p-10 border-2 border-gray-200">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div class="w-12 h-12 bg-gradient-to-br from-yellow-400 to-yellow-500 rounded-lg flex items-center justify-center">
-                <span class="text-2xl">✨</span>
-              </div>
-              <span>Fitur Utama</span>
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div class="flex items-start gap-4 p-5 bg-green-50 rounded-xl border border-green-200 hover:shadow-md transition-shadow duration-200">
-                <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                  <span class="text-white text-xl">🔍</span>
-                </div>
-                <div>
-                  <h3 class="font-bold text-gray-900 mb-2">Diagnosis Otomatis</h3>
-                  <p class="text-sm text-gray-600 leading-relaxed">
-                    Identifikasi penyakit tanaman hias secara otomatis dengan metode Certainty Factor
-                  </p>
-                </div>
-              </div>
-              
-              <div class="flex items-start gap-4 p-5 bg-blue-50 rounded-xl border border-blue-200 hover:shadow-md transition-shadow duration-200">
-                <div class="w-12 h-12 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                  <span class="text-white text-xl">📚</span>
-                </div>
-                <div>
-                  <h3 class="font-bold text-gray-900 mb-2">Modul Edukasi</h3>
-                  <p class="text-sm text-gray-600 leading-relaxed">
-                    Akses berbagai modul pembelajaran tentang perawatan tanaman hias
-                  </p>
-                </div>
-              </div>
-              
-              <div class="flex items-start gap-4 p-5 bg-purple-50 rounded-xl border border-purple-200 hover:shadow-md transition-shadow duration-200">
-                <div class="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                  <span class="text-white text-xl">💬</span>
-                </div>
-                <div>
-                  <h3 class="font-bold text-gray-900 mb-2">Konsultasi Pakar</h3>
-                  <p class="text-sm text-gray-600 leading-relaxed">
-                    Konsultasi langsung dengan pakar melalui WhatsApp menggunakan Fonte API
-                  </p>
-                </div>
-              </div>
-              
-              <div class="flex items-start gap-4 p-5 bg-orange-50 rounded-xl border border-orange-200 hover:shadow-md transition-shadow duration-200">
-                <div class="w-12 h-12 bg-gradient-to-br from-orange-500 to-orange-600 rounded-lg flex items-center justify-center shrink-0 shadow-sm">
-                  <span class="text-white text-xl">📊</span>
-                </div>
-                <div>
-                  <h3 class="font-bold text-gray-900 mb-2">Riwayat Diagnosis</h3>
-                  <p class="text-sm text-gray-600 leading-relaxed">
-                    Simpan dan akses kembali semua hasil diagnosis dengan laporan PDF
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Metode Certainty Factor -->
-          <div class="bg-white rounded-xl shadow-md p-8 md:p-10 border-2 border-gray-200">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div class="w-12 h-12 bg-gradient-to-br from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                <span class="text-2xl">🧮</span>
-              </div>
-              <span>Metode Certainty Factor</span>
-            </h2>
-            <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed space-y-4">
-              <p>
-                Sistem ini menggunakan metode <strong>Certainty Factor (CF)</strong> untuk mengukur tingkat keyakinan terhadap diagnosis yang dihasilkan. Metode ini telah terbukti efektif dalam sistem pakar pertanian dan medis.
-              </p>
-              <div class="bg-gray-50 rounded-lg p-6 border-l-4 border-green-600">
-                <h4 class="font-bold text-gray-900 mb-2">Cara Kerja:</h4>
-                <ul class="list-disc list-inside space-y-2 text-gray-700">
-                  <li>User memilih gejala yang diamati dan menentukan tingkat kepastian (CF User)</li>
-                  <li>Sistem menghitung CF untuk setiap kemungkinan penyakit</li>
-                  <li>CF dikombinasikan untuk gejala yang sama pada penyakit yang sama</li>
-                  <li>Hasil diagnosis ditampilkan dengan persentase keyakinan</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
-          <!-- Integrasi WhatsApp dengan Fonte API -->
-          <div class="bg-white rounded-xl shadow-md p-8 md:p-10 border-2 border-gray-200">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div class="w-12 h-12 bg-gradient-to-br from-green-500 to-green-600 rounded-lg flex items-center justify-center">
-                <span class="text-2xl">📱</span>
-              </div>
-              <span>Integrasi WhatsApp dengan Fonte API</span>
-            </h2>
-            <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed space-y-4">
-              <p>
-                Sistem ini terintegrasi dengan <strong>Fonte API</strong> untuk memungkinkan komunikasi langsung melalui WhatsApp. Integrasi ini memungkinkan:
-              </p>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mt-6">
-                <div class="bg-green-50 rounded-xl p-6 border-2 border-green-200 hover:shadow-md transition-shadow duration-200">
-                  <h4 class="font-bold text-green-900 mb-3 flex items-center gap-2 text-lg">
-                    <span class="text-xl">🔐</span>
-                    <span>Verifikasi OTP</span>
-                  </h4>
-                  <p class="text-sm text-gray-700 leading-relaxed">
-                    Kode OTP untuk verifikasi akun dikirim otomatis melalui WhatsApp menggunakan Fonte API
-                  </p>
-                </div>
-                
-                <div class="bg-blue-50 rounded-xl p-6 border-2 border-blue-200 hover:shadow-md transition-shadow duration-200">
-                  <h4 class="font-bold text-blue-900 mb-3 flex items-center gap-2 text-lg">
-                    <span class="text-xl">💬</span>
-                    <span>Konsultasi Pakar</span>
-                  </h4>
-                  <p class="text-sm text-gray-700 leading-relaxed">
-                    Komunikasi langsung dengan pakar tanaman hias melalui WhatsApp untuk konsultasi lebih lanjut
-                  </p>
-                </div>
-                
-                <div class="bg-purple-50 rounded-xl p-6 border-2 border-purple-200 hover:shadow-md transition-shadow duration-200">
-                  <h4 class="font-bold text-purple-900 mb-3 flex items-center gap-2 text-lg">
-                    <span class="text-xl">📄</span>
-                    <span>Laporan Diagnosis</span>
-                  </h4>
-                  <p class="text-sm text-gray-700 leading-relaxed">
-                    Hasil diagnosis dalam format PDF dapat dikirim langsung ke WhatsApp menggunakan Fonte API
-                  </p>
-                </div>
-                
-                <div class="bg-orange-50 rounded-xl p-6 border-2 border-orange-200 hover:shadow-md transition-shadow duration-200">
-                  <h4 class="font-bold text-orange-900 mb-3 flex items-center gap-2 text-lg">
-                    <span class="text-xl">🔔</span>
-                    <span>Notifikasi</span>
-                  </h4>
-                  <p class="text-sm text-gray-700 leading-relaxed">
-                    Notifikasi penting dan update sistem dikirim melalui WhatsApp untuk memastikan pengguna selalu terinformasi
-                  </p>
-                </div>
-              </div>
-              <div class="bg-gray-50 rounded-lg p-6 border-l-4 border-green-600 mt-6">
-                <p class="text-sm text-gray-700">
-                  <strong>Fonte API</strong> adalah layanan API untuk mengirim pesan WhatsApp secara otomatis. Sistem ini menggunakan Fonte API untuk memastikan komunikasi yang cepat, andal, dan terintegrasi dengan baik.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <!-- Teknologi yang Digunakan -->
-          <div class="bg-white rounded-xl shadow-md p-8 md:p-10 border-2 border-gray-200">
-            <h2 class="text-2xl md:text-3xl font-bold text-gray-900 mb-6 flex items-center gap-3">
-              <div class="w-12 h-12 bg-gradient-to-br from-gray-600 to-gray-700 rounded-lg flex items-center justify-center">
-                <span class="text-2xl">⚙️</span>
-              </div>
-              <span>Teknologi yang Digunakan</span>
-            </h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
-              <div class="text-center p-6 bg-gradient-to-br from-red-50 to-red-100 rounded-xl border-2 border-red-200 hover:shadow-md transition-shadow duration-200">
-                <div class="text-3xl mb-3">🟢</div>
-                <div class="font-bold text-gray-900 text-lg">Laravel</div>
-                <div class="text-xs text-gray-600 mt-2">Backend API</div>
-              </div>
-              <div class="text-center p-6 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-xl border-2 border-yellow-200 hover:shadow-md transition-shadow duration-200">
-                <div class="text-3xl mb-3">🟡</div>
-                <div class="font-bold text-gray-900 text-lg">Vue.js</div>
-                <div class="text-xs text-gray-600 mt-2">Frontend</div>
-              </div>
-              <div class="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl border-2 border-blue-200 hover:shadow-md transition-shadow duration-200">
-                <div class="text-3xl mb-3">🐍</div>
-                <div class="font-bold text-gray-900 text-lg">Python</div>
-                <div class="text-xs text-gray-600 mt-2">Expert Engine</div>
-              </div>
-              <div class="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-xl border-2 border-green-200 hover:shadow-md transition-shadow duration-200">
-                <div class="text-3xl mb-3">📱</div>
-                <div class="font-bold text-gray-900 text-lg">Fonte API</div>
-                <div class="text-xs text-gray-600 mt-2">WhatsApp</div>
-              </div>
-            </div>
-          </div>
-
-          <!-- CTA Section -->
-          <div class="bg-gradient-to-r from-green-600 to-green-700 rounded-xl shadow-lg p-8 md:p-10 text-white text-center relative overflow-hidden">
-            <!-- Decorative Elements -->
-            <div class="absolute inset-0 opacity-10">
-              <div class="absolute top-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-              <div class="absolute bottom-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-            </div>
-            <div class="relative z-10">
-              <h2 class="text-2xl md:text-3xl font-bold mb-4">Siap Memulai?</h2>
-              <p class="text-lg text-green-50 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Daftar sekarang dan dapatkan akses ke semua fitur sistem pakar. Gratis dan mudah digunakan!
-              </p>
-              <div class="flex flex-col sm:flex-row gap-3 justify-center">
-                <router-link
-                  v-if="!isAuthenticated"
-                  to="/register"
-                  class="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-green-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md hover:shadow-lg"
-                >
-                  Daftar Sekarang
-                </router-link>
-                <router-link
-                  v-if="isAuthenticated"
-                  to="/diagnosis"
-                  class="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-white text-green-600 font-semibold rounded-lg hover:bg-gray-100 transition-all duration-200 shadow-md hover:shadow-lg"
-                >
-                  Mulai Diagnosis
-                </router-link>
-                <router-link
-                  to="/"
-                  class="inline-flex items-center justify-center gap-2 px-8 py-3.5 bg-transparent text-white font-semibold rounded-lg border-2 border-white hover:bg-white hover:text-green-600 transition-all duration-200"
-                >
-                  Kembali ke Home
-                </router-link>
-              </div>
-            </div>
-          </div>
-
         </div>
       </div>
-    </section>
+
+      <!-- Metode CF -->
+      <div class="sp-card about-section">
+        <div class="section-badge" style="background:#f5f3ff;color:#5b21b6;">🧮 Metode Certainty Factor</div>
+        <p style="color:var(--text-secondary);font-size:.9375rem;line-height:1.75;margin:.75rem 0;">
+          Sistem ini menggunakan metode <strong style="color:var(--gray-900);">Certainty Factor (CF)</strong> untuk mengukur tingkat keyakinan terhadap suatu diagnosis berdasarkan gejala yang dipilih pengguna.
+        </p>
+        <div style="background:var(--primary-50);border-left:3px solid var(--primary);border-radius:0 8px 8px 0;padding:1rem 1.25rem;">
+          <h4 style="font-size:.875rem;font-weight:700;color:var(--primary-700);margin:0 0 .5rem;">Cara Kerja:</h4>
+          <ul style="color:var(--text-secondary);font-size:.875rem;padding-left:1.25rem;margin:0;line-height:1.8;">
+            <li>User memilih gejala dan menentukan tingkat kepastian (CF User)</li>
+            <li>Sistem menghitung CF untuk setiap kemungkinan penyakit</li>
+            <li>CF dikombinasikan secara sequential untuk semua gejala</li>
+            <li>Hasil diagnosis ditampilkan dengan persentase keyakinan</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Integrasi WhatsApp -->
+      <div class="sp-card about-section">
+        <div class="section-badge" style="background:#f0fdf4;color:#15803d;">📱 Integrasi WhatsApp</div>
+        <p style="color:var(--text-secondary);font-size:.9375rem;line-height:1.75;margin:.75rem 0;">
+          Terintegrasi dengan <strong style="color:var(--gray-900);">Fonte API</strong> untuk komunikasi langsung melalui WhatsApp dengan pakar tanaman hias.
+        </p>
+        <div class="wa-grid">
+          <div v-for="w in waFeatures" :key="w.title" class="wa-item">
+            <span class="wa-icon">{{ w.icon }}</span>
+            <div>
+              <h4 style="font-size:.875rem;font-weight:700;color:var(--gray-900);margin:0 0 .25rem;">{{ w.title }}</h4>
+              <p style="font-size:.8125rem;color:var(--text-muted);margin:0;line-height:1.6;">{{ w.desc }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Teknologi -->
+      <div class="sp-card about-section">
+        <div class="section-badge" style="background:var(--gray-100);color:var(--gray-700);">⚙️ Teknologi yang Digunakan</div>
+        <div class="tech-grid">
+          <div v-for="t in techs" :key="t.label" class="tech-item">
+            <div class="tech-icon">{{ t.icon }}</div>
+            <div style="font-size:.875rem;font-weight:700;color:var(--gray-900);">{{ t.label }}</div>
+            <div style="font-size:.75rem;color:var(--text-muted);">{{ t.role }}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CTA -->
+      <div class="sp-card about-cta">
+        <h2 style="font-size:1.375rem;font-weight:800;color:var(--gray-900);margin:0 0 .5rem;">Siap Memulai?</h2>
+        <p style="color:var(--text-muted);font-size:.9375rem;margin:0 0 1.5rem;max-width:400px;">
+          Daftar sekarang dan akses semua fitur sistem pakar. Gratis dan mudah!
+        </p>
+        <div style="display:flex;flex-wrap:wrap;gap:.75rem;">
+          <RouterLink v-if="!isAuthenticated" to="/register" class="sp-btn sp-btn-primary">Daftar Sekarang</RouterLink>
+          <RouterLink v-if="isAuthenticated" to="/diagnosis" class="sp-btn sp-btn-primary">Mulai Diagnosis</RouterLink>
+          <RouterLink to="/" class="sp-btn sp-btn-secondary">Kembali ke Home</RouterLink>
+        </div>
+      </div>
+
+    </div>
   </div>
 </template>
 
@@ -272,21 +119,134 @@ import logoImage from '../assets/logo-hydrangea.png'
 
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
+
+const features = [
+  { icon: '🔍', title: 'Diagnosis Otomatis', desc: 'Identifikasi penyakit tanaman hias dengan metode Certainty Factor yang akurat', bg: 'linear-gradient(135deg,#d1fae5,#a7f3d0)' },
+  { icon: '📚', title: 'Modul Edukasi',     desc: 'Akses modul pembelajaran tentang perawatan tanaman hias dari para pakar', bg: 'linear-gradient(135deg,#dbeafe,#bfdbfe)' },
+  { icon: '💬', title: 'Konsultasi Pakar',  desc: 'Konsultasi langsung dengan pakar melalui WhatsApp kapan saja', bg: 'linear-gradient(135deg,#ede9fe,#ddd6fe)' },
+  { icon: '📊', title: 'Riwayat Diagnosis', desc: 'Simpan dan akses semua hasil diagnosis dengan laporan PDF', bg: 'linear-gradient(135deg,#ffedd5,#fed7aa)' },
+]
+const waFeatures = [
+  { icon: '🔐', title: 'Verifikasi OTP',   desc: 'Kode OTP dikirim via WhatsApp menggunakan Fonte API' },
+  { icon: '💬', title: 'Konsultasi Pakar', desc: 'Komunikasi langsung dengan pakar tanaman hias' },
+  { icon: '📄', title: 'Laporan Diagnosis',desc: 'PDF diagnosis dikirim langsung ke WhatsApp' },
+  { icon: '🔔', title: 'Notifikasi',       desc: 'Update dan notifikasi penting via WhatsApp' },
+]
+const techs = [
+  { icon: '🟢', label: 'Laravel',   role: 'Backend API' },
+  { icon: '🟡', label: 'Vue.js',    role: 'Frontend' },
+  { icon: '🐍', label: 'Python',    role: 'Expert Engine' },
+  { icon: '📱', label: 'Fonte API', role: 'WhatsApp' },
+]
 </script>
 
 <style scoped>
-.prose h4 {
-  margin-top: 0;
-  margin-bottom: 0.5rem;
+a { text-decoration: none; }
+
+.page-wrapper { min-height: 100vh; background: var(--bg-subtle); }
+
+.about-hero {
+  background: #fff;
+  border-bottom: 1px solid var(--border);
+  padding: 4.5rem 0 1.5rem;
 }
 
-.prose ul {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+.about-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 2rem;
+  padding-bottom: 4rem;
 }
 
-.prose p {
-  margin-top: 0;
+.about-section { padding: 1.75rem 2rem; }
+
+.section-badge {
+  display: inline-block;
+  padding: .375rem .875rem;
+  border-radius: 9999px;
+  font-size: .8125rem;
+  font-weight: 700;
   margin-bottom: 1rem;
+}
+
+/* Features */
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: .25rem;
+}
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .875rem;
+  padding: 1rem;
+  background: var(--bg-subtle);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+.feature-icon {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.25rem; flex-shrink: 0;
+}
+
+/* WhatsApp grid */
+.wa-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: .875rem;
+  margin-top: .5rem;
+}
+.wa-item {
+  display: flex;
+  align-items: flex-start;
+  gap: .75rem;
+  padding: .875rem 1rem;
+  background: var(--bg-subtle);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+.wa-icon {
+  font-size: 1.375rem;
+  flex-shrink: 0;
+  margin-top: .125rem;
+}
+
+/* Tech grid */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: .875rem;
+  margin-top: .75rem;
+}
+@media (max-width: 600px) {
+  .tech-grid { grid-template-columns: repeat(2, 1fr); }
+}
+.tech-item {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.tech-item:hover {
+  border-color: var(--primary-300);
+  box-shadow: var(--shadow-sm);
+}
+.tech-icon {
+  font-size: 1.75rem;
+  margin-bottom: .5rem;
+}
+
+/* CTA */
+.about-cta {
+  padding: 2rem;
+  background: var(--primary-50) !important;
+  border-color: var(--primary-200) !important;
+  text-align: left;
 }
 </style>

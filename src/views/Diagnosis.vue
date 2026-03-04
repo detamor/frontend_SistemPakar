@@ -1,263 +1,181 @@
 <template>
-  <div class="min-h-screen bg-gray-50">
-    <!-- Hero Section - Mobile-first design -->
-    <div class="bg-linear-to-r from-green-600 to-green-700 text-white pt-20 pb-10 md:pt-24 md:pb-12">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <!-- Tombol Kembali -->
-        <div class="mb-4">
-          <router-link
-            to="/"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-white/20 hover:bg-white/30 text-white rounded-lg transition-colors text-sm font-medium"
-          >
-            <span>←</span>
-            <span>Kembali ke Home</span>
-          </router-link>
-        </div>
-        <div class="text-center max-w-4xl mx-auto">
-          <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 leading-tight">
-            Diagnosis Penyakit Tanaman Hias
-          </h1>
-          <p class="text-base sm:text-lg md:text-xl text-green-50 leading-relaxed px-2">
-            Pilih tanaman dan gejala untuk mendapatkan diagnosis berbasis metode Certainty Factor. Diagnosis cepat untuk membantu menentukan perawatan tanaman hias kamu.
-          </p>
-        </div>
+  <div class="min-h-screen" style="background:var(--bg-page);">
+    <!-- Page Header -->
+    <div class="sp-page-header" style="padding:calc(64px + 1.75rem) 1.25rem 1.75rem;">
+      <div class="page-container">
+        <RouterLink to="/" class="sp-btn sp-btn-secondary sp-btn-sm" style="margin-bottom:1rem;display:inline-flex;">
+          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+          Kembali
+        </RouterLink>
+        <h1 style="margin-bottom:.375rem;">Diagnosis Penyakit</h1>
+        <p style="margin:0;font-size:.9375rem;">Pilih tanaman dan gejala yang terlihat untuk mendapatkan diagnosis.</p>
       </div>
     </div>
 
-    <!-- Main Content - Mobile-first responsive layout -->
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
-      <div class="bg-white rounded-xl p-8 md:p-10 lg:p-12 shadow-md">
-        <!-- Error Message -->
-        <div v-if="error" class="mb-6">
-          <ErrorMessage
-            :message="error"
-            title="Gagal Memuat Data"
-            dismissible
-            @dismiss="error = null"
-          />
+    <!-- Form -->
+    <div class="page-container" style="padding-top:2rem;padding-bottom:3rem;max-width:860px;">
+      <form @submit.prevent="handleDiagnosis" class="diagnosis-form">
+
+        <!-- Error global -->
+        <div v-if="error" class="sp-alert sp-alert-danger" role="alert" style="margin-bottom:1.5rem;">
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          {{ error }}
         </div>
 
-        <form @submit.prevent="handleDiagnosis" class="grid grid-cols-1 gap-8">
-          <!-- Step 1: Pilih Tanaman -->
-          <div class="grid grid-cols-1 gap-6 pb-8 border-b border-gray-200 last:border-b-0">
-            <!-- Header -->
-            <div class="flex items-start gap-5">
-              <div class="w-14 h-14 bg-green-600 text-white rounded-lg flex items-center justify-center text-xl font-bold shrink-0">
-                1
-              </div>
-              <div class="min-w-0">
-                <h2 class="text-2xl md:text-3xl text-gray-900 mb-2 font-bold">
-                  Pilih Tanaman
-                </h2>
-                <p class="text-base md:text-lg text-gray-600 leading-relaxed">
-                  Pilih jenis tanaman hias yang ingin didiagnosis
-                </p>
-              </div>
+        <!-- Step 1: Pilih Tanaman -->
+        <div class="form-section sp-card">
+          <div class="step-header">
+            <div class="step-num">1</div>
+            <div>
+              <h2 style="font-size:1.125rem;margin:0 0 .2rem;">Pilih Tanaman</h2>
+              <p style="font-size:.8125rem;margin:0;">Pilih jenis tanaman hias yang ingin didiagnosis</p>
             </div>
-            <!-- Form -->
-            <div class="grid grid-cols-1 gap-4">
-              <label for="plant" class="flex items-center gap-3 text-gray-900 font-semibold text-lg">
-                <img :src="logoImage" alt="Tanaman" class="w-8 h-8 object-contain rounded-lg" />
-                <span>Jenis Tanaman Hias</span>
+          </div>
+
+          <div class="plants-grid">
+            <button
+              v-for="plant in plants" :key="plant.id"
+              type="button"
+              class="plant-card"
+              :class="{ 'plant-card--selected': form.plant_id == plant.id }"
+              @click="selectPlant(plant.id)"
+              :disabled="processing"
+            >
+              <div class="plant-img-wrap">
+                <img v-if="plant.image" :src="getImageUrl(plant.image)" :alt="plant.name" @error="handleImageError" class="plant-img" />
+                <div v-else class="plant-img-fallback">
+                  <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                </div>
+              </div>
+              <div class="plant-info">
+                <p class="plant-name">{{ plant.name }}</p>
+                <p v-if="plant.scientific_name" class="plant-sci">{{ plant.scientific_name }}</p>
+              </div>
+              <div v-if="form.plant_id == plant.id" class="plant-check">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Pilih Gejala -->
+        <div v-if="form.plant_id" class="form-section sp-card animate-fade-in">
+          <div class="step-header">
+            <div class="step-num">2</div>
+            <div>
+              <h2 style="font-size:1.125rem;margin:0 0 .2rem;">Pilih Gejala</h2>
+              <p style="font-size:.8125rem;margin:0;">Centang gejala yang Anda amati, lalu tentukan tingkat keyakinan</p>
+            </div>
+          </div>
+
+          <!-- Gejala list -->
+          <div v-if="symptoms.length > 0" class="symptoms-list">
+            <div
+              v-for="symptom in symptoms" :key="symptom.id"
+              class="symptom-row"
+              :class="{ 'symptom-row--selected': selectedSymptoms.includes(symptom.id) }"
+              @click="toggleSymptom(symptom.id)"
+            >
+              <input
+                type="checkbox"
+                :id="`sym-${symptom.id}`"
+                :value="symptom.id"
+                v-model="selectedSymptoms"
+                :disabled="processing"
+                class="symptom-check"
+                @click.stop
+              />
+              <label :for="`sym-${symptom.id}`" class="symptom-label" @click.stop>
+                <span class="symptom-code">{{ symptom.code }}</span>
+                {{ symptom.description }}
               </label>
               <select
-                id="plant"
-                v-model="form.plant_id"
-                @change="onPlantChange"
+                v-if="selectedSymptoms.includes(symptom.id)"
+                v-model="symptomCFs[symptom.id]"
+                class="glass-select symptom-cf-select"
+                :disabled="processing || cfLevels.length === 0"
+                @click.stop
                 required
-                :disabled="processing"
-                class="w-full py-4 px-5 border-2 border-gray-300 rounded-lg text-lg font-medium bg-white text-gray-900 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <option value="">-- Pilih Tanaman --</option>
-                <option
-                  v-for="plant in plants"
-                  :key="plant.id"
-                  :value="plant.id"
-                >
-                  {{ plant.name }} <span v-if="plant.scientific_name">({{ plant.scientific_name }})</span>
+                <option value="">-- Tingkat Keyakinan --</option>
+                <option v-for="level in cfLevels" :key="level.id" :value="level.value">
+                  {{ level.label }} ({{ (parseFloat(level.value) * 100).toFixed(0) }}%)
                 </option>
               </select>
             </div>
-          </div>
 
-          <!-- Step 2: Input Gejala dengan Dropdown -->
-          <div class="grid grid-cols-1 gap-6 pb-8 border-b border-gray-200" v-if="form.plant_id">
-            <div v-if="symptoms.length > 0" class="grid grid-cols-1 gap-6">
-              <!-- Header -->
-              <div class="flex items-start gap-5">
-                <div class="w-14 h-14 bg-green-600 text-white rounded-lg flex items-center justify-center text-xl font-bold shrink-0">
-                  2
-                </div>
-                <div class="min-w-0">
-                  <h2 class="text-2xl md:text-3xl text-gray-900 mb-2 font-bold">
-                    Pilih Gejala
-                  </h2>
-                  <p class="text-base md:text-lg text-gray-600 leading-relaxed">
-                    Pilih satu atau lebih gejala yang muncul pada tanaman.
-                  </p>
-                </div>
-              </div>
-
-              <!-- Container Gejala yang Ditemukan -->
-              <div class="grid grid-cols-1 gap-5">
-                <label for="symptoms" class="flex items-center gap-3 text-gray-900 font-semibold text-lg">
-                  <span class="text-2xl">🔬</span>
-                  <span>Gejala yang Ditemukan</span>
-                </label>
-                
-                <!-- Penjelasan singkat -->
-                <p class="text-base text-gray-600 leading-relaxed">
-                  Klik checkbox untuk memilih gejala, lalu pilih tingkat kepastian yang muncul di sampingnya.
-                </p>
-                
-                <!-- Container terpadu - SATU TAMPILAN, DROPDOWN CF MUNCUL DI SAMPING SAAT DIKLIK -->
-                <div class="border-2 border-gray-300 rounded-lg bg-white p-6">
-                  <div class="max-h-[450px] overflow-y-auto space-y-3">
-                    <div
-                      v-for="symptom in symptoms"
-                      :key="symptom.id"
-                      class="flex items-center gap-4 p-3 rounded-lg transition-colors"
-                      :class="selectedSymptoms.includes(symptom.id) ? 'bg-green-50' : 'hover:bg-gray-50'"
-                    >
-                      <!-- Checkbox untuk memilih gejala -->
-                      <input
-                        type="checkbox"
-                        :id="`symptom-${symptom.id}`"
-                        :value="symptom.id"
-                        v-model="selectedSymptoms"
-                        :disabled="processing"
-                        class="w-5 h-5 text-green-600 border-gray-300 rounded focus:ring-green-500 cursor-pointer"
-                      />
-                      
-                      <!-- Nama Gejala -->
-                      <label
-                        :for="`symptom-${symptom.id}`"
-                        class="flex-1 text-base font-medium text-gray-900 cursor-pointer"
-                        >
-                          {{ symptom.code }} - {{ symptom.description }}
-                      </label>
-
-                      <!-- Dropdown CF - MUNCUL SAAT GEJALA DIPILIH -->
-                            <select
-                        v-if="selectedSymptoms.includes(symptom.id)"
-                        v-model="symptomCFs[symptom.id]"
-                        class="w-auto min-w-[240px] py-2.5 px-4 border border-gray-300 rounded-lg text-base font-medium bg-white text-gray-900 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60 hover:border-green-400 transition-colors"
-                              required
-                        :disabled="processing || cfLevels.length === 0"
-                        @click.stop
-                            >
-                        <option value="" v-if="cfLevels.length === 0">Memuat tingkat kepastian...</option>
-                        <option value="" v-else>-- Pilih Tingkat Kepastian --</option>
-                              <option
-                                v-for="level in cfLevels"
-                                :key="level.id"
-                                :value="level.value"
-                              >
-                                {{ level.label }} ({{ (parseFloat(level.value) * 100).toFixed(0) }}%)
-                              </option>
-                            </select>
-                          </div>
-                        </div>
-                  
-                  <!-- Indikator ringan -->
-                  <div v-if="selectedSymptoms.length > 0" class="mt-4 pt-4 border-t border-gray-200 text-base text-gray-700">
-                    <span class="font-semibold">{{ selectedSymptoms.length }} gejala dipilih</span>
-                  </div>
-                </div>
-              </div>
-
-              <div v-if="selectedSymptoms.length === 0" class="flex items-start gap-4 bg-amber-50 text-amber-900 p-5 rounded-lg border-l-4 border-amber-500">
-                <svg class="w-6 h-6 shrink-0 text-amber-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-                </svg>
-                <p class="text-base leading-relaxed">
-                  <span class="font-semibold">Perhatian:</span> Pilih minimal 1 gejala untuk melakukan diagnosis
-                </p>
-              </div>
-            </div>
-            
-            <div v-else class="text-center py-12 px-4">
-              <div class="text-5xl mb-4 opacity-50">🌿</div>
-              <p class="text-base text-gray-700">Tidak ada gejala tersedia untuk tanaman ini.</p>
+            <!-- Count -->
+            <div v-if="selectedSymptoms.length > 0" class="symptom-count">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              {{ selectedSymptoms.length }} gejala dipilih
             </div>
           </div>
 
-          <!-- Step 3: Catatan (Optional) -->
-          <div class="grid grid-cols-1 gap-6 pb-6" v-if="form.plant_id">
-            <!-- Header -->
-            <div class="flex items-start gap-5">
-              <div class="w-14 h-14 bg-green-600 text-white rounded-lg flex items-center justify-center text-xl font-bold shrink-0">
-                3
-              </div>
-              <div class="min-w-0">
-                <h2 class="text-2xl md:text-3xl text-gray-900 mb-2 font-bold">
-                  Catatan Tambahan
-                </h2>
-                <p class="text-base md:text-lg text-gray-600 leading-relaxed">
-                  Tambahkan informasi tambahan tentang kondisi tanaman (opsional)
-                </p>
-              </div>
-            </div>
-            <!-- Form -->
-            <div class="grid grid-cols-1 gap-4">
-              <label for="notes" class="flex items-center gap-3 text-gray-900 font-semibold text-lg">
-                <span class="text-2xl">📝</span>
-                <span>Catatan</span>
-              </label>
-              <textarea
-                id="notes"
-                v-model="form.user_notes"
-                placeholder="Contoh: Tanaman sudah 2 minggu tidak tumbuh, kondisi lingkungan cukup lembab..."
-                rows="6"
-                :disabled="processing"
-                class="w-full py-4 px-5 border-2 border-gray-300 rounded-lg text-lg font-medium resize-y leading-relaxed text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-green-600 focus:ring-2 focus:ring-green-100 disabled:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-60"
-              ></textarea>
-              <p class="text-base text-gray-600 leading-relaxed">
-                Informasi tambahan ini akan membantu sistem memberikan diagnosis yang lebih akurat dan tepat.
-              </p>
-            </div>
+          <div v-else class="symptoms-empty">
+            <p>Tidak ada gejala tersedia untuk tanaman ini.</p>
           </div>
 
-          <!-- Validation Errors -->
-          <div v-if="validationErrors.length > 0" class="mt-6">
-            <ErrorMessage
-              :errors="validationErrors"
-              title="Periksa Form Anda"
-              variant="warning"
-            />
+          <div v-if="symptoms.length > 0 && selectedSymptoms.length === 0" class="sp-alert sp-alert-warning" style="margin-top:1rem;">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            Pilih minimal 1 gejala untuk melakukan diagnosis
           </div>
+        </div>
 
-          <!-- Submit Error -->
-          <div v-if="submitError" class="mt-6">
-            <ErrorMessage
-              :message="submitError"
-              title="Gagal Memproses Diagnosis"
-              dismissible
-              @dismiss="submitError = null"
-            />
-          </div>
-
-          <!-- Submit Button -->
-          <div class="grid grid-cols-1 gap-5 mt-10 pt-8 border-t border-gray-200">
-            <div class="bg-green-50 border-l-4 border-green-600 p-5 rounded-r-lg">
-              <p class="text-base text-gray-700 leading-relaxed">
-                <span class="font-semibold text-gray-900">Siap untuk diagnosis?</span> Pastikan kamu telah memilih tanaman dan minimal 1 gejala dengan tingkat kepastian yang sudah ditentukan.
-              </p>
+        <!-- Step 3: Catatan -->
+        <div v-if="form.plant_id" class="form-section sp-card animate-fade-in">
+          <div class="step-header">
+            <div class="step-num">3</div>
+            <div>
+              <h2 style="font-size:1.125rem;margin:0 0 .2rem;">Catatan Tambahan <span style="font-weight:400;color:var(--text-muted);font-size:.875rem;">(opsional)</span></h2>
+              <p style="font-size:.8125rem;margin:0;">Informasi tambahan tentang kondisi tanaman</p>
             </div>
+          </div>
+          <textarea
+            id="notes"
+            v-model="form.user_notes"
+            placeholder="Contoh: Tanaman sudah 2 minggu tidak tumbuh, kondisi lingkungan cukup lembab..."
+            rows="3"
+            :disabled="processing"
+            class="glass-input"
+            style="resize:vertical;"
+          ></textarea>
+        </div>
+
+        <!-- Validation errors -->
+        <div v-if="validationErrors.length > 0" class="sp-alert sp-alert-warning animate-fade-in">
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <ul style="margin:0;padding-left:1rem;">
+            <li v-for="(err, i) in validationErrors" :key="i" style="font-size:.875rem;">{{ err }}</li>
+          </ul>
+        </div>
+
+        <div v-if="submitError" class="sp-alert sp-alert-danger animate-fade-in">
+          <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          <div>
+            <p style="font-weight:600;margin-bottom:.25rem;">Gagal Memproses Diagnosis</p>
+            <p style="margin:0;font-size:.875rem;">{{ submitError }}</p>
+          </div>
+          <button @click="submitError = null" style="margin-left:auto;background:none;border:none;cursor:pointer;color:inherit;padding:0;">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Submit -->
+        <div v-if="form.plant_id" class="sp-card form-section submit-section animate-fade-in">
+          <div class="submit-row">
             <button
               type="submit"
               :disabled="processing || selectedSymptoms.length === 0 || !form.plant_id"
-              class="w-full py-5 px-8 bg-linear-to-r from-green-600 to-green-700 text-white rounded-lg text-lg font-semibold cursor-pointer transition-colors duration-200 inline-flex items-center justify-center gap-3 hover:from-green-700 hover:to-green-800 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:from-gray-400 disabled:to-gray-500"
+              class="sp-btn sp-btn-primary sp-btn-lg submit-btn"
             >
-              <LoadingSpinner v-if="processing" size="sm" />
-              <span>{{ processing ? 'Memproses Diagnosis...' : 'Proses Diagnosis' }}</span>
+              <span v-if="processing" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
+              {{ processing ? 'Memproses Diagnosis...' : 'Proses Diagnosis' }}
             </button>
-            <p class="text-base text-center text-gray-600 leading-relaxed">
-              Proses diagnosis akan memakan waktu beberapa detik. Mohon tunggu...
-            </p>
+            <span v-if="selectedSymptoms.length > 0" style="font-size:.875rem;color:var(--text-muted);">{{ selectedSymptoms.length }} gejala dipilih</span>
           </div>
-        </form>
-      </div>
+          <p style="font-size:.8rem;color:var(--text-faint);margin-top:.75rem;text-align:center;">Proses diagnosis memakan waktu beberapa detik</p>
+        </div>
+      </form>
     </div>
   </div>
 </template>
@@ -265,271 +183,215 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useDiagnosisStore } from '../stores/diagnosis'
-import LoadingSpinner from '../components/LoadingSpinner.vue'
-import ErrorMessage from '../components/ErrorMessage.vue'
 import { getSpecificErrorMessage } from '../utils/errorHandler'
 import { validateDiagnosisForm } from '../utils/validation'
 import axios from 'axios'
-import logoImage from '../assets/logo-hydrangea.png'
 
-// ============================================
-// STORE & API CONFIG
-// ============================================
 const diagnosisStore = useDiagnosisStore()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
-// ============================================
-// REACTIVE STATE
-// ============================================
-const form = ref({
-  plant_id: '',
-  user_notes: ''
-})
-
+const form = ref({ plant_id: '', user_notes: '' })
 const selectedSymptoms = ref([])
 const symptomCFs = ref({})
 const processing = ref(false)
 const error = ref(null)
 const submitError = ref(null)
 const validationErrors = ref([])
-
 const plants = ref([])
 const symptoms = ref([])
 const cfLevels = ref([])
 
-// ============================================
-// COMPUTED PROPERTIES
-// ============================================
-const defaultCFLevel = computed(() => {
-  return cfLevels.value.find(l => l.value === 0.6) || cfLevels.value[2] || { value: 0.6 }
-})
+const defaultCFLevel = computed(() => cfLevels.value.find(l => l.value === 0.6) || cfLevels.value[2] || { value: 0.6 })
 
-const isFormValid = computed(() => {
-  return form.value.plant_id && 
-         selectedSymptoms.value.length > 0 && 
-         selectedSymptoms.value.every(id => symptomCFs.value[id])
-})
-
-/**
- * Filter gejala yang belum dipilih untuk ditampilkan di dropdown
- */
-const availableSymptoms = computed(() => {
-  return symptoms.value.filter(symptom => !selectedSymptoms.value.includes(symptom.id))
-})
-
-// ============================================
-// HELPER FUNCTIONS
-// ============================================
-/**
- * Get symptom name by ID
- */
-const getSymptomName = (symptomId) => {
-  const symptom = symptoms.value.find(s => s.id === symptomId)
-  return symptom ? `${symptom.code} - ${symptom.description}` : `Gejala #${symptomId}`
+const clearErrors  = () => { error.value = null; submitError.value = null; validationErrors.value = [] }
+const resetForm    = () => { selectedSymptoms.value = []; symptomCFs.value = {}; clearErrors() }
+const selectPlant  = (id) => { if (!processing.value) form.value.plant_id = id.toString() }
+const toggleSymptom = (id) => {
+  if (processing.value) return
+  const idx = selectedSymptoms.value.indexOf(id)
+  if (idx > -1) selectedSymptoms.value.splice(idx, 1)
+  else selectedSymptoms.value.push(id)
 }
 
-/**
- * Clear all errors
- */
-const clearErrors = () => {
-  error.value = null
-  submitError.value = null
-  validationErrors.value = []
-}
-
-/**
- * Reset form data
- */
-const resetForm = () => {
-  selectedSymptoms.value = []
-  symptomCFs.value = {}
-  clearErrors()
-}
-
-// ============================================
-// API FUNCTIONS
-// ============================================
-/**
- * Load CF Levels from API
- */
 const fetchCFLevels = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/public/cf-levels`)
-    console.log('CF Levels API Response:', response.data)
-    
-    if (response.data.success && response.data.data) {
-      cfLevels.value = response.data.data
-        .filter(level => level.is_active !== false)
-        .sort((a, b) => (a.order || 0) - (b.order || 0))
-      
-      console.log('CF Levels loaded:', cfLevels.value)
-      
-      // Jika tidak ada data, gunakan fallback
-      if (cfLevels.value.length === 0) {
-        console.warn('No CF levels data from API, using fallback')
-        throw new Error('No CF levels data')
-      }
-    } else {
-      console.warn('Invalid response format, using fallback')
-      throw new Error('Invalid response format')
-    }
-  } catch (err) {
-    console.error('Error fetching CF levels:', err)
-    // Fallback to default values
+    const res = await axios.get(`${API_BASE_URL}/public/cf-levels`)
+    if (res.data.success && res.data.data) {
+      cfLevels.value = res.data.data.filter(l => l.is_active !== false).sort((a,b) => (a.order||0)-(b.order||0))
+      if (!cfLevels.value.length) throw new Error('empty')
+    } else throw new Error('invalid')
+  } catch {
     cfLevels.value = [
-      { id: 1, label: 'Tidak Yakin', value: 0.0, order: 1 },
-      { id: 2, label: 'Sedikit Yakin', value: 0.4, order: 2 },
-      { id: 3, label: 'Cukup Yakin', value: 0.6, order: 3 },
-      { id: 4, label: 'Yakin', value: 0.8, order: 4 },
-      { id: 5, label: 'Sangat Yakin', value: 1.0, order: 5 }
+      { id:1, label:'Tidak Yakin',   value: 0.0, order:1 },
+      { id:2, label:'Sedikit Yakin', value: 0.4, order:2 },
+      { id:3, label:'Cukup Yakin',   value: 0.6, order:3 },
+      { id:4, label:'Yakin',         value: 0.8, order:4 },
+      { id:5, label:'Sangat Yakin',  value: 1.0, order:5 },
     ]
-    console.log('Using fallback CF levels:', cfLevels.value)
   }
 }
 
-/**
- * Load plants from store
- */
 const loadPlants = async () => {
-  try {
-    await diagnosisStore.fetchPlants()
-    plants.value = diagnosisStore.plants
-    if (plants.value.length === 0) {
-      error.value = 'Tidak ada tanaman tersedia. Silakan hubungi administrator.'
-    }
-  } catch (err) {
-    error.value = getSpecificErrorMessage(err)
-    console.error('Error loading plants:', err)
-  }
+  try { await diagnosisStore.fetchPlants(); plants.value = diagnosisStore.plants; if (!plants.value.length) error.value = 'Tidak ada tanaman tersedia.' }
+  catch (err) { error.value = getSpecificErrorMessage(err) }
 }
 
-/**
- * Load symptoms for selected plant
- */
 const loadSymptoms = async (plantId) => {
-  try {
-    await diagnosisStore.fetchSymptoms(plantId)
-    symptoms.value = diagnosisStore.symptoms
-    resetForm()
-  } catch (err) {
-    error.value = getSpecificErrorMessage(err)
-    console.error('Error loading symptoms:', err)
-  }
+  try { await diagnosisStore.fetchSymptoms(plantId); symptoms.value = diagnosisStore.symptoms; resetForm() }
+  catch (err) { error.value = getSpecificErrorMessage(err) }
 }
 
-// ============================================
-// WATCHERS
-// ============================================
-/**
- * Watch selectedSymptoms - Auto initialize CF values
- */
-watch(selectedSymptoms, (newSymptoms, oldSymptoms) => {
-  // Initialize CF for newly selected symptoms
-  newSymptoms.forEach(symptomId => {
-    if (!symptomCFs.value[symptomId]) {
-      symptomCFs.value[symptomId] = defaultCFLevel.value.value
-    }
-  })
-  
-  // Remove CF for unselected symptoms
-  const oldSet = new Set(oldSymptoms || [])
-  Object.keys(symptomCFs.value).forEach(symptomIdStr => {
-    const symptomId = parseInt(symptomIdStr)
-    if (!newSymptoms.includes(symptomId)) {
-      delete symptomCFs.value[symptomId]
-    }
-  })
+watch(selectedSymptoms, (newS) => {
+  newS.forEach(id => { if (!symptomCFs.value[id]) symptomCFs.value[id] = defaultCFLevel.value.value })
+  Object.keys(symptomCFs.value).forEach(k => { if (!newS.includes(parseInt(k))) delete symptomCFs.value[k] })
 }, { deep: true })
 
-/**
- * Watch plant_id change - Load symptoms
- */
-watch(() => form.value.plant_id, async (newPlantId) => {
-  if (newPlantId) {
-    clearErrors()
-    await loadSymptoms(newPlantId)
-  } else {
-    symptoms.value = []
-    resetForm()
-  }
+watch(() => form.value.plant_id, async (id) => {
+  if (id) { clearErrors(); await loadSymptoms(id) } else { symptoms.value = []; resetForm() }
 })
 
-// ============================================
-// VALIDATION
-// ============================================
-/**
- * Validate form and set validation errors
- */
 const validateForm = () => {
-  validationErrors.value = validateDiagnosisForm(
-    form.value,
-    selectedSymptoms.value,
-    symptomCFs.value
-  )
-  return validationErrors.value.length === 0
+  validationErrors.value = validateDiagnosisForm(form.value, selectedSymptoms.value, symptomCFs.value)
+  return !validationErrors.value.length
 }
 
-// ============================================
-// EVENT HANDLERS
-// ============================================
-/**
- * Handle plant selection change
- */
-const onPlantChange = () => {
-  // Watcher akan handle loading symptoms
-  // Function ini tetap ada untuk @change event
+const getImageUrl = (path) => {
+  if (!path) return ''
+  if (path.startsWith('http')) {
+    if (path.includes('localhost') && !path.includes('localhost:')) return path.replace('localhost', 'localhost:8000')
+    return path
+  }
+  const api = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  return path.startsWith('/') ? `${api}${path}` : `${api}/${path}`
 }
 
-/**
- * Handle diagnosis submission
- */
+const handleImageError = (e) => {
+  e.target.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="120" height="80"%3E%3Crect fill="%23f3f4f6" width="120" height="80"/%3E%3Ctext fill="%239ca3af" font-family="sans-serif" font-size="10" x="50%25" y="50%25" text-anchor="middle" dy=".3em"%3ETidak ada gambar%3C/text%3E%3C/svg%3E'
+}
+
 const handleDiagnosis = async () => {
   clearErrors()
-  
-  if (!validateForm()) {
-    return
-  }
-
+  if (!validateForm()) return
   processing.value = true
-
   try {
-    const symptomsData = selectedSymptoms.value.map(symptomId => ({
-      symptom_id: symptomId,
-      user_cf: parseFloat(symptomCFs.value[symptomId]) || 0.5
-    }))
-
-    const diagnosisData = {
-      plant_id: parseInt(form.value.plant_id),
-      symptoms: symptomsData,
-      user_notes: form.value.user_notes || null
-    }
-
-    await diagnosisStore.diagnose(diagnosisData)
-    // Redirect handled by store
-  } catch (err) {
-    submitError.value = getSpecificErrorMessage(err)
-    console.error('Diagnosis error:', err)
-  } finally {
-    processing.value = false
-  }
+    const symptomsData = selectedSymptoms.value.map(id => ({ symptom_id: id, user_cf: parseFloat(symptomCFs.value[id]) || 0.5 }))
+    await diagnosisStore.diagnose({ plant_id: parseInt(form.value.plant_id), symptoms: symptomsData, user_notes: form.value.user_notes || null })
+  } catch (err) { submitError.value = getSpecificErrorMessage(err) }
+  finally { processing.value = false }
 }
 
-// ============================================
-// LIFECYCLE
-// ============================================
-onMounted(async () => {
-  clearErrors()
-  await Promise.all([
-    loadPlants(),
-    fetchCFLevels()
-  ])
-})
+onMounted(async () => { clearErrors(); await Promise.all([loadPlants(), fetchCFLevels()]) })
 </script>
 
 <style scoped>
-/* Custom styles untuk multiple select option yang terpilih */
-select[multiple] option:checked {
-  background: #27ae60 linear-gradient(0deg, #27ae60 0%, #27ae60 100%);
-  color: white;
+a { text-decoration: none; }
+
+.diagnosis-form { display: flex; flex-direction: column; gap: 1.25rem; }
+.form-section   { padding: 1.5rem; }
+
+/* Step header */
+.step-header { display: flex; align-items: flex-start; gap: .875rem; margin-bottom: 1.25rem; }
+.step-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  font-weight: 700; font-size: .9375rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
 }
+
+/* Plants grid */
+.plants-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: .875rem;
+}
+@media (min-width: 480px) { .plants-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 768px) { .plants-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.plant-card {
+  position: relative;
+  display: flex; flex-direction: column;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg-surface);
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, background .15s;
+  text-align: left;
+  padding: 0;
+  overflow: hidden;
+  font-family: inherit;
+}
+.plant-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
+.plant-card--selected { border-color: var(--primary) !important; background: var(--primary-50) !important; }
+.plant-card:disabled { opacity: .6; cursor: not-allowed; }
+
+.plant-img-wrap { width: 100%; aspect-ratio: 4/3; overflow: hidden; background: var(--bg-subtle); }
+.plant-img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
+.plant-card:hover .plant-img { transform: scale(1.04); }
+.plant-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-faint); }
+
+.plant-info { padding: .625rem .75rem; flex: 1; }
+.plant-name { font-size: .8125rem; font-weight: 600; color: var(--gray-900); margin-bottom: 2px; }
+.plant-sci  { font-size: .7rem; color: var(--text-muted); font-style: italic; margin: 0; }
+
+.plant-check {
+  position: absolute; top: .5rem; right: .5rem;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--primary); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+}
+
+/* Symptoms */
+.symptoms-list  { display: flex; flex-direction: column; gap: 2px; max-height: 440px; overflow-y: auto; }
+.symptom-row {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .625rem;
+  padding: .75rem;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background .12s, border-color .12s;
+}
+.symptom-row:hover { background: var(--bg-subtle); }
+.symptom-row--selected { background: var(--primary-50); border-color: var(--primary-200); }
+
+.symptom-check {
+  width: 17px; height: 17px;
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.symptom-label { flex: 1; font-size: .9rem; color: var(--gray-800); cursor: pointer; min-width: 0; }
+.symptom-code  { font-size: .75rem; font-weight: 700; color: var(--primary); font-family: monospace; margin-right: .25rem; }
+
+.symptom-cf-select {
+  width: auto !important;
+  min-width: 200px;
+  padding: .375rem 2.25rem .375rem .75rem !important;
+  font-size: .8125rem !important;
+  background-color: var(--bg-surface) !important;
+  color: var(--text-main) !important;
+  border-color: var(--border-strong) !important;
+}
+.symptom-cf-select option { background: #fff; color: var(--text-main); }
+
+.symptom-count {
+  display: flex; align-items: center; gap: .375rem;
+  margin-top: .75rem; padding-top: .75rem;
+  border-top: 1px solid var(--border);
+  font-size: .8125rem; font-weight: 600; color: var(--primary);
+}
+
+.symptoms-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-muted);
+  font-size: .9rem;
+  background: var(--bg-subtle);
+  border-radius: var(--radius);
+}
+
+/* Submit */
+.submit-section { background: var(--bg-subtle); border-color: var(--border); }
+.submit-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.submit-btn { flex: 1; min-width: 200px; }
 </style>

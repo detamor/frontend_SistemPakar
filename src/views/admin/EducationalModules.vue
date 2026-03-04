@@ -46,12 +46,36 @@
             {{ module.category }}
           </span>
         </div>
+        
+        <!-- Thumbnail Image -->
+        <div v-if="module.image" class="module-thumbnail-preview">
+          <img :src="module.image" :alt="module.title" />
+        </div>
+        
         <p class="module-description">
           {{ module.description || 'Tidak ada deskripsi' }}
         </p>
         <p class="module-content-preview">
           {{ truncateText(module.content, 100) }}
         </p>
+        
+        <!-- Content Images Preview -->
+        <div v-if="module.content_images && module.content_images.length > 0" class="content-images-preview">
+          <span class="images-label">Gambar Konten ({{ module.content_images.length }})</span>
+          <div class="images-preview-grid">
+            <div
+              v-for="(image, index) in module.content_images.slice(0, 3)"
+              :key="index"
+              class="preview-image-item"
+            >
+              <img :src="image" :alt="`Gambar ${index + 1}`" />
+            </div>
+            <div v-if="module.content_images.length > 3" class="preview-image-more">
+              +{{ module.content_images.length - 3 }}
+            </div>
+          </div>
+        </div>
+        
         <div class="module-actions">
           <button @click="editModule(module)" class="btn-edit">
             Edit
@@ -117,16 +141,125 @@
               ></textarea>
             </div>
 
+            <div class="form-group pb-4 border-b border-slate-100 mb-4">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  v-model="form.is_maintenance_guide"
+                  type="checkbox"
+                  class="w-4 h-4 text-emerald-600 rounded"
+                />
+                <span class="font-bold text-emerald-700">Aktifkan sebagai Panduan Pemeliharaan Terstruktur</span>
+              </label>
+              <p class="text-[10px] text-slate-500 mt-1 italic pl-6">
+                * Jika diaktifkan, modul akan menampilkan dashboard kebutuhan vital (Air, Cahaya, dll) dan langkah-langkah terstruktur.
+              </p>
+            </div>
+
+            <!-- Maintenance Specific Fields -->
+            <div v-if="form.is_maintenance_guide" class="bg-emerald-50/50 p-4 rounded-xl border border-emerald-100 mb-6 space-y-4 animate-fade-in">
+              <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
+                <span>📋 Data Kebutuhan Vital</span>
+              </h4>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-group">
+                  <label class="text-xs">Info Penyiraman</label>
+                  <input v-model="form.watering_info" type="text" placeholder="Contoh: 2x seminggu" class="!py-1.5 !text-sm" />
+                </div>
+                <div class="form-group">
+                  <label class="text-xs">Info Cahaya</label>
+                  <input v-model="form.light_info" type="text" placeholder="Contoh: Matahari Pagi" class="!py-1.5 !text-sm" />
+                </div>
+                <div class="form-group">
+                  <label class="text-xs">Info Kelembapan</label>
+                  <input v-model="form.humidity_info" type="text" placeholder="Contoh: Tinggi (70%)" class="!py-1.5 !text-sm" />
+                </div>
+                <div class="form-group">
+                  <label class="text-xs">Tingkat Kesulitan</label>
+                  <select v-model="form.difficulty" class="!py-1.5 !text-sm">
+                    <option value="Mudah">Mudah</option>
+                    <option value="Sedang">Sedang</option>
+                    <option value="Sulit">Sulit</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Maintenance Steps -->
+              <div class="mt-4">
+                <div class="flex items-center justify-between mb-2">
+                  <label class="text-xs font-bold text-emerald-800">Langkah-langkah Pemeliharaan</label>
+                  <button type="button" @click="addStep" class="text-[10px] bg-emerald-600 text-white px-2 py-1 rounded"> + Tambah Langkah</button>
+                </div>
+                <div class="space-y-3">
+                  <div v-for="(step, index) in form.maintenance_steps_json" :key="index" class="bg-white p-3 rounded border border-emerald-100 relative group">
+                    <button type="button" @click="removeStep(index)" class="absolute -top-2 -right-2 w-5 h-5 bg-rose-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity">×</button>
+                    <div class="flex gap-2 items-center mb-1">
+                      <span class="text-[10px] font-bold bg-emerald-100 text-emerald-700 w-5 h-5 flex items-center justify-center rounded">{{ index + 1 }}</span>
+                      <input v-model="step.title" type="text" placeholder="Judul Langkah (misal: Penyiraman)" class="!py-1 !text-xs !border-none !bg-slate-50 font-bold" />
+                    </div>
+                    <textarea v-model="step.description" rows="1" placeholder="Deskripsi detail langkah..." class="!py-1 !text-[11px] !border-none !bg-slate-50"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div class="form-group">
               <label for="content">Konten Edukasi *</label>
               <textarea
                 id="content"
                 v-model="form.content"
                 placeholder="Tulis konten edukasi lengkap di sini"
-                rows="10"
+                rows="6"
                 required
                 :disabled="saving"
               ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label>Gambar Konten</label>
+              <p class="form-help">Upload gambar untuk ditampilkan di dalam konten modul</p>
+              
+              <!-- Upload Button -->
+              <div class="upload-section">
+                <input
+                  ref="imageInput"
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  @change="handleImageUpload"
+                  style="display: none"
+                />
+                <button
+                  type="button"
+                  @click="$refs.imageInput.click()"
+                  class="btn-upload"
+                  :disabled="saving || uploading"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                  </svg>
+                  {{ uploading ? 'Mengupload...' : 'Upload Gambar' }}
+                </button>
+              </div>
+
+              <!-- Image Preview -->
+              <div v-if="form.content_images && form.content_images.length > 0" class="images-preview">
+                <div
+                  v-for="(image, index) in form.content_images"
+                  :key="index"
+                  class="image-preview-item"
+                >
+                  <img :src="getImageUrl(image)" :alt="`Gambar ${index + 1}`" />
+                  <button
+                    type="button"
+                    @click="removeImage(index)"
+                    class="btn-remove-image"
+                    :disabled="saving"
+                    title="Hapus gambar"
+                  >
+                    ×
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -212,8 +345,32 @@ const form = ref({
   title: '',
   category: '',
   description: '',
-  content: ''
+  content: '',
+  content_images: [],
+  is_maintenance_guide: false,
+  watering_info: '',
+  light_info: '',
+  humidity_info: '',
+  difficulty: 'Mudah',
+  maintenance_steps_json: []
 })
+
+const addStep = () => {
+  form.value.maintenance_steps_json.push({
+    step: form.value.maintenance_steps_json.length + 1,
+    title: '',
+    description: ''
+  })
+}
+
+const removeStep = (index) => {
+  form.value.maintenance_steps_json.splice(index, 1)
+  // Re-index steps
+  form.value.maintenance_steps_json.forEach((s, idx) => s.step = idx + 1)
+}
+
+const uploading = ref(false)
+const imageInput = ref(null)
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
@@ -241,15 +398,70 @@ const fetchModules = async () => {
   }
 }
 
-const editModule = (module) => {
-  currentModule.value = module
-  form.value = {
-    title: module.title,
-    category: module.category || '',
-    description: module.description || '',
-    content: module.content
+const editModule = async (module) => {
+  // Fetch full module data to ensure we have all fields including content_images
+  try {
+    const token = localStorage.getItem('auth_token')
+    const response = await axios.get(`${API_BASE_URL}/admin/education/${module.id}`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    })
+    
+    if (response.data.success) {
+      const fullModule = response.data.data
+      currentModule.value = fullModule
+      form.value = {
+        title: fullModule.title,
+        category: fullModule.category || '',
+        description: fullModule.description || '',
+        content: fullModule.content,
+        content_images: fullModule.content_images || [],
+        is_maintenance_guide: fullModule.is_maintenance_guide || false,
+        watering_info: fullModule.watering_info || '',
+        light_info: fullModule.light_info || '',
+        humidity_info: fullModule.humidity_info || '',
+        difficulty: fullModule.difficulty || 'Mudah',
+        maintenance_steps_json: fullModule.maintenance_steps_json || []
+      }
+      showEditModal.value = true
+    } else {
+      // Fallback to passed module data
+      currentModule.value = module
+      form.value = {
+        title: module.title,
+        category: module.category || '',
+        description: module.description || '',
+        content: module.content,
+        content_images: module.content_images || [],
+        is_maintenance_guide: module.is_maintenance_guide || false,
+        watering_info: module.watering_info || '',
+        light_info: module.light_info || '',
+        humidity_info: module.humidity_info || '',
+        difficulty: module.difficulty || 'Mudah',
+        maintenance_steps_json: module.maintenance_steps_json || []
+      }
+      showEditModal.value = true
+    }
+  } catch (error) {
+    console.error('Error fetching module detail:', error)
+    // Fallback to passed module data
+    currentModule.value = module
+    form.value = {
+      title: module.title,
+      category: module.category || '',
+      description: module.description || '',
+      content: module.content,
+      content_images: module.content_images || [],
+      is_maintenance_guide: module.is_maintenance_guide || false,
+      watering_info: module.watering_info || '',
+      light_info: module.light_info || '',
+      humidity_info: module.humidity_info || '',
+      difficulty: module.difficulty || 'Mudah',
+      maintenance_steps_json: module.maintenance_steps_json || []
+    }
+    showEditModal.value = true
   }
-  showEditModal.value = true
 }
 
 const confirmDelete = (module) => {
@@ -264,9 +476,88 @@ const closeModal = () => {
     title: '',
     category: '',
     description: '',
-    content: ''
+    content: '',
+    content_images: [],
+    is_maintenance_guide: false,
+    watering_info: '',
+    light_info: '',
+    humidity_info: '',
+    difficulty: 'Mudah',
+    maintenance_steps_json: []
   }
   currentModule.value = null
+}
+
+const handleImageUpload = async (event) => {
+  const files = Array.from(event.target.files)
+  if (files.length === 0) return
+
+  uploading.value = true
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+
+  try {
+    const token = localStorage.getItem('auth_token')
+    const uploadPromises = files.map(async (file) => {
+      const formData = new FormData()
+      formData.append('image', file)
+
+      const response = await axios.post(
+        `${API_BASE_URL}/admin/education/upload-image`,
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        }
+      )
+
+      if (response.data.success) {
+        return response.data.data.path
+      }
+      throw new Error('Upload failed')
+    })
+
+    const uploadedPaths = await Promise.all(uploadPromises)
+    form.value.content_images = [...(form.value.content_images || []), ...uploadedPaths]
+    
+    // Reset input
+    if (imageInput.value) {
+      imageInput.value.value = ''
+    }
+  } catch (error) {
+    console.error('Error uploading images:', error)
+    alert('Gagal mengupload gambar: ' + (error.response?.data?.message || error.message))
+  } finally {
+    uploading.value = false
+  }
+}
+
+const removeImage = (index) => {
+  form.value.content_images.splice(index, 1)
+}
+
+const getImageUrl = (imagePath) => {
+  if (!imagePath) return ''
+  
+  // If it's already a full URL, return as is
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath
+  }
+  
+  // Extract base URL from API_BASE_URL (remove /api if exists)
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const baseUrl = API_BASE_URL.replace('/api', '')
+  
+  // Remove leading slash if exists
+  const cleanPath = imagePath.startsWith('/') ? imagePath.substring(1) : imagePath
+  
+  // If path already contains 'storage/', use as is, otherwise add it
+  if (cleanPath.startsWith('storage/')) {
+    return `${baseUrl}/${cleanPath}`
+  }
+  
+  return `${baseUrl}/storage/${cleanPath}`
 }
 
 const saveModule = async () => {
@@ -418,6 +709,73 @@ const truncateText = (text, length) => {
   color: #666;
   margin-bottom: 1rem;
   line-height: 1.6;
+}
+
+.module-thumbnail-preview {
+  width: 100%;
+  max-height: 200px;
+  overflow: hidden;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+  background: #f5f5f5;
+}
+
+.module-thumbnail-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.content-images-preview {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f9f9f9;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+.images-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 0.5rem;
+}
+
+.images-preview-grid {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.preview-image-item {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.preview-image-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.preview-image-more {
+  width: 80px;
+  height: 80px;
+  border-radius: 4px;
+  background: #e0e0e0;
+  border: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
 }
 
 .module-actions {
@@ -673,6 +1031,92 @@ const truncateText = (text, length) => {
 
 .empty-state button {
   margin-top: 1rem;
+}
+
+.form-help {
+  color: #666;
+  font-size: 0.85rem;
+  margin-bottom: 0.5rem;
+}
+
+.upload-section {
+  margin-bottom: 1rem;
+}
+
+.btn-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #f0f0f0;
+  border: 2px dashed #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: #333;
+  transition: all 0.3s;
+}
+
+.btn-upload:hover:not(:disabled) {
+  background: #e0e0e0;
+  border-color: #999;
+}
+
+.btn-upload:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.images-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.image-preview-item {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+}
+
+.image-preview-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.btn-remove-image {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 28px;
+  height: 28px;
+  background: rgba(231, 76, 60, 0.9);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-remove-image:hover:not(:disabled) {
+  background: rgba(192, 57, 43, 1);
+  transform: scale(1.1);
+}
+
+.btn-remove-image:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
 

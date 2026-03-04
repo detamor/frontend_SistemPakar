@@ -8,11 +8,11 @@ export const useAdminStore = defineStore('admin', {
     // Users
     users: [],
     currentUser: null,
-    
+
     // Education Modules
     educationModules: [],
     currentModule: null,
-    
+
     // Knowledge Base
     plants: [],
     symptoms: [],
@@ -20,12 +20,57 @@ export const useAdminStore = defineStore('admin', {
     currentPlant: null,
     currentSymptom: null,
     currentDisease: null,
-    
+
     loading: false,
-    error: null
+    error: null,
+
+    // Stats
+    quickStats: {
+      totalUsers: 0,
+      totalDiagnoses: 0,
+      totalModules: 0,
+      totalConsultations: 0
+    },
+    topDiseases: [],
+    monthlyTrend: [],
+    feedbackDistribution: []
   }),
 
   actions: {
+    // ========== DASHBOARD STATS ==========
+    async fetchQuickStats() {
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.get(`${API_BASE_URL}/admin/stats/quick`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (response.data.success) {
+          this.quickStats = response.data.data
+        }
+        return response.data
+      } catch (error) {
+        console.error('Error fetching quick stats:', error)
+        throw error
+      }
+    },
+
+    async fetchDiagnosisStats() {
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.get(`${API_BASE_URL}/admin/stats/diagnosis`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+        if (response.data.success) {
+          this.topDiseases = response.data.data.topDiseases
+          this.monthlyTrend = response.data.data.monthlyTrend
+          this.feedbackDistribution = response.data.data.feedbackStats
+        }
+        return response.data
+      } catch (error) {
+        console.error('Error fetching diagnosis stats:', error)
+        throw error
+      }
+    },
     // ========== USER MANAGEMENT ==========
     async fetchUsers(params = {}) {
       this.loading = true
