@@ -191,15 +191,29 @@ const closeModal = () => {
 }
 
 const saveSymptom = async () => {
+  const code = (form.value.code || '').trim()
+  const description = (form.value.description || '').trim()
+  const category = (form.value.category || '').trim() || null
+
+  if (!code || !description) {
+    alert('Kode dan Deskripsi Gejala wajib diisi.')
+    return
+  }
+
   saving.value = true
   try {
     const url = showEditModal.value
       ? `${API_BASE_URL}/admin/symptoms/${currentSymptom.value.id}`
       : `${API_BASE_URL}/admin/symptoms`
-    
+
     const method = showEditModal.value ? 'put' : 'post'
-    
-    const response = await axios[method](url, form.value, {
+    const payload = {
+      code,
+      description,
+      category: category || null
+    }
+
+    const response = await axios[method](url, payload, {
       headers: {
         'Authorization': `Bearer ${getToken()}`,
         'Content-Type': 'application/json'
@@ -213,7 +227,12 @@ const saveSymptom = async () => {
     }
   } catch (error) {
     console.error('Error saving symptom:', error)
-    const message = error.response?.data?.message || 'Gagal menyimpan gejala'
+    let message = error.response?.data?.message || 'Gagal menyimpan gejala'
+    if (error.response?.data?.errors) {
+      const err = error.response.data.errors
+      const parts = Object.entries(err).map(([k, v]) => Array.isArray(v) ? v.join(', ') : v)
+      message = parts.join('\n')
+    }
     alert(message)
   } finally {
     saving.value = false

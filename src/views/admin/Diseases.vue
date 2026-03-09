@@ -187,9 +187,9 @@
               <small>Contoh: G1, G2, dll</small>
             </div>
             <div class="form-group">
-              <label>Kategori *</label>
-              <select v-model="symptomForm.category" required :disabled="saving">
-                <option value="">Pilih Kategori</option>
+              <label>Kategori</label>
+              <select v-model="symptomForm.category" :disabled="saving">
+                <option value="">Pilih Kategori (opsional)</option>
                 <option value="DAUN">DAUN</option>
                 <option value="BATANG">BATANG</option>
                 <option value="AKAR">AKAR</option>
@@ -387,9 +387,12 @@ const saveDisease = async () => {
 }
 
 const saveSymptom = async () => {
-  // Validasi form
-  if (!symptomForm.value.code || !symptomForm.value.description || !symptomForm.value.category) {
-    alert('Harap lengkapi semua field yang wajib diisi (Kode, Kategori, Deskripsi)')
+  const code = (symptomForm.value.code || '').trim()
+  const description = (symptomForm.value.description || '').trim()
+  const category = (symptomForm.value.category || '').trim() || null
+
+  if (!code || !description) {
+    alert('Kode dan Deskripsi Gejala wajib diisi.')
     return
   }
 
@@ -398,12 +401,12 @@ const saveSymptom = async () => {
     const url = currentSymptom.value
       ? `${API_BASE_URL}/admin/symptoms/${currentSymptom.value.id}`
       : `${API_BASE_URL}/admin/symptoms`
-    
+
     const method = currentSymptom.value ? 'put' : 'post'
     const data = {
-      code: symptomForm.value.code.trim(),
-      description: symptomForm.value.description.trim(),
-      category: symptomForm.value.category.trim()
+      code,
+      description,
+      category
     }
     
     const response = await axios[method](url, data, {
