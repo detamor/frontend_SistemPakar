@@ -66,15 +66,29 @@
 
     <!-- Charts Row -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <!-- Top Diseases Chart -->
+      <!-- Ringkasan basis pengetahuan (dari database) -->
       <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2">
+        <h3 class="text-sm font-bold text-slate-700 mb-5 flex items-center gap-2">
           <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
-          Sebaran Penyakit Paling Sering Terdeteksi
+          Ringkasan Sistem
         </h3>
-        <div class="h-64 flex items-center justify-center">
-          <Bar v-if="diseaseChartData.labels.length" :data="diseaseChartData" :options="chartOptions" />
-          <div v-else class="text-slate-300 text-xs italic">Menunggu data diagnosis...</div>
+        <div class="grid grid-cols-2 gap-3 mb-5">
+          <div
+            v-for="stat in systemStats"
+            :key="stat.label"
+            class="text-center py-3 px-2 rounded-xl bg-slate-50 border border-slate-100"
+          >
+            <span class="block text-2xl font-black text-emerald-600 leading-none mb-1">{{ stat.num }}</span>
+            <span class="text-[11px] font-semibold text-slate-500">{{ stat.label }}</span>
+          </div>
+        </div>
+        <div class="h-px bg-slate-100 mb-5"></div>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white text-xs font-black flex items-center justify-center flex-shrink-0">CF</div>
+          <div>
+            <p class="text-sm font-semibold text-slate-800 m-0 mb-0.5">Certainty Factor</p>
+            <p class="text-xs text-slate-500 m-0">Metode inferensi berbasis keyakinan pakar</p>
+          </div>
         </div>
       </div>
 
@@ -107,13 +121,14 @@
           <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🌿</div>
           <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Tanaman</p>
         </router-link>
-        <router-link to="/admin/symptoms" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
-          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🔍</div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Gejala</p>
-        </router-link>
         <router-link to="/admin/diseases" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
-          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🦠</div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Penyakit</p>
+          <div class="mb-2 group-hover:scale-110 transition-transform flex items-center justify-center gap-1">
+            <span class="text-[1.15rem]">📊</span>
+            <span class="text-[1.15rem]">🦠</span>
+            <span class="text-[1.15rem]">🔍</span>
+          </div>
+          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Table CF</p>
+          <p class="text-[10px] font-semibold text-slate-500 mt-1">CRUD penyakit dan gejala</p>
         </router-link>
         <router-link to="/admin/cf-levels" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
           <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📊</div>
@@ -126,15 +141,12 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
 import { useAdminStore } from '../../stores/admin'
-import { Bar, Doughnut } from 'vue-chartjs'
-import { 
-  Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale,
-  ArcElement
-} from 'chart.js'
+import { Doughnut } from 'vue-chartjs'
+import { Chart as ChartJS, Title, Tooltip, Legend, ArcElement } from 'chart.js'
 
-// Register ChartJS components
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, ArcElement)
+ChartJS.register(Title, Tooltip, Legend, ArcElement)
 
 const adminStore = useAdminStore()
 const quickStats = computed(() => adminStore.quickStats)
@@ -145,25 +157,34 @@ const chartOptions = {
   maintainAspectRatio: false,
   plugins: {
     legend: { display: false }
-  },
-  scales: {
-    y: { beginAtZero: true, grid: { display: false } },
-    x: { grid: { display: false } }
   }
 }
 
-const diseaseChartData = computed(() => {
-  const top = adminStore.topDiseases || []
-  return {
-    labels: top.map(d => d.disease?.name || 'Unknown'),
-    datasets: [{
-      label: 'Deteksi',
-      data: top.map(d => d.total),
-      backgroundColor: '#10b981',
-      borderRadius: 8
-    }]
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+
+const systemStats = ref([
+  { num: '0', label: 'Jenis Tanaman' },
+  { num: '0', label: 'Penyakit' },
+  { num: '0', label: 'Gejala' },
+  { num: '0', label: 'Aturan Bobot CF' }
+])
+
+async function fetchSystemSummary () {
+  try {
+    const response = await axios.get(`${API_BASE_URL}/public/stats/summary`)
+    if (response.data?.success) {
+      const d = response.data.data || {}
+      systemStats.value = [
+        { num: String(d.plants ?? 0), label: 'Jenis Tanaman' },
+        { num: String(d.diseases ?? 0), label: 'Penyakit' },
+        { num: String(d.symptoms ?? 0), label: 'Gejala' },
+        { num: String(d.rules ?? 0), label: 'Aturan Bobot CF' }
+      ]
+    }
+  } catch (e) {
+    console.error('Gagal memuat ringkasan sistem:', e)
   }
-})
+}
 
 const feedbackChartData = computed(() => {
   const dist = adminStore.feedbackDistribution || []
@@ -181,7 +202,8 @@ onMounted(async () => {
   try {
     await Promise.all([
       adminStore.fetchQuickStats(),
-      adminStore.fetchDiagnosisStats()
+      adminStore.fetchDiagnosisStats(),
+      fetchSystemSummary()
     ])
   } catch (err) {
     console.error('Gagal memuat statistik dashboard', err)

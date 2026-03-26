@@ -14,7 +14,9 @@ const isAdmin = computed(() => authStore.isAdmin)
 const getUserPhotoUrl = (photoPath) => {
   if (!photoPath) return null
   if (photoPath.startsWith('http')) return photoPath
-  return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/storage/${photoPath}`
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+  const apiHost = apiBase.replace(/\/api\/?$/, '')
+  return `${apiHost}/storage/${photoPath}`
 }
 
 const handleLogout = async () => {

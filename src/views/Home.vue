@@ -4,7 +4,6 @@
     <section class="hero-section">
       <div class="page-container">
         <div class="hero-grid">
-          <!-- Left: Text -->
           <div class="hero-content animate-fade-in">
             <div class="hero-badge">
               <span class="badge-dot"></span>
@@ -34,27 +33,6 @@
               <span class="hero-tag">✓ Gratis</span>
               <span class="hero-tag">✓ Hasil Instan</span>
               <span class="hero-tag">✓ Metode CF</span>
-            </div>
-          </div>
-
-          <!-- Right: Stats card -->
-          <div class="hero-right animate-fade-in delay-200">
-            <div class="stats-card sp-card">
-              <h3 class="stats-title">Ringkasan Sistem</h3>
-              <div class="stats-grid">
-                <div class="stat-item" v-for="stat in systemStats" :key="stat.label">
-                  <span class="stat-num">{{ stat.num }}</span>
-                  <span class="stat-label">{{ stat.label }}</span>
-                </div>
-              </div>
-              <div class="stats-divider"></div>
-              <div class="stats-method">
-                <div class="method-icon">CF</div>
-                <div>
-                  <p class="method-name">Certainty Factor</p>
-                  <p class="method-desc">Metode inferensi berbasis keyakinan pakar</p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -128,13 +106,6 @@ import { useAuthStore } from '../stores/auth'
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
 
-const systemStats = [
-  { num: '2',  label: 'Jenis Tanaman' },
-  { num: '9',  label: 'Penyakit' },
-  { num: '20', label: 'Gejala' },
-  { num: '36', label: 'Aturan CF' },
-]
-
 const features = [
   {
     title: 'Diagnosis Cepat',
@@ -200,10 +171,7 @@ a { text-decoration: none; }
   gap: 2.5rem;
   align-items: center;
 }
-@media (min-width: 900px) {
-  .hero-grid { grid-template-columns: 1fr 1fr; gap: 4rem; }
-}
-.hero-content { display: flex; flex-direction: column; gap: 1.25rem; }
+.hero-content { display: flex; flex-direction: column; gap: 1.25rem; max-width: 640px; }
 
 .hero-badge {
   display: inline-flex;
@@ -259,24 +227,6 @@ a { text-decoration: none; }
   font-weight: 500;
   color: var(--text-muted);
 }
-
-/* Stats card */
-.stats-card { padding: 1.75rem; }
-.stats-title { font-size: 1rem; font-weight: 700; color: var(--gray-900); margin-bottom: 1.25rem; }
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-.stat-item { text-align: center; padding: .875rem; background: var(--bg-subtle); border-radius: var(--radius); }
-.stat-num { display: block; font-size: 1.75rem; font-weight: 800; color: var(--primary); line-height: 1; margin-bottom: .25rem; }
-.stat-label { font-size: .8rem; color: var(--text-muted); font-weight: 500; }
-.stats-divider { height: 1px; background: var(--border); margin-bottom: 1.25rem; }
-.stats-method { display: flex; align-items: center; gap: .875rem; }
-.method-icon { width: 40px; height: 40px; border-radius: var(--radius); background: var(--primary); color: #fff; font-size: .875rem; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-.method-name { font-weight: 600; font-size: .9rem; color: var(--gray-900); margin-bottom: 2px; }
-.method-desc { font-size: .78rem; color: var(--text-muted); margin: 0; }
 
 /* Sections */
 .section-alt   { padding: 4rem 0; background: var(--bg-subtle); }

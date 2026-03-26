@@ -35,6 +35,10 @@
 
     <!-- CF Levels Table -->
     <div v-else class="table-container">
+      <p class="cf-levels-note">
+        <span class="cf-levels-note-mark" aria-hidden="true">*</span>
+        Jika pengguna tidak yakin, pengguna tidak perlu memilih gejala tersebut pada diagnosis. Hanya gejala yang dipilih yang memakai bobot CF; gejala yang tidak dipilih tidak masuk perhitungan, sesuai alur sistem.
+      </p>
       <table class="cf-levels-table">
         <thead>
           <tr>
@@ -108,7 +112,7 @@
                 required 
                 :disabled="saving" 
               />
-              <small>Urutan tampilan (1, 2, 3, ...)</small>
+              <small>Urutan tampilan harus unik — tidak boleh sama dengan level lain (1, 2, 3, …).</small>
             </div>
           </div>
 
@@ -247,6 +251,22 @@ const saveCFLevel = async () => {
     return
   }
 
+  const orderNum = parseInt(form.value.order, 10)
+  if (Number.isNaN(orderNum) || orderNum < 1) {
+    alert('Urutan harus bilangan bulat minimal 1')
+    return
+  }
+
+  const dup = cfLevels.value.some((l) => {
+    if (l.order !== orderNum) return false
+    if (currentCFLevel.value && l.id === currentCFLevel.value.id) return false
+    return true
+  })
+  if (dup) {
+    alert('Urutan ini sudah dipakai. Pilih angka urut yang belum digunakan.')
+    return
+  }
+
   saving.value = true
   try {
     const url = currentCFLevel.value
@@ -359,6 +379,22 @@ const deleteCFLevelConfirm = async () => {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.cf-levels-note {
+  margin: 0;
+  padding: 0.875rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: #5d6d7e;
+  background: #f8f9fb;
+  border-bottom: 1px solid #e8eaed;
+}
+
+.cf-levels-note-mark {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-right: 0.25rem;
 }
 
 .cf-levels-table {

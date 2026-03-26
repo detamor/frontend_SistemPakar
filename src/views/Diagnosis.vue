@@ -261,8 +261,10 @@ const getImageUrl = (path) => {
     if (path.includes('localhost') && !path.includes('localhost:')) return path.replace('localhost', 'localhost:8000')
     return path
   }
-  const api = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-  return path.startsWith('/') ? `${api}${path}` : `${api}/${path}`
+  const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  // VITE_API_BASE_URL biasanya: http://IP:8000/api -> kita butuh host tanpa /api untuk storage/images
+  const apiHost = apiBase.replace(/\/api\/?$/, '')
+  return path.startsWith('/') ? `${apiHost}${path}` : `${apiHost}/${path}`
 }
 
 const handleImageError = (e) => {
@@ -320,19 +322,52 @@ a { text-decoration: none; }
   padding: 0;
   overflow: hidden;
   font-family: inherit;
+  /* Supaya kartu terasa lebih "premium" */
+  box-shadow: 0 1px 0 rgba(0,0,0,.03);
 }
-.plant-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow); }
-.plant-card--selected { border-color: var(--primary) !important; background: var(--primary-50) !important; }
+.plant-card:hover {
+  border-color: var(--border-strong);
+  box-shadow: var(--shadow);
+}
+.plant-card--selected {
+  border-color: var(--primary) !important;
+  background: linear-gradient(180deg, var(--primary-50), var(--bg-surface)) !important;
+}
 .plant-card:disabled { opacity: .6; cursor: not-allowed; }
 
-.plant-img-wrap { width: 100%; aspect-ratio: 4/3; overflow: hidden; background: var(--bg-subtle); }
-.plant-img { width: 100%; height: 100%; object-fit: cover; transition: transform .3s; }
-.plant-card:hover .plant-img { transform: scale(1.04); }
+.plant-img-wrap {
+  width: 100%;
+  /* Lebih lebar dan besar agar terlihat mewah */
+  aspect-ratio: 16/10;
+  min-height: 170px;
+  overflow: hidden;
+  background: var(--bg-subtle);
+  position: relative;
+}
+.plant-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  transition: transform .35s ease, filter .35s ease;
+}
+.plant-card:hover .plant-img {
+  transform: scale(1.06);
+  filter: saturate(1.06);
+}
+.plant-img-wrap::after {
+  /* Overlay tipis biar tampilan lebih "mewah" */
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.00), rgba(0,0,0,.10));
+  pointer-events: none;
+}
 .plant-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-faint); }
 
-.plant-info { padding: .625rem .75rem; flex: 1; }
-.plant-name { font-size: .8125rem; font-weight: 600; color: var(--gray-900); margin-bottom: 2px; }
-.plant-sci  { font-size: .7rem; color: var(--text-muted); font-style: italic; margin: 0; }
+.plant-info { padding: .75rem .9rem; flex: 1; }
+.plant-name { font-size: .9rem; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
+.plant-sci  { font-size: .73rem; color: var(--text-muted); font-style: italic; margin: 0; }
 
 .plant-check {
   position: absolute; top: .5rem; right: .5rem;

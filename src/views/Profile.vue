@@ -8,7 +8,7 @@
           <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
           Kembali
         </RouterLink>
-        <h1 style="font-size:1.625rem;font-weight:800;color:var(--gray-900);margin:0 0 .25rem;">Profil Saya</h1>
+        <h1 style="font-size:1.625rem;font-weight:800;color:var(--gray-900);margin:0 0 .25rem;">Profil Saya1</h1>
         <p style="color:var(--text-muted);font-size:.9375rem;margin:0;">Kelola informasi profil dan keamanan akun Anda</p>
       </div>
     </section>

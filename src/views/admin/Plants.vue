@@ -267,12 +267,16 @@ const removeImagePreview = () => {
 const getImageUrl = (imagePath) => {
   if (!imagePath) return ''
   if (imagePath.startsWith('http')) return imagePath
-  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-  // Fix localhost port issue
-  if (imagePath.includes('localhost') && !imagePath.includes('localhost:')) {
-    return imagePath.replace('localhost', 'localhost:8000')
-  }
-  return imagePath.startsWith('/') ? `${apiUrl}${imagePath}` : `${apiUrl}/${imagePath}`
+
+  // VITE_API_BASE_URL biasanya formatnya: http://IP:8000/api
+  // Untuk akses storage, kita butuh host tanpa /api.
+  const apiUrlRaw = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const apiUrl = apiUrlRaw.replace(/\/api\/?$/, '')
+
+  // imagePath biasanya berasal dari backend: /storage/plants/xxx.png
+  // atau bisa saja path relative: plants/xxx.png
+  if (imagePath.startsWith('/')) return `${apiUrl}${imagePath}`
+  return `${apiUrl}/storage/${imagePath}`
 }
 
 const handleImageError = (event) => {
