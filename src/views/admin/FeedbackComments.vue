@@ -55,31 +55,83 @@
 
       <div v-if="loading" class="text-sm text-slate-400 italic">Memuat komentar feedback...</div>
 
-      <div v-else-if="recentFeedbacks.length" class="space-y-3">
-        <div
-          v-for="item in recentFeedbacks"
-          :key="item.id"
-          class="rounded-xl border border-slate-100 bg-slate-50 px-4 py-3"
-        >
-          <div class="flex items-center justify-between gap-3 mb-2 flex-wrap">
-            <div class="text-sm font-semibold text-slate-800">
-              {{ item.user_name }}
-              <span class="text-xs font-medium text-slate-500">
-                • {{ item.plant_name || 'Tanaman' }}{{ item.disease_name ? ` / ${item.disease_name}` : '' }}
-              </span>
+      <template v-else>
+        <div class="sections-wrap">
+        <!-- Section 1: Feedback -->
+        <div class="rounded-2xl border border-slate-100 bg-white p-5">
+          <h2 class="text-sm font-bold text-slate-700 mb-4">Komentar Feedback Pengguna</h2>
+          <div v-if="feedbackCommentItems.length" class="space-y-4">
+            <div
+              v-for="item in feedbackCommentItems"
+              :key="`feedback-${item.id}`"
+              class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 shadow-sm"
+            >
+              <div class="flex items-center justify-between gap-3 flex-wrap">
+                <div class="text-sm font-semibold text-slate-800">
+                  {{ item.user_name }}
+                  <span class="text-xs font-medium text-slate-500">
+                    • {{ item.plant_name || 'Tanaman' }}{{ item.disease_name ? ` / ${item.disease_name}` : '' }}
+                  </span>
+                </div>
+                <span class="text-[11px] font-semibold rounded-full px-2.5 py-1 border" :class="feedbackBadgeClass(item.accuracy)">
+                  {{ feedbackText(item.accuracy) }}
+                </span>
+              </div>
+              <p class="text-sm text-slate-600 leading-relaxed m-0 mt-2">
+                "{{ getDisplayText(item.comment, `feedback-${item.id}`) }}"
+              </p>
+              <button
+                v-if="isLongText(item.comment, 220)"
+                @click="toggleExpand(`feedback-${item.id}`)"
+                class="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                type="button"
+              >
+                {{ isExpanded(`feedback-${item.id}`) ? 'Tampilkan lebih sedikit' : 'Lihat selengkapnya' }}
+              </button>
+              <p class="text-[11px] text-slate-400 mt-3 mb-0">{{ formatFeedbackDate(item.created_at) }}</p>
             </div>
-            <span class="text-[11px] font-semibold rounded-full px-2.5 py-1 border" :class="feedbackBadgeClass(item.accuracy)">
-              {{ feedbackText(item.accuracy) }}
-            </span>
           </div>
-          <p class="text-sm text-slate-600 leading-relaxed m-0">"{{ truncateComment(item.comment) }}"</p>
-          <p class="text-[11px] text-slate-400 mt-2 mb-0">{{ formatFeedbackDate(item.created_at) }}</p>
+          <p v-else class="text-slate-400 text-sm italic m-0">Belum ada komentar feedback dari pengguna.</p>
         </div>
-      </div>
 
-      <div v-else class="text-slate-400 text-sm italic">
-        Belum ada komentar feedback dari pengguna.
-      </div>
+        <!-- Section 2: Evaluation Notes -->
+        <div class="rounded-2xl border border-slate-100 bg-white p-5">
+          <h2 class="text-sm font-bold text-slate-700 mb-4">Catatan Evaluasi Diagnosis Pengguna</h2>
+          <div v-if="evaluationNoteItems.length" class="space-y-4">
+            <div
+              v-for="item in evaluationNoteItems"
+              :key="`notes-${item.id}`"
+              class="rounded-xl border border-indigo-200 bg-indigo-50/50 px-4 py-4 shadow-sm"
+            >
+              <div class="flex items-center justify-between gap-3 flex-wrap">
+                <div class="text-sm font-semibold text-slate-800">
+                  {{ item.user_name }}
+                  <span class="text-xs font-medium text-slate-500">
+                    • {{ item.plant_name || 'Tanaman' }}{{ item.disease_name ? ` / ${item.disease_name}` : '' }}
+                  </span>
+                </div>
+                <span class="text-[11px] text-slate-500 font-medium">
+                  Tanaman: {{ item.plant_name || '-' }}
+                </span>
+              </div>
+              <p class="text-sm text-slate-600 leading-relaxed m-0 mt-2">
+                "{{ getDisplayText(item.user_notes, `notes-${item.id}`) }}"
+              </p>
+              <button
+                v-if="isLongText(item.user_notes, 220)"
+                @click="toggleExpand(`notes-${item.id}`)"
+                class="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
+                type="button"
+              >
+                {{ isExpanded(`notes-${item.id}`) ? 'Tampilkan lebih sedikit' : 'Lihat selengkapnya' }}
+              </button>
+              <p class="text-[11px] text-slate-400 mt-3 mb-0">{{ formatFeedbackDate(item.created_at) }}</p>
+            </div>
+          </div>
+          <p v-else class="text-slate-400 text-sm italic m-0">Belum ada catatan evaluasi dari pengguna.</p>
+        </div>
+        </div>
+      </template>
     </div>
   </div>
 </template>
@@ -95,8 +147,16 @@ ChartJS.register(Title, Tooltip, Legend, ArcElement)
 const adminStore = useAdminStore()
 const loading = ref(false)
 const lastUpdate = ref(new Date().toLocaleTimeString('id-ID'))
+const expandedItems = ref({})
 const recentFeedbacks = computed(() => adminStore.recentFeedbacks || [])
+const recentEvaluationNotes = computed(() => adminStore.recentEvaluationNotes || [])
 const feedbackDistribution = computed(() => adminStore.feedbackDistribution || [])
+const feedbackCommentItems = computed(() =>
+  recentFeedbacks.value.filter((item) => item?.comment && String(item.comment).trim().length > 0)
+)
+const evaluationNoteItems = computed(() =>
+  recentEvaluationNotes.value.filter((item) => item?.user_notes && String(item.user_notes).trim().length > 0)
+)
 
 const chartOptions = {
   responsive: true,
@@ -184,9 +244,25 @@ const feedbackBadgeClass = (accuracy) => {
   return 'border-slate-200 text-slate-700 bg-slate-50'
 }
 
-const truncateComment = (comment) => {
+const truncateComment = (comment, limit = 400) => {
   if (!comment) return '-'
-  return comment.length > 400 ? `${comment.slice(0, 400)}...` : comment
+  return comment.length > limit ? `${comment.slice(0, limit)}...` : comment
+}
+
+const isExpanded = (key) => !!expandedItems.value[key]
+
+const toggleExpand = (key) => {
+  expandedItems.value[key] = !expandedItems.value[key]
+}
+
+const isLongText = (text, limit = 220) => {
+  if (!text) return false
+  return String(text).length > limit
+}
+
+const getDisplayText = (text, key, limit = 220) => {
+  if (!text) return '-'
+  return isExpanded(key) ? String(text) : truncateComment(String(text), limit)
 }
 
 const formatFeedbackDate = (dateString) => {
@@ -223,5 +299,11 @@ onMounted(async () => {
 .chart-wrap {
   max-width: 420px;
   margin: 0 auto;
+}
+
+.sections-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 </style>

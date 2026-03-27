@@ -184,14 +184,28 @@
         </div>
 
         <!-- Notes -->
-        <div v-if="diagnosis.user_notes" class="sp-card" style="padding:1.5rem;">
+        <div class="sp-card" style="padding:1.5rem;">
           <h2 class="section-title">
             <span class="section-icon section-icon--gray">📝</span>
-            Catatan
+            Catatan Saya untuk Evaluasi Admin
           </h2>
-          <p style="font-size:.875rem;line-height:1.7;color:var(--text-muted);background:var(--bg-subtle);padding:.875rem;border-radius:var(--radius);margin:0;">
+          <p
+            v-if="diagnosis.user_notes"
+            style="font-size:.875rem;line-height:1.7;color:var(--text-muted);background:var(--bg-subtle);padding:.875rem;border-radius:var(--radius);margin:0;"
+          >
             {{ diagnosis.user_notes }}
           </p>
+          <p
+            v-else
+            style="font-size:.875rem;line-height:1.7;color:var(--text-faint);background:var(--bg-subtle);padding:.875rem;border-radius:var(--radius);margin:0;font-style:italic;"
+          >
+            Belum ada catatan evaluasi.
+          </p>
+          <div style="display:flex;justify-content:flex-end;margin-top:.75rem;">
+            <button @click="openNotesModal" class="sp-btn sp-btn-secondary sp-btn-sm">
+              {{ diagnosis.user_notes ? 'Ubah Catatan' : 'Tambah Catatan' }}
+            </button>
+          </div>
         </div>
 
         <!-- Feedback prompt -->
@@ -262,6 +276,51 @@
 
       <!-- Consultation Modal -->
       <ConsultationWhatsAppModal :show="showConsultationModal" :diagnosis="diagnosis" @close="closeConsultationModal" @success="handleConsultationSuccess" />
+
+      <!-- Notes Modal -->
+      <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
+        <div v-if="showNotesModal" style="position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:1.25rem;background:rgba(0,0,0,.45);" @click="closeNotesModal">
+          <div class="sp-card" style="max-width:520px;width:100%;overflow:hidden;" @click.stop>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:1.125rem 1.5rem;border-bottom:1px solid var(--border);">
+              <h3 style="font-size:1.0625rem;margin:0;">Catatan Evaluasi untuk Admin</h3>
+              <button @click="closeNotesModal" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+              <p style="margin:0;font-size:.8125rem;color:var(--text-muted);">
+                Isi catatan jika ada gejala tambahan yang belum tersedia di daftar pilihan, agar admin dapat mengevaluasi dan menambahkan gejala baru.
+              </p>
+              <textarea
+                v-model="notesForm.user_notes"
+                placeholder="Tulis catatan tambahan Anda..."
+                rows="4"
+                class="glass-input"
+                style="resize:vertical;"
+                maxlength="1000"
+              ></textarea>
+              <p style="font-size:.75rem;color:var(--text-faint);margin-top:.25rem;">{{ notesForm.user_notes?.length || 0 }}/1000</p>
+              <div v-if="notesError" class="sp-alert sp-alert-danger">{{ notesError }}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:.625rem;padding:.875rem 1.5rem;border-top:1px solid var(--border);">
+              <button
+                v-if="hasExistingNotes"
+                @click="deleteNotes"
+                :disabled="deletingNotes || savingNotes"
+                class="sp-btn sp-btn-danger"
+              >
+                {{ deletingNotes ? 'Menghapus...' : 'Hapus Catatan' }}
+              </button>
+              <div style="display:flex;gap:.625rem;margin-left:auto;">
+                <button @click="closeNotesModal" class="sp-btn sp-btn-secondary">Batal</button>
+                <button @click="saveNotes" :disabled="savingNotes || deletingNotes" class="sp-btn sp-btn-primary">
+                  {{ savingNotes ? 'Menyimpan...' : 'Simpan Catatan' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -286,6 +345,11 @@ const feedbackError = ref(null)
 const feedbackSuccess = ref(false)
 const feedbackForm = ref({ accuracy: null, comment: '' })
 const relevantModules = ref([])
+const showNotesModal = ref(false)
+const notesForm = ref({ user_notes: '' })
+const notesError = ref(null)
+const savingNotes = ref(false)
+const deletingNotes = ref(false)
 
 const feedbackRatings = [
   { value: 'accurate',         label: 'Akurat',       icon: '😊' },
@@ -357,6 +421,72 @@ const submitFeedbackForm = async () => {
 }
 
 const cancelFeedback = () => { showFeedbackForm.value = false; feedbackForm.value = { accuracy: null, comment: '' }; feedbackError.value = null }
+
+const hasExistingNotes = computed(() => !!diagnosis.value?.user_notes)
+
+const applyLocalNotesToStore = (notes) => {
+  if (!diagnosisStore.currentDiagnosis) return
+
+  if (diagnosisStore.currentDiagnosis.diagnosis) {
+    diagnosisStore.currentDiagnosis.diagnosis.user_notes = notes
+    return
+  }
+
+  diagnosisStore.currentDiagnosis.user_notes = notes
+}
+
+const normalizeNotes = (value) => {
+  if (value === null || value === undefined) return ''
+  return String(value).trim()
+}
+
+const openNotesModal = () => {
+  notesForm.value.user_notes = diagnosis.value?.user_notes || ''
+  notesError.value = null
+  showNotesModal.value = true
+}
+
+const closeNotesModal = () => {
+  showNotesModal.value = false
+  notesForm.value = { user_notes: '' }
+  notesError.value = null
+}
+
+const saveNotes = async () => {
+  const cleaned = normalizeNotes(notesForm.value.user_notes)
+  if (!cleaned) {
+    notesError.value = 'Catatan tidak boleh kosong.'
+    return
+  }
+
+  savingNotes.value = true
+  notesError.value = null
+
+  try {
+    await diagnosisStore.updateDiagnosisNotes(route.params.id, cleaned)
+    applyLocalNotesToStore(cleaned)
+    closeNotesModal()
+  } catch (e) {
+    notesError.value = e.response?.data?.message || 'Gagal menyimpan catatan.'
+  } finally {
+    savingNotes.value = false
+  }
+}
+
+const deleteNotes = async () => {
+  deletingNotes.value = true
+  notesError.value = null
+
+  try {
+    await diagnosisStore.deleteDiagnosisNotes(route.params.id)
+    applyLocalNotesToStore(null)
+    closeNotesModal()
+  } catch (e) {
+    notesError.value = e.response?.data?.message || 'Gagal menghapus catatan.'
+  } finally {
+    deletingNotes.value = false
+  }
+}
 
 onMounted(() => { loadDetail() })
 </script>

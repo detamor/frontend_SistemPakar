@@ -73,6 +73,22 @@
               <span v-if="diagnosis.status === 'pending'" style="color:#b45309;"> — Sedang diproses...</span>
             </div>
 
+            <!-- Notes -->
+            <div class="mb-3 notes-panel">
+              <div class="notes-panel__head">
+                <span class="notes-panel__title">📝 Catatan Evaluasi untuk Admin</span>
+                <button
+                  @click="openNotesModal(diagnosis)"
+                  class="feedback-edit-btn"
+                  :disabled="savingNotes === diagnosis.id || deletingNotes === diagnosis.id"
+                >
+                  {{ diagnosis.user_notes ? 'Ubah Catatan' : 'Tambah Catatan' }}
+                </button>
+              </div>
+              <p v-if="diagnosis.user_notes" class="notes-panel__content">{{ diagnosis.user_notes }}</p>
+              <p v-else class="notes-panel__empty">Belum ada catatan tambahan.</p>
+            </div>
+
             <!-- Feedback -->
             <div v-if="diagnosis.disease" class="mb-3">
               <div v-if="!diagnosisFeedbacks[diagnosis.id]" class="feedback-panel">
@@ -164,6 +180,53 @@
           </div>
         </div>
       </Transition>
+
+      <!-- Notes Modal -->
+      <Transition enter-active-class="transition-opacity duration-200" enter-from-class="opacity-0" enter-to-class="opacity-100" leave-active-class="transition-opacity duration-150" leave-from-class="opacity-100" leave-to-class="opacity-0">
+        <div v-if="showNotesModal" style="position:fixed;inset:0;z-index:500;display:flex;align-items:center;justify-content:center;padding:1.25rem;background:rgba(0,0,0,.45);" @click="closeNotesModal">
+          <div class="sp-card" style="max-width:520px;width:100%;overflow:hidden;" @click.stop>
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:1.125rem 1.5rem;border-bottom:1px solid var(--border);">
+              <h3 style="font-size:1.0625rem;margin:0;">Catatan Evaluasi untuk Admin</h3>
+              <button @click="closeNotesModal" style="background:none;border:none;cursor:pointer;color:var(--text-muted);padding:4px;border-radius:6px;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+            <div style="padding:1.5rem;display:flex;flex-direction:column;gap:1rem;">
+              <p style="margin:0;font-size:.8125rem;color:var(--text-muted);">
+                Isi catatan jika ada gejala tambahan yang belum tersedia di daftar pilihan, agar admin dapat mengevaluasi dan menambahkan gejala baru.
+              </p>
+              <textarea
+                v-model="notesForm.user_notes"
+                placeholder="Contoh: Daun tampak bercak putih halus di bagian bawah, belum ada pada daftar gejala."
+                rows="4"
+                class="glass-input"
+                style="resize:vertical;"
+              ></textarea>
+              <div v-if="notesError" class="sp-alert sp-alert-danger">{{ notesError }}</div>
+            </div>
+            <div style="display:flex;justify-content:space-between;gap:.625rem;padding:.875rem 1.5rem;border-top:1px solid var(--border);">
+              <button
+                v-if="notesForm.hasExisting"
+                @click="deleteNotes"
+                :disabled="deletingNotes === notesForm.diagnosisId || savingNotes === notesForm.diagnosisId"
+                class="sp-btn sp-btn-danger"
+              >
+                {{ deletingNotes === notesForm.diagnosisId ? 'Menghapus...' : 'Hapus Catatan' }}
+              </button>
+              <div style="display:flex;gap:.625rem;margin-left:auto;">
+                <button @click="closeNotesModal" class="sp-btn sp-btn-secondary">Batal</button>
+                <button
+                  @click="saveNotes"
+                  :disabled="savingNotes === notesForm.diagnosisId || deletingNotes === notesForm.diagnosisId"
+                  class="sp-btn sp-btn-primary"
+                >
+                  {{ savingNotes === notesForm.diagnosisId ? 'Menyimpan...' : 'Simpan Catatan' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
     </div>
   </div>
 </template>
@@ -184,6 +247,11 @@ const submittingFeedback = ref(null)
 const showFeedbackModal = ref(false)
 const feedbackForm = ref({ diagnosisId: null, accuracy: null, comment: '' })
 const feedbackError = ref(null)
+const showNotesModal = ref(false)
+const notesForm = ref({ diagnosisId: null, user_notes: '', hasExisting: false })
+const notesError = ref(null)
+const savingNotes = ref(null)
+const deletingNotes = ref(null)
 
 const feedbackRatings = [
   { value: 'accurate', label: 'Akurat', icon: '😊', class: 'rating-accurate' },
@@ -254,6 +322,69 @@ const submitFeedbackForm = async () => {
     closeFeedbackModal(); showToast('Feedback berhasil diperbarui!')
   } catch (error) { feedbackError.value = error.response?.data?.message || 'Gagal mengirim feedback.' }
   finally { submittingFeedback.value = null }
+}
+
+const openNotesModal = (diagnosis) => {
+  notesForm.value = {
+    diagnosisId: diagnosis.id,
+    user_notes: diagnosis.user_notes || '',
+    hasExisting: !!diagnosis.user_notes
+  }
+  notesError.value = null
+  showNotesModal.value = true
+}
+
+const closeNotesModal = () => {
+  showNotesModal.value = false
+  notesForm.value = { diagnosisId: null, user_notes: '', hasExisting: false }
+  notesError.value = null
+}
+
+const normalizeNotes = (value) => {
+  if (value === null || value === undefined) return ''
+  return String(value).trim()
+}
+
+const saveNotes = async () => {
+  const diagnosisId = notesForm.value.diagnosisId
+  const normalized = normalizeNotes(notesForm.value.user_notes)
+
+  if (!diagnosisId) return
+  if (!normalized) {
+    notesError.value = 'Catatan tidak boleh kosong.'
+    return
+  }
+
+  savingNotes.value = diagnosisId
+  try {
+    await diagnosisStore.updateDiagnosisNotes(diagnosisId, normalized)
+    const target = diagnosisHistory.value.find(d => d.id === diagnosisId)
+    if (target) target.user_notes = normalized
+    showToast('Catatan evaluasi berhasil disimpan!')
+    closeNotesModal()
+  } catch (error) {
+    notesError.value = error.response?.data?.message || 'Gagal menyimpan catatan.'
+  } finally {
+    savingNotes.value = null
+  }
+}
+
+const deleteNotes = async () => {
+  const diagnosisId = notesForm.value.diagnosisId
+  if (!diagnosisId) return
+
+  deletingNotes.value = diagnosisId
+  try {
+    await diagnosisStore.deleteDiagnosisNotes(diagnosisId)
+    const target = diagnosisHistory.value.find(d => d.id === diagnosisId)
+    if (target) target.user_notes = null
+    showToast('Catatan evaluasi berhasil dihapus!')
+    closeNotesModal()
+  } catch (error) {
+    notesError.value = error.response?.data?.message || 'Gagal menghapus catatan.'
+  } finally {
+    deletingNotes.value = null
+  }
 }
 
 const getFeedbackIcon = (accuracy) => ({ accurate: '😊', somewhat_accurate: '😐', inaccurate: '😞' }[accuracy] || '😊')
@@ -339,6 +470,36 @@ a { text-decoration: none !important; }
   border-color: var(--primary);
   color: var(--primary);
   background: var(--primary-50);
+}
+
+.notes-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  padding: .75rem;
+}
+.notes-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+}
+.notes-panel__title {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+.notes-panel__content {
+  margin: .6rem 0 0;
+  font-size: .8125rem;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+.notes-panel__empty {
+  margin: .6rem 0 0;
+  font-size: .8rem;
+  color: var(--text-faint);
+  font-style: italic;
 }
 
 .fb-modal-option { display:inline-flex;align-items:center;gap:.35rem;padding:.5rem .875rem;font-size:.875rem;font-weight:500;border:1.5px solid var(--border-strong);border-radius:var(--radius);cursor:pointer;transition:all .15s;background:var(--bg-surface);color:var(--gray-700); }
