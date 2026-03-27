@@ -127,7 +127,7 @@
             <div class="step-num">3</div>
             <div>
               <h2 style="font-size:1.125rem;margin:0 0 .2rem;">Catatan Tambahan <span style="font-weight:400;color:var(--text-muted);font-size:.875rem;">(opsional)</span></h2>
-              <p style="font-size:.8125rem;margin:0;">Informasi tambahan tentang kondisi tanaman</p>
+              <p style="font-size:.8125rem;margin:0;">Isi jika gejala yang Anda alami belum ada di daftar pilihan gejala. Catatan ini akan membantu administrator sebagai bahan evaluasi untuk menambahkan gejala baru.</p>
             </div>
           </div>
           <textarea

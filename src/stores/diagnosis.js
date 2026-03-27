@@ -274,6 +274,58 @@ export const useDiagnosisStore = defineStore('diagnosis', {
       } finally {
         this.loading = false
       }
+    },
+
+    // Create / update user notes for diagnosis
+    async updateDiagnosisNotes(diagnosisId, userNotes) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.put(
+          `${API_BASE_URL}/diagnosis/${diagnosisId}/notes`,
+          { user_notes: userNotes },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    // Delete user notes for diagnosis
+    async deleteDiagnosisNotes(diagnosisId) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.delete(
+          `${API_BASE_URL}/diagnosis/${diagnosisId}/notes`,
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }
+        )
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

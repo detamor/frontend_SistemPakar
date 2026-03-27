@@ -32,7 +32,8 @@ export const useAdminStore = defineStore('admin', {
     topDiseases: [],
     monthlyTrend: [],
     feedbackDistribution: [],
-    recentFeedbacks: []
+    recentFeedbacks: [],
+    recentEvaluationNotes: []
   }),
 
   actions: {
@@ -61,9 +62,13 @@ export const useAdminStore = defineStore('admin', {
             response.data.data.recentFeedbacks ||
             response.data.data.feedbackComments ||
             []
+          const notesPayload = response.data.data.recentEvaluationNotes || []
 
           this.recentFeedbacks = commentsPayload.filter(
             (item) => item?.comment && String(item.comment).trim().length > 0
+          )
+          this.recentEvaluationNotes = notesPayload.filter(
+            (item) => item?.user_notes && String(item.user_notes).trim().length > 0
           )
         }
         return response.data
