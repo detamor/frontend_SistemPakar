@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
+import api from '../services/api'
 import router from '../router'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
 export const useAuthStore = defineStore('auth', {
   state: () => ({
@@ -24,7 +22,6 @@ export const useAuthStore = defineStore('auth', {
       this.token = token
       this.user = user
       localStorage.setItem('auth_token', token)
-      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
     },
 
     // Clear auth
@@ -32,7 +29,6 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.user = null
       localStorage.removeItem('auth_token')
-      delete axios.defaults.headers.common['Authorization']
     },
 
     // Register - Step 1: Request OTP via Email
@@ -41,7 +37,7 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/register`, data)
+        const response = await api.post('/auth/register', data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -57,7 +53,7 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/verify-otp`, {
+        const response = await api.post('/auth/verify-otp', {
           email: email,
           otp_code: otpCode
         })
@@ -82,7 +78,7 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        const response = await api.post('/auth/login', {
           email,
           password
         })
@@ -113,11 +109,7 @@ export const useAuthStore = defineStore('auth', {
 
       try {
         if (this.token) {
-          await axios.post(`${API_BASE_URL}/auth/logout`, {}, {
-            headers: {
-              'Authorization': `Bearer ${this.token}`
-            }
-          })
+          await api.post('/auth/logout', {})
         }
       } catch (error) {
         console.error('Logout error:', error)
@@ -134,7 +126,7 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/password/reset`, {
+        const response = await api.post('/auth/password/reset', {
           email: email
         })
         return response.data
@@ -152,7 +144,7 @@ export const useAuthStore = defineStore('auth', {
       this.error = null
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/password/verify`, {
+        const response = await api.post('/auth/password/verify', {
           email: email,
           otp_code: otpCode,
           password: password,
@@ -177,11 +169,7 @@ export const useAuthStore = defineStore('auth', {
       if (!this.token) return
 
       try {
-        const response = await axios.get(`${API_BASE_URL}/auth/me`, {
-          headers: {
-            'Authorization': `Bearer ${this.token}`
-          }
-        })
+        const response = await api.get('/auth/me')
 
         if (response.data.success) {
           this.user = response.data.data
@@ -196,16 +184,15 @@ export const useAuthStore = defineStore('auth', {
     },
 
     // Initialize auth from localStorage
-    initAuth() {
+    async initAuth() {
       const token = localStorage.getItem('auth_token')
       if (token) {
         this.token = token
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
-        // Fetch user in background, don't wait
-        this.fetchUser().catch(() => {
-          // If fetch fails, token might be invalid, clear it
+        try {
+          await this.fetchUser()
+        } catch (error) {
           this.clearAuth()
-        })
+        }
       }
     }
   }

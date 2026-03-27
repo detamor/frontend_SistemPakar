@@ -327,7 +327,6 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAdminStore } from '../../stores/admin'
-import axios from 'axios'
 
 const adminStore = useAdminStore()
 
@@ -372,8 +371,6 @@ const removeStep = (index) => {
 const uploading = ref(false)
 const imageInput = ref(null)
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
-
 onMounted(() => {
   fetchModules()
 })
@@ -381,14 +378,9 @@ onMounted(() => {
 const fetchModules = async () => {
   loading.value = true
   try {
-    const token = localStorage.getItem('auth_token')
-    const response = await axios.get(`${API_BASE_URL}/admin/education`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
-    if (response.data.success) {
-      modules.value = response.data.data.data || response.data.data
+    const response = await adminStore.fetchEducationModules()
+    if (response.success) {
+      modules.value = adminStore.educationModules
     }
   } catch (error) {
     console.error('Error fetching modules:', error)
@@ -401,15 +393,10 @@ const fetchModules = async () => {
 const editModule = async (module) => {
   // Fetch full module data to ensure we have all fields including content_images
   try {
-    const token = localStorage.getItem('auth_token')
-    const response = await axios.get(`${API_BASE_URL}/admin/education/${module.id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    })
+    const response = await adminStore.fetchEducationModule(module.id)
     
-    if (response.data.success) {
-      const fullModule = response.data.data
+    if (response.success) {
+      const fullModule = response.data
       currentModule.value = fullModule
       form.value = {
         title: fullModule.title,
@@ -493,27 +480,11 @@ const handleImageUpload = async (event) => {
   if (files.length === 0) return
 
   uploading.value = true
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
-
   try {
-    const token = localStorage.getItem('auth_token')
     const uploadPromises = files.map(async (file) => {
-      const formData = new FormData()
-      formData.append('image', file)
-
-      const response = await axios.post(
-        `${API_BASE_URL}/admin/education/upload-image`,
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      )
-
-      if (response.data.success) {
-        return response.data.data.path
+      const response = await adminStore.uploadEducationImage(file)
+      if (response.success) {
+        return response.data.path
       }
       throw new Error('Upload failed')
     })
@@ -563,22 +534,12 @@ const getImageUrl = (imagePath) => {
 const saveModule = async () => {
   saving.value = true
   try {
-    const token = localStorage.getItem('auth_token')
-    const url = showEditModal.value
-      ? `${API_BASE_URL}/admin/education/${currentModule.value.id}`
-      : `${API_BASE_URL}/admin/education`
-    
-    const method = showEditModal.value ? 'put' : 'post'
-    
-    const response = await axios[method](url, form.value, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      }
-    })
+    const response = showEditModal.value
+      ? await adminStore.updateEducationModule(currentModule.value.id, form.value)
+      : await adminStore.createEducationModule(form.value)
 
-    if (response.data.success) {
-      alert(response.data.message || 'Modul berhasil disimpan')
+    if (response.success) {
+      alert(response.message || 'Modul berhasil disimpan')
       closeModal()
       fetchModules()
     }
@@ -594,17 +555,8 @@ const saveModule = async () => {
 const deleteModuleConfirm = async () => {
   deleting.value = true
   try {
-    const token = localStorage.getItem('auth_token')
-    const response = await axios.delete(
-      `${API_BASE_URL}/admin/education/${deleteModule.value.id}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    )
-
-    if (response.data.success) {
+    const response = await adminStore.deleteEducationModule(deleteModule.value.id)
+    if (response.success) {
       alert('Modul berhasil dihapus')
       showDeleteModal.value = false
       deleteModule.value = null

@@ -276,10 +276,21 @@ const handleDiagnosis = async () => {
   if (!validateForm()) return
   processing.value = true
   try {
+    const normalizedNotes = normalizeUserNotes(form.value.user_notes)
     const symptomsData = selectedSymptoms.value.map(id => ({ symptom_id: id, user_cf: parseFloat(symptomCFs.value[id]) || 0.5 }))
-    await diagnosisStore.diagnose({ plant_id: parseInt(form.value.plant_id), symptoms: symptomsData, user_notes: form.value.user_notes || null })
+    await diagnosisStore.diagnose({
+      plant_id: parseInt(form.value.plant_id),
+      symptoms: symptomsData,
+      user_notes: normalizedNotes
+    })
   } catch (err) { submitError.value = getSpecificErrorMessage(err) }
   finally { processing.value = false }
+}
+
+const normalizeUserNotes = (value) => {
+  if (value === null || value === undefined) return null
+  const cleaned = String(value).trim()
+  return cleaned.length ? cleaned : null
 }
 
 onMounted(async () => { clearErrors(); await Promise.all([loadPlants(), fetchCFLevels()]) })

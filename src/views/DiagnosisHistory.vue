@@ -75,24 +75,37 @@
 
             <!-- Feedback -->
             <div v-if="diagnosis.disease" class="mb-3">
-              <div v-if="!diagnosisFeedbacks[diagnosis.id]" style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;">
-                <span style="font-size:.775rem;color:var(--text-muted);">Feedback:</span>
-                <button v-for="rating in feedbackRatings" :key="rating.value" @click="submitFeedback(diagnosis.id, rating.value)"
-                  :disabled="submittingFeedback === diagnosis.id"
-                  class="fb-btn"
-                  :class="'fb-btn--' + rating.value.replace('_','-')">
-                  {{ rating.icon }} {{ rating.label }}
-                </button>
+              <div v-if="!diagnosisFeedbacks[diagnosis.id]" class="feedback-panel">
+                <div class="feedback-panel__head">
+                  <span class="feedback-panel__title">Berikan Penilaian Hasil</span>
+                  <span class="feedback-panel__hint">Pilih salah satu</span>
+                </div>
+                <div class="feedback-options">
+                  <button
+                    v-for="rating in feedbackRatings"
+                    :key="rating.value"
+                    @click="submitFeedback(diagnosis.id, rating.value)"
+                    :disabled="submittingFeedback === diagnosis.id"
+                    class="fb-btn"
+                    :class="'fb-btn--' + rating.value.replace('_','-')"
+                  >
+                    <span class="fb-btn__icon">{{ rating.icon }}</span>
+                    <span>{{ rating.label }}</span>
+                  </button>
+                </div>
               </div>
-              <div v-else style="display:flex;align-items:center;gap:.5rem;font-size:.8125rem;">
-                <span class="sp-badge" :class="{
-                    'sp-badge-green': diagnosisFeedbacks[diagnosis.id].accuracy === 'accurate',
-                    'sp-badge-amber': diagnosisFeedbacks[diagnosis.id].accuracy === 'somewhat_accurate',
-                    'sp-badge-red':   diagnosisFeedbacks[diagnosis.id].accuracy === 'inaccurate',
-                  }">
-                  {{ getFeedbackIcon(diagnosisFeedbacks[diagnosis.id].accuracy) }} {{ getFeedbackText(diagnosisFeedbacks[diagnosis.id].accuracy) }}
-                </span>
-                <button @click="openFeedbackModal(diagnosis)" style="background:none;border:none;cursor:pointer;color:var(--primary);font-size:.8125rem;text-decoration:underline;">Ubah</button>
+              <div v-else class="feedback-result">
+                <div class="feedback-result__status">
+                  <span style="font-size:.75rem;color:var(--text-muted);font-weight:600;">Feedback Anda</span>
+                  <span class="sp-badge" :class="{
+                      'sp-badge-green': diagnosisFeedbacks[diagnosis.id].accuracy === 'accurate',
+                      'sp-badge-amber': diagnosisFeedbacks[diagnosis.id].accuracy === 'somewhat_accurate',
+                      'sp-badge-red':   diagnosisFeedbacks[diagnosis.id].accuracy === 'inaccurate',
+                    }">
+                    {{ getFeedbackIcon(diagnosisFeedbacks[diagnosis.id].accuracy) }} {{ getFeedbackText(diagnosisFeedbacks[diagnosis.id].accuracy) }}
+                  </span>
+                </div>
+                <button @click="openFeedbackModal(diagnosis)" class="feedback-edit-btn">Ubah Feedback</button>
               </div>
             </div>
 
@@ -253,9 +266,80 @@ onMounted(() => { loadHistory() })
 a { text-decoration: none !important; }
 
 .fb-btn { padding: .35rem .75rem; font-size: .775rem; font-weight: 600; border-radius: 9999px; border: 1.5px solid var(--border-strong); background: var(--bg-surface); cursor: pointer; transition: all .15s; font-family: inherit; }
+.feedback-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-subtle);
+  padding: .75rem;
+}
+.feedback-panel__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: .55rem;
+  gap: .5rem;
+}
+.feedback-panel__title {
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--gray-800);
+}
+.feedback-panel__hint {
+  font-size: .72rem;
+  color: var(--text-muted);
+}
+.feedback-options {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+}
+.fb-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  padding: .4rem .78rem;
+  font-size: .8rem;
+}
+.fb-btn__icon {
+  font-size: .95rem;
+  line-height: 1;
+}
 .fb-btn--accurate:hover          { border-color: #16a34a; background: #f0fdf4; color: #15803d; }
 .fb-btn--somewhat-accurate:hover { border-color: #d97706; background: #fffbeb; color: #92400e; }
 .fb-btn--inaccurate:hover        { border-color: #dc2626; background: #fef2f2; color: #991b1b; }
+
+.feedback-result {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: .75rem;
+  flex-wrap: wrap;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: .6rem .7rem;
+  background: var(--bg-subtle);
+}
+.feedback-result__status {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.feedback-edit-btn {
+  background: transparent;
+  border: 1px solid var(--border-strong);
+  color: var(--gray-700);
+  border-radius: 9999px;
+  padding: .32rem .7rem;
+  font-size: .78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.feedback-edit-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--primary-50);
+}
 
 .fb-modal-option { display:inline-flex;align-items:center;gap:.35rem;padding:.5rem .875rem;font-size:.875rem;font-weight:500;border:1.5px solid var(--border-strong);border-radius:var(--radius);cursor:pointer;transition:all .15s;background:var(--bg-surface);color:var(--gray-700); }
 .fb-modal-option:hover { border-color:var(--primary);background:var(--primary-50);color:var(--primary); }

@@ -151,7 +151,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '../../services/api'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
@@ -184,7 +184,7 @@ const fetchPlants = async () => {
   loading.value = true
   try {
     console.log('Fetching plants...')
-    const response = await axios.get(`${API_BASE_URL}/admin/plants`, {
+    const response = await api.get(`${API_BASE_URL}/admin/plants`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     if (response.data.success) {
@@ -341,7 +341,7 @@ const savePlant = async () => {
     }
     
     console.log('Sending request...')
-    const response = await axios.post(url, formData, {
+    const response = await api.post(url, formData, {
       headers: {
         'Authorization': `Bearer ${getToken()}`
         // Don't set Content-Type manually - axios will set it automatically for FormData
@@ -397,7 +397,7 @@ const savePlant = async () => {
 const deletePlantConfirm = async () => {
   deleting.value = true
   try {
-    const response = await axios.delete(
+    const response = await api.delete(
       `${API_BASE_URL}/admin/plants/${deletePlant.value.id}`,
       {
         headers: { 'Authorization': `Bearer ${getToken()}` }

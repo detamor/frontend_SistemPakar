@@ -72,14 +72,37 @@ export const useDiagnosisStore = defineStore('diagnosis', {
           }
         )
 
-        if (response.data.success) {
-          this.currentDiagnosis = response.data.data
-          // Redirect ke detail diagnosis
-          router.push(`/diagnosis/${response.data.data.diagnosis.id}`)
+        const payload = response.data || {}
+        const body = payload.data || {}
+
+        // Simpan payload jika tersedia agar UI bisa dipakai ulang.
+        if (payload.success && body) {
+          this.currentDiagnosis = body
+        }
+
+        // Beberapa response historis mengembalikan id di path berbeda.
+        // Prioritaskan diagnosis_id explicit dari backend.
+        let diagnosisId =
+          payload?.diagnosis_id ??
+          body?.diagnosis?.id ??
+          body?.id ??
+          body?.diagnosis_id ??
+          null
+
+        if (diagnosisId) {
+          await router.push(`/diagnosis/${diagnosisId}`)
         }
 
         return response.data
       } catch (error) {
+        // Kasus engine timeout/503: backend tetap sudah membuat diagnosis_id.
+        // Redirect ke halaman detail supaya user tidak perlu submit ulang.
+        const diagnosisIdFromError = error.response?.data?.diagnosis_id
+        if (diagnosisIdFromError) {
+          await router.push(`/diagnosis/${diagnosisIdFromError}`)
+          return error.response.data
+        }
+
         this.error = error.response?.data || error.message
         throw error
       } finally {

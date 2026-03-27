@@ -113,6 +113,12 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/feedback-comments',
+    name: 'AdminFeedbackComments',
+    component: () => import('../views/admin/FeedbackComments.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/about',
     name: 'About',
     component: () => import('../views/About.vue'),
@@ -126,12 +132,12 @@ const router = createRouter({
 })
 
 // Route guards
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
   // Initialize auth jika belum
   if (!authStore.user && authStore.token) {
-    authStore.fetchUser()
+    await authStore.fetchUser()
   }
 
   // Check if route requires auth

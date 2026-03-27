@@ -16,6 +16,11 @@ app.use(router)
 
 // Initialize auth store
 const authStore = useAuthStore()
-authStore.initAuth()
-
-app.mount('#app')
+authStore
+  .initAuth()
+  .catch(() => {
+    // noop: interceptor/store already handles invalid token cleanup
+  })
+  .finally(() => {
+    app.mount('#app')
+  })

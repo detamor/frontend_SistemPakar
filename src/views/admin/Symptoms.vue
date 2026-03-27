@@ -121,7 +121,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '../../services/api'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
@@ -150,7 +150,7 @@ onMounted(() => {
 const fetchSymptoms = async () => {
   loading.value = true
   try {
-    const response = await axios.get(`${API_BASE_URL}/admin/symptoms`, {
+    const response = await api.get(`${API_BASE_URL}/admin/symptoms`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     if (response.data.success) {
@@ -242,7 +242,7 @@ const saveSymptom = async () => {
 const deleteSymptomConfirm = async () => {
   deleting.value = true
   try {
-    const response = await axios.delete(
+    const response = await api.delete(
       `${API_BASE_URL}/admin/symptoms/${deleteSymptom.value.id}`,
       {
         headers: { 'Authorization': `Bearer ${getToken()}` }

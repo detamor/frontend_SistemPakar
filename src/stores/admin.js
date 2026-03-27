@@ -1,7 +1,5 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
-
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+import api from '../services/api'
 
 export const useAdminStore = defineStore('admin', {
   state: () => ({
@@ -29,21 +27,19 @@ export const useAdminStore = defineStore('admin', {
       totalUsers: 0,
       totalDiagnoses: 0,
       totalModules: 0,
-      totalConsultations: 0
+      totalFeedbackComments: 0
     },
     topDiseases: [],
     monthlyTrend: [],
-    feedbackDistribution: []
+    feedbackDistribution: [],
+    recentFeedbacks: []
   }),
 
   actions: {
     // ========== DASHBOARD STATS ==========
     async fetchQuickStats() {
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.get(`${API_BASE_URL}/admin/stats/quick`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.get('/admin/stats/quick')
         if (response.data.success) {
           this.quickStats = response.data.data
         }
@@ -56,14 +52,19 @@ export const useAdminStore = defineStore('admin', {
 
     async fetchDiagnosisStats() {
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.get(`${API_BASE_URL}/admin/stats/diagnosis`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.get('/admin/stats/diagnosis')
         if (response.data.success) {
           this.topDiseases = response.data.data.topDiseases
           this.monthlyTrend = response.data.data.monthlyTrend
           this.feedbackDistribution = response.data.data.feedbackStats
+          const commentsPayload =
+            response.data.data.recentFeedbacks ||
+            response.data.data.feedbackComments ||
+            []
+
+          this.recentFeedbacks = commentsPayload.filter(
+            (item) => item?.comment && String(item.comment).trim().length > 0
+          )
         }
         return response.data
       } catch (error) {
@@ -76,11 +77,7 @@ export const useAdminStore = defineStore('admin', {
       this.loading = true
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.get(`${API_BASE_URL}/admin/users`, {
-          params,
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.get('/admin/users', { params })
         if (response.data.success) {
           this.users = response.data.data
         }
@@ -96,10 +93,7 @@ export const useAdminStore = defineStore('admin', {
     async fetchUser(id) {
       this.loading = true
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.get(`${API_BASE_URL}/admin/users/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.get(`/admin/users/${id}`)
         if (response.data.success) {
           this.currentUser = response.data.data
         }
@@ -115,10 +109,7 @@ export const useAdminStore = defineStore('admin', {
     async createUser(data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.post(`${API_BASE_URL}/admin/users`, data, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.post('/admin/users', data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -129,10 +120,7 @@ export const useAdminStore = defineStore('admin', {
     async updateUser(id, data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.put(`${API_BASE_URL}/admin/users/${id}`, data, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.put(`/admin/users/${id}`, data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -143,10 +131,7 @@ export const useAdminStore = defineStore('admin', {
     async deleteUser(id) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.delete(`${API_BASE_URL}/admin/users/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.delete(`/admin/users/${id}`)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -158,13 +143,9 @@ export const useAdminStore = defineStore('admin', {
     async fetchEducationModules(params = {}) {
       this.loading = true
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.get(`${API_BASE_URL}/admin/education`, {
-          params,
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.get('/admin/education', { params })
         if (response.data.success) {
-          this.educationModules = response.data.data
+          this.educationModules = response.data.data.data || response.data.data
         }
         return response.data
       } catch (error) {
@@ -175,22 +156,41 @@ export const useAdminStore = defineStore('admin', {
       }
     },
 
+    async fetchEducationModule(id) {
+      this.error = null
+      try {
+        const response = await api.get(`/admin/education/${id}`)
+        if (response.data.success) {
+          this.currentModule = response.data.data
+        }
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      }
+    },
+
+    async uploadEducationImage(file) {
+      this.error = null
+      try {
+        const formData = new FormData()
+        formData.append('image', file)
+
+        const response = await api.post('/admin/education/upload-image', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      }
+    },
+
     async createEducationModule(data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const formData = new FormData()
-        Object.keys(data).forEach(key => {
-          if (data[key] !== null && data[key] !== undefined) {
-            formData.append(key, data[key])
-          }
-        })
-        const response = await axios.post(`${API_BASE_URL}/admin/education`, formData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        })
+        const response = await api.post('/admin/education', data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -201,19 +201,7 @@ export const useAdminStore = defineStore('admin', {
     async updateEducationModule(id, data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const formData = new FormData()
-        Object.keys(data).forEach(key => {
-          if (data[key] !== null && data[key] !== undefined) {
-            formData.append(key, data[key])
-          }
-        })
-        const response = await axios.post(`${API_BASE_URL}/admin/education/${id}`, formData, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        })
+        const response = await api.put(`/admin/education/${id}`, data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -224,10 +212,7 @@ export const useAdminStore = defineStore('admin', {
     async deleteEducationModule(id) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.delete(`${API_BASE_URL}/admin/education/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.delete(`/admin/education/${id}`)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -239,10 +224,7 @@ export const useAdminStore = defineStore('admin', {
     async fetchPlants() {
       this.loading = true
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.get(`${API_BASE_URL}/admin/plants`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.get('/admin/plants')
         if (response.data.success) {
           this.plants = response.data.data
         }
@@ -258,10 +240,7 @@ export const useAdminStore = defineStore('admin', {
     async createPlant(data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.post(`${API_BASE_URL}/admin/plants`, data, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.post('/admin/plants', data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -272,10 +251,7 @@ export const useAdminStore = defineStore('admin', {
     async updatePlant(id, data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.put(`${API_BASE_URL}/admin/plants/${id}`, data, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.put(`/admin/plants/${id}`, data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -286,10 +262,7 @@ export const useAdminStore = defineStore('admin', {
     async deletePlant(id) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.delete(`${API_BASE_URL}/admin/plants/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.delete(`/admin/plants/${id}`)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -301,10 +274,7 @@ export const useAdminStore = defineStore('admin', {
     async fetchSymptoms() {
       this.loading = true
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.get(`${API_BASE_URL}/admin/symptoms`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.get('/admin/symptoms')
         if (response.data.success) {
           this.symptoms = response.data.data
         }
@@ -320,10 +290,7 @@ export const useAdminStore = defineStore('admin', {
     async createSymptom(data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.post(`${API_BASE_URL}/admin/symptoms`, data, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.post('/admin/symptoms', data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -334,10 +301,7 @@ export const useAdminStore = defineStore('admin', {
     async updateSymptom(id, data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.put(`${API_BASE_URL}/admin/symptoms/${id}`, data, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.put(`/admin/symptoms/${id}`, data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -348,10 +312,7 @@ export const useAdminStore = defineStore('admin', {
     async deleteSymptom(id) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.delete(`${API_BASE_URL}/admin/symptoms/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.delete(`/admin/symptoms/${id}`)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -363,11 +324,7 @@ export const useAdminStore = defineStore('admin', {
     async fetchDiseases(params = {}) {
       this.loading = true
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.get(`${API_BASE_URL}/admin/diseases`, {
-          params,
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.get('/admin/diseases', { params })
         if (response.data.success) {
           this.diseases = response.data.data
         }
@@ -383,10 +340,7 @@ export const useAdminStore = defineStore('admin', {
     async createDisease(data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.post(`${API_BASE_URL}/admin/diseases`, data, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.post('/admin/diseases', data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -397,10 +351,7 @@ export const useAdminStore = defineStore('admin', {
     async updateDisease(id, data) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.put(`${API_BASE_URL}/admin/diseases/${id}`, data, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.put(`/admin/diseases/${id}`, data)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message
@@ -411,10 +362,7 @@ export const useAdminStore = defineStore('admin', {
     async deleteDisease(id) {
       this.error = null
       try {
-        const token = localStorage.getItem('auth_token')
-        const response = await axios.delete(`${API_BASE_URL}/admin/diseases/${id}`, {
-          headers: { 'Authorization': `Bearer ${token}` }
-        })
+        const response = await api.delete(`/admin/diseases/${id}`)
         return response.data
       } catch (error) {
         this.error = error.response?.data || error.message

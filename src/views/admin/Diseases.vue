@@ -494,7 +494,7 @@
 
 <script setup>
 import { ref, onMounted, computed } from 'vue'
-import axios from 'axios'
+import api from '../../services/api'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
@@ -592,7 +592,7 @@ onMounted(() => {
 
 const fetchPlants = async () => {
   try {
-    const response = await axios.get(`${API_BASE_URL}/admin/plants`, {
+    const response = await api.get(`${API_BASE_URL}/admin/plants`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     if (response.data.success) {
@@ -607,7 +607,7 @@ const fetchMatrix = async () => {
   loading.value = true
   try {
     const params = selectedPlantId.value ? { plant_id: selectedPlantId.value } : {}
-    const response = await axios.get(`${API_BASE_URL}/admin/cf-matrix`, {
+    const response = await api.get(`${API_BASE_URL}/admin/cf-matrix`, {
       params,
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
@@ -654,7 +654,7 @@ const fetchSymptomsCrud = async () => {
       return
     }
 
-    const response = await axios.get(`${API_BASE_URL}/public/symptoms`, {
+    const response = await api.get(`${API_BASE_URL}/public/symptoms`, {
       params: { plant_id: selectedPlantId.value }
     })
 
@@ -678,7 +678,7 @@ const fetchDiseasesCrud = async () => {
   diseasesLoading.value = true
   try {
     const params = selectedPlantId.value ? { plant_id: selectedPlantId.value } : {}
-    const response = await axios.get(`${API_BASE_URL}/admin/diseases`, {
+    const response = await api.get(`${API_BASE_URL}/admin/diseases`, {
       params,
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
@@ -721,7 +721,7 @@ const updateCFValue = async (symptomId, diseaseId, diseaseCF) => {
   diseaseCF.certainty_factor = Math.round(cf * 100) / 100
 
   try {
-    const response = await axios.post(
+    const response = await api.post(
       `${API_BASE_URL}/admin/cf-matrix/update`,
       {
         symptom_id: symptomId,
@@ -915,7 +915,7 @@ const deleteDiseaseConfirm = async () => {
   if (!deleteDisease.value) return
   deletingDisease.value = true
   try {
-    const response = await axios.delete(
+    const response = await api.delete(
       `${API_BASE_URL}/admin/diseases/${deleteDisease.value.id}`,
       {
         headers: {
@@ -972,7 +972,7 @@ const deleteSymptomConfirm = async () => {
   if (!deleteSymptom.value) return
   deletingSymptom.value = true
   try {
-    const response = await axios.delete(
+    const response = await api.delete(
       `${API_BASE_URL}/admin/symptoms/${deleteSymptom.value.id}`,
       {
         headers: {

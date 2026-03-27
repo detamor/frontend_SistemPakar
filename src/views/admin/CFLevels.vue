@@ -173,7 +173,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import axios from 'axios'
+import api from '../../services/api'
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
@@ -203,7 +203,7 @@ onMounted(() => {
 const fetchCFLevels = async () => {
   loading.value = true
   try {
-    const response = await axios.get(`${API_BASE_URL}/admin/cf-levels`, {
+    const response = await api.get(`${API_BASE_URL}/admin/cf-levels`, {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     if (response.data.success) {
@@ -312,7 +312,7 @@ const saveCFLevel = async () => {
 const deleteCFLevelConfirm = async () => {
   deleting.value = true
   try {
-    const response = await axios.delete(
+    const response = await api.delete(
       `${API_BASE_URL}/admin/cf-levels/${deleteCFLevel.value.id}`,
       {
         headers: { 'Authorization': `Bearer ${getToken()}` }
