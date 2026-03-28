@@ -189,7 +189,12 @@ const passwordForm = reactive({ current_password: '', password: '', password_con
 const getPhotoUrl = (p) => {
   if (!p) return null
   if (p.startsWith('http')) return p
-  return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/storage/${p}`
+  
+  // Strip /api or /api/ if present at the end of VITE_API_BASE_URL
+  const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
+  const baseUrl = apiUrl.replace(/\/api$/, '').replace(/\/api\/$/, '')
+  
+  return `${baseUrl}/storage/${p}`
 }
 
 const startEditing = () => {
