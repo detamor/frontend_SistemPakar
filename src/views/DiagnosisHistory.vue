@@ -1,14 +1,14 @@
 <template>
   <div style="background:var(--bg-page);min-height:100vh;">
     <!-- Page Header -->
-    <div class="sp-page-header" style="padding:calc(64px + 1.75rem) 1.25rem 1.75rem;">
+    <div class="sp-page-header" style="padding:2rem 1.25rem 2.5rem;">
       <div class="page-container" style="max-width:860px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1.5rem;">
           <div>
-            <h1 style="margin:0 0 .25rem;">Riwayat Diagnosis</h1>
-            <p style="margin:0;font-size:.9rem;">Semua riwayat diagnosis yang telah Anda lakukan</p>
+            <h1 style="margin:0 0 .5rem; font-size: 2.25rem; line-height: 1.2; letter-spacing: -0.02em;">Riwayat Diagnosis</h1>
+            <p style="margin:0;font-size:1.0625rem;color:var(--text-muted);">Semua riwayat diagnosis yang telah Anda lakukan</p>
           </div>
-          <RouterLink to="/diagnosis" class="sp-btn sp-btn-primary">
+          <RouterLink to="/diagnosis" class="sp-btn sp-btn-primary sp-btn-lg">
             + Diagnosis Baru
           </RouterLink>
         </div>

@@ -13,125 +13,155 @@
       </div>
     </div>
 
-    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-      <h1 class="text-xl font-black text-slate-800 mb-1">Komentar Feedback Pengguna</h1>
-      <p class="text-sm text-slate-500 mb-5">
-        Kumpulan komentar terbaru dari pengguna untuk evaluasi kualitas hasil diagnosis.
+    <div class="mb-10">
+      <h1 class="text-3xl font-black text-slate-800 mb-2">Komentar Feedback Pengguna</h1>
+      <p class="text-slate-500 font-medium max-w-3xl">
+        Kumpulan komentar terbaru dari pengguna untuk evaluasi kualitas hasil diagnosis dan peningkatan berkelanjutan basis pengetahuan sistem pakar.
       </p>
+    </div>
 
-      <div class="mb-6 flex justify-center">
-        <div class="bg-white rounded-2xl border border-slate-100 w-full max-w-2xl">
-          <h3 class="text-sm font-bold text-slate-700 px-4 pt-4 mb-4 flex items-center gap-2">
-            <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
-            Tingkat Kepuasan / Akurasi Sistem
-          </h3>
-          <div class="h-64 flex items-center justify-center chart-wrap px-4">
-            <Doughnut v-if="feedbackChartData.labels.length" :data="feedbackChartData" :options="chartOptions" />
-            <div v-else class="text-slate-300 text-xs italic">Belum ada feedback terkumpul</div>
-          </div>
-          <div v-if="feedbackSummary.length" class="mt-4 border-t border-slate-100 p-4 space-y-2">
-            <p class="text-xs text-slate-500 font-semibold">Total feedback: {{ totalFeedbackCount }}</p>
-            <div
-              v-for="item in feedbackSummary"
-              :key="item.key"
-              class="rounded-xl border px-4 py-3 transition-colors overflow-hidden"
-              :class="feedbackItemClass(item.key)"
-            >
-              <div class="grid grid-cols-[1fr_auto] items-center gap-3">
-                <div>
-                  <div class="text-sm font-semibold text-slate-700 mb-1">
-                    <span>{{ item.icon }} {{ item.label }}</span>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-6">
+        
+        <!-- Left Column: Chart & Summary -->
+        <div class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8">
+          <div class="rounded-3xl border border-slate-100 bg-slate-50/50 p-6 sm:p-8 shadow-sm">
+            <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2">
+              <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+              Tingkat Kepuasan / Akurasi Sistem
+            </h3>
+            <div class="h-64 flex items-center justify-center chart-wrap">
+              <Doughnut v-if="feedbackChartData.labels.length" :data="feedbackChartData" :options="chartOptions" />
+              <div v-else class="text-slate-300 text-xs italic">Belum ada feedback terkumpul</div>
+            </div>
+            <div v-if="feedbackSummary.length" class="mt-8 flex flex-col gap-3">
+              <p class="text-[10.5px] text-slate-500 font-bold px-2 mb-0.5 uppercase tracking-wider">
+                Total Feedback: {{ totalFeedbackCount }}
+              </p>
+              <div
+                v-for="item in feedbackSummary"
+                :key="item.key"
+                class="rounded-xl border transition-colors shadow-sm bg-white"
+                :class="feedbackItemClass(item.key)"
+                style="padding: 11px 15px;"
+              >
+                <div class="flex items-center justify-between gap-4">
+                  <div class="flex-1">
+                    <div class="text-[12px] font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                      <span class="text-[14px]">{{ item.icon }}</span> 
+                      <span>{{ item.label }}</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 leading-snug max-w-[92%] m-0">{{ item.description }}</p>
                   </div>
-                  <p class="text-xs text-slate-500 mt-1 mb-0">{{ item.description }}</p>
+                  <div class="text-[1.35rem] font-black text-slate-700 tabular-nums self-center" style="margin-left: 8px; margin-right: 2px;">
+                    {{ item.total }}
+                  </div>
                 </div>
-                <span class="text-xl font-black text-slate-800 tabular-nums leading-none self-center mr-2">
-                  {{ item.total }}
-                </span>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div v-if="loading" class="text-sm text-slate-400 italic">Memuat komentar feedback...</div>
+        <!-- Right Column: Comments & Evaluation -->
+        <div class="lg:col-span-7 xl:col-span-8 flex flex-col gap-6">
+          <div v-if="loading" class="text-sm text-slate-400 italic">Memuat komentar feedback...</div>
 
-      <template v-else>
-        <div class="sections-wrap">
-        <!-- Section 1: Feedback -->
-        <div class="rounded-2xl border border-slate-100 bg-white p-5">
-          <h2 class="text-sm font-bold text-slate-700 mb-4">Komentar Feedback Pengguna</h2>
-          <div v-if="feedbackCommentItems.length" class="space-y-4">
+          <template v-else>
+            <!-- Section 1: Feedback -->
+        <div class="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm">
+          <h2 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
+            Komentar Feedback Pengguna
+          </h2>
+          <div v-if="feedbackCommentItems.length" class="space-y-5">
             <div
               v-for="item in feedbackCommentItems"
               :key="`feedback-${item.id}`"
-              class="rounded-xl border border-slate-200 bg-slate-50 px-4 py-4 shadow-sm"
+              class="rounded-2xl border border-slate-100 bg-slate-50/50 p-6 shadow-sm hover:border-emerald-200 hover:shadow-md transition-all"
             >
-              <div class="flex items-center justify-between gap-3 flex-wrap">
-                <div class="text-sm font-semibold text-slate-800">
-                  {{ item.user_name }}
-                  <span class="text-xs font-medium text-slate-500">
-                    • {{ item.plant_name || 'Tanaman' }}{{ item.disease_name ? ` / ${item.disease_name}` : '' }}
-                  </span>
+              <div class="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap mb-4">
+                <div class="flex-1">
+                  <div class="text-[14px] font-bold text-slate-800 mb-1">
+                    {{ item.user_name }}
+                  </div>
+                  <div class="text-[11.5px] font-medium text-slate-500 flex items-center gap-1.5 flex-wrap mt-1">
+                    <span class="text-emerald-700 font-bold bg-emerald-100 px-2 py-0.5 rounded-md">Tanaman</span>
+                    <span>{{ item.plant_name || 'Tidak diketahui' }}</span>
+                    <span v-if="item.disease_name" class="text-slate-300">•</span>
+                    <span v-if="item.disease_name">{{ item.disease_name }}</span>
+                  </div>
                 </div>
-                <span class="text-[11px] font-semibold rounded-full px-2.5 py-1 border" :class="feedbackBadgeClass(item.accuracy)">
+                <span class="text-[11px] font-bold rounded-full px-3 py-1.5 border shadow-sm shrink-0 whitespace-nowrap" :class="feedbackBadgeClass(item.accuracy)">
                   {{ feedbackText(item.accuracy) }}
                 </span>
               </div>
-              <p class="text-sm text-slate-600 leading-relaxed m-0 mt-2">
-                "{{ getDisplayText(item.comment, `feedback-${item.id}`) }}"
+              <div class="bg-white rounded-xl p-4 sm:p-5 border border-slate-100 shadow-sm mb-4">
+                <p class="text-[13.5px] text-slate-600 leading-relaxed italic m-0">
+                  "{{ getDisplayText(item.comment, `feedback-${item.id}`) }}"
+                </p>
+                <button
+                  v-if="isLongText(item.comment, 220)"
+                  @click="toggleExpand(`feedback-${item.id}`)"
+                  class="mt-3 text-[12px] font-bold text-emerald-600 hover:text-emerald-700"
+                  type="button"
+                >
+                  {{ isExpanded(`feedback-${item.id}`) ? 'Tampilkan lebih sedikit' : 'Lihat selengkapnya' }}
+                </button>
+              </div>
+              <p class="text-[11px] font-bold text-slate-400 m-0 flex items-center gap-1.5">
+                <span class="text-xs">🕒</span> {{ formatFeedbackDate(item.created_at) }}
               </p>
-              <button
-                v-if="isLongText(item.comment, 220)"
-                @click="toggleExpand(`feedback-${item.id}`)"
-                class="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
-                type="button"
-              >
-                {{ isExpanded(`feedback-${item.id}`) ? 'Tampilkan lebih sedikit' : 'Lihat selengkapnya' }}
-              </button>
-              <p class="text-[11px] text-slate-400 mt-3 mb-0">{{ formatFeedbackDate(item.created_at) }}</p>
             </div>
           </div>
           <p v-else class="text-slate-400 text-sm italic m-0">Belum ada komentar feedback dari pengguna.</p>
         </div>
 
         <!-- Section 2: Evaluation Notes -->
-        <div class="rounded-2xl border border-slate-100 bg-white p-5">
-          <h2 class="text-sm font-bold text-slate-700 mb-4">Catatan Evaluasi Diagnosis Pengguna</h2>
-          <div v-if="evaluationNoteItems.length" class="space-y-4">
+        <div class="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm">
+          <h2 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 bg-indigo-500 rounded-full"></span>
+            Catatan Evaluasi Diagnosis Pengguna
+          </h2>
+          <div v-if="evaluationNoteItems.length" class="space-y-5">
             <div
               v-for="item in evaluationNoteItems"
               :key="`notes-${item.id}`"
-              class="rounded-xl border border-indigo-200 bg-indigo-50/50 px-4 py-4 shadow-sm"
+              class="rounded-2xl border border-slate-100 bg-indigo-50/30 p-6 shadow-sm hover:border-indigo-200 hover:shadow-md transition-all"
             >
-              <div class="flex items-center justify-between gap-3 flex-wrap">
-                <div class="text-sm font-semibold text-slate-800">
-                  {{ item.user_name }}
-                  <span class="text-xs font-medium text-slate-500">
-                    • {{ item.plant_name || 'Tanaman' }}{{ item.disease_name ? ` / ${item.disease_name}` : '' }}
-                  </span>
+              <div class="flex items-start justify-between gap-4 flex-wrap sm:flex-nowrap mb-4">
+                <div class="flex-1">
+                  <div class="text-[14px] font-bold text-slate-800 mb-1">
+                    {{ item.user_name }}
+                  </div>
+                  <div class="text-[11.5px] font-medium text-slate-500 flex items-center gap-1.5 flex-wrap mt-1">
+                    <span class="text-indigo-700 font-bold bg-indigo-100 px-2 py-0.5 rounded-md">Tanaman</span>
+                    <span>{{ item.plant_name || 'Tidak diketahui' }}</span>
+                    <span v-if="item.disease_name" class="text-slate-300">•</span>
+                    <span v-if="item.disease_name">{{ item.disease_name }}</span>
+                  </div>
                 </div>
-                <span class="text-[11px] text-slate-500 font-medium">
-                  Tanaman: {{ item.plant_name || '-' }}
-                </span>
               </div>
-              <p class="text-sm text-slate-600 leading-relaxed m-0 mt-2">
-                "{{ getDisplayText(item.user_notes, `notes-${item.id}`) }}"
+              <div class="bg-white rounded-xl p-4 sm:p-5 border border-indigo-100/60 shadow-sm mb-4">
+                <p class="text-[13.5px] text-slate-600 leading-relaxed italic m-0">
+                  "{{ getDisplayText(item.user_notes, `notes-${item.id}`) }}"
+                </p>
+                <button
+                  v-if="isLongText(item.user_notes, 220)"
+                  @click="toggleExpand(`notes-${item.id}`)"
+                  class="mt-3 text-[12px] font-bold text-indigo-600 hover:text-indigo-700"
+                  type="button"
+                >
+                  {{ isExpanded(`notes-${item.id}`) ? 'Tampilkan lebih sedikit' : 'Lihat selengkapnya' }}
+                </button>
+              </div>
+              <p class="text-[11px] font-bold text-slate-400 m-0 flex items-center gap-1.5">
+                <span class="text-xs">🕒</span> {{ formatFeedbackDate(item.created_at) }}
               </p>
-              <button
-                v-if="isLongText(item.user_notes, 220)"
-                @click="toggleExpand(`notes-${item.id}`)"
-                class="mt-2 text-xs font-semibold text-blue-600 hover:text-blue-700"
-                type="button"
-              >
-                {{ isExpanded(`notes-${item.id}`) ? 'Tampilkan lebih sedikit' : 'Lihat selengkapnya' }}
-              </button>
-              <p class="text-[11px] text-slate-400 mt-3 mb-0">{{ formatFeedbackDate(item.created_at) }}</p>
             </div>
           </div>
           <p v-else class="text-slate-400 text-sm italic m-0">Belum ada catatan evaluasi dari pengguna.</p>
         </div>
-        </div>
       </template>
+    </div>
     </div>
   </div>
 </template>
@@ -289,9 +319,9 @@ onMounted(async () => {
 
 <style scoped>
 .feedback-comments-page {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  margin: 0;
+  padding: 2rem 4rem;
   background: var(--bg-subtle);
   min-height: 100vh;
 }
@@ -299,11 +329,5 @@ onMounted(async () => {
 .chart-wrap {
   max-width: 420px;
   margin: 0 auto;
-}
-
-.sections-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
 }
 </style>

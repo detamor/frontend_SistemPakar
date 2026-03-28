@@ -2,16 +2,7 @@
   <div class="admin-container">
     <div class="page-header">
       <div>
-        <!-- Tombol Kembali -->
-        <div class="mb-4">
-          <router-link
-            to="/"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
-          >
-            <span>←</span>
-            <span>Kembali ke Home</span>
-          </router-link>
-        </div>
+
         <h1>Tabel Certainty Factor Pakar</h1>
         <p class="subtitle">Kelola nilai CF untuk kombinasi Gejala x Penyakit</p>
       </div>
@@ -770,7 +761,7 @@ const saveDisease = async () => {
       prevention: diseaseForm.value.prevention?.trim() || null
     }
     
-    const response = await axios[method](url, data, {
+    const response = await api[method](url, data, {
       headers: {
         'Authorization': `Bearer ${getToken()}`,
         'Content-Type': 'application/json'
@@ -827,7 +818,7 @@ const saveSymptom = async () => {
         : null,
     }
     
-    const response = await axios[method](url, data, {
+    const response = await api[method](url, data, {
       headers: {
         'Authorization': `Bearer ${getToken()}`,
         'Content-Type': 'application/json'

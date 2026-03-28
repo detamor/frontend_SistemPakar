@@ -2,16 +2,7 @@
   <div class="admin-container">
     <div class="page-header">
       <div>
-        <!-- Tombol Kembali -->
-        <div class="mb-4">
-          <router-link
-            to="/"
-            class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
-          >
-            <span>←</span>
-            <span>Kembali ke Home</span>
-          </router-link>
-        </div>
+
         <h1>Manajemen User</h1>
         <p class="subtitle">Kelola pengguna sistem</p>
       </div>

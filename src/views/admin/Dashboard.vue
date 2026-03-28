@@ -1,26 +1,18 @@
 <template>
   <div class="admin-dashboard">
-    <!-- Tombol Kembali -->
-    <div class="mb-6 flex justify-between items-center">
-      <router-link
-        to="/"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
-      >
-        <span>←</span>
-        <span>Kembali ke Home</span>
-      </router-link>
-      <div class="text-xs text-slate-400 font-medium">
+    <div class="flex justify-between items-start mb-6 mt-0">
+      <div class="flex items-center gap-4">
+        <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
+          <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+        </div>
+        <div class="flex flex-col border-none">
+          <h1 class="text-2xl font-black text-slate-800 -m-1 leading-none">Dashboard Admin</h1>
+          <p class="text-slate-500 text-sm m-0 -mt-1">Insight & Analitik Sistem Pakar</p>
+        </div>
+      </div>
+      
+      <div class="text-xs text-slate-400 font-medium mt-1">
         Terakhir diperbarui: {{ lastUpdate }}
-      </div>
-    </div>
-    
-    <div class="flex items-center gap-3 mb-8">
-      <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-        <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-      </div>
-      <div>
-        <h1 class="text-2xl font-black text-slate-800 m-0">Dashboard Admin</h1>
-        <p class="text-slate-500 text-sm m-0">Insight & Analitik Sistem Pakar</p>
       </div>
     </div>
     
@@ -73,7 +65,7 @@
             <div
               v-for="stat in systemStats"
               :key="stat.label"
-              class="w-full h-32 flex flex-col items-center justify-center text-center p-2 rounded-md bg-slate-50 border border-slate-200"
+              class="w-full h-32 flex flex-col items-center justify-center text-center p-2 rounded-xl bg-emerald-50/80 border border-emerald-100 hover:bg-emerald-100/50 transition-colors cursor-default"
             >
               <span class="block text-2xl font-black text-emerald-600 leading-none mb-1">{{ stat.num }}</span>
               <span class="text-[11px] font-semibold text-slate-500">{{ stat.label }}</span>
@@ -81,11 +73,11 @@
           </div>
         </div>
         <div class="h-px bg-slate-100 my-5"></div>
-        <div class="flex justify-center mt-6">
-          <div class="w-44 h-44 bg-slate-50 rounded-2xl border border-slate-100 flex flex-col items-center justify-center text-center">
-            <div class="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-lg flex items-center justify-center mb-3">🩺</div>
-            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Jumlah Diagnosis</p>
-            <p class="text-3xl font-black text-slate-800 leading-none">{{ quickStats.totalDiagnoses || 0 }}</p>
+        <div class="flex justify-center mt-4">
+          <div class="w-full max-w-[560px] h-32 bg-emerald-50/80 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center hover:bg-emerald-100/50 transition-colors">
+            <div class="w-8 h-8 bg-emerald-100/60 text-emerald-600 rounded-md flex items-center justify-center mb-1 text-sm">🩺</div>
+            <p class="text-2xl font-black text-emerald-600 leading-none mb-1">{{ quickStats.totalDiagnoses || 0 }}</p>
+            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Jumlah Diagnosis</p>
           </div>
         </div>
       </div>
@@ -100,26 +92,28 @@
           <Doughnut v-if="feedbackChartData.labels.length" :data="feedbackChartData" :options="chartOptions" />
           <div v-else class="text-slate-300 text-xs italic">Belum ada feedback terkumpul</div>
         </div>
-        <div v-if="feedbackSummary.length" class="mt-5 border-t border-slate-100 pt-4 space-y-2">
-          <p class="text-xs text-slate-500 font-semibold">
-            Total feedback: {{ totalFeedbackCount }}
+        <div v-if="feedbackSummary.length" class="mt-5 border-t border-slate-100 pt-4 flex flex-col gap-3">
+          <p class="text-[10.5px] text-slate-500 font-bold px-2 mb-0.5 uppercase tracking-wider">
+            Total Feedback: {{ totalFeedbackCount }}
           </p>
           <div
             v-for="item in feedbackSummary"
             :key="item.key"
-            class="rounded-xl border px-4 py-3 transition-colors"
+            class="rounded-xl border transition-colors shadow-sm"
             :class="feedbackItemClass(item.key)"
+            style="padding: 11px 15px;"
           >
-            <div class="grid grid-cols-[1fr_auto] items-center gap-3">
-              <div>
-                <div class="text-sm font-semibold text-slate-700 mb-1">
-                  <span>{{ item.icon }} {{ item.label }}</span>
+            <div class="flex items-center justify-between gap-4">
+              <div class="flex-1">
+                <div class="text-[12px] font-bold text-slate-800 mb-1 flex items-center gap-1.5">
+                  <span class="text-[14px]">{{ item.icon }}</span> 
+                  <span>{{ item.label }}</span>
                 </div>
-                <p class="text-xs text-slate-500 mt-1">{{ item.description }}</p>
+                <p class="text-[11px] text-slate-500 leading-snug max-w-[92%]">{{ item.description }}</p>
               </div>
-              <span class="text-xl font-black text-slate-800 tabular-nums leading-none self-center mr-2">
+              <div class="text-[1.35rem] font-black text-slate-700 tabular-nums" style="margin-left: 8px; margin-right: 2px;">
                 {{ item.total }}
-              </span>
+              </div>
             </div>
           </div>
         </div>
@@ -258,9 +252,9 @@ onMounted(async () => {
 
 <style scoped>
 .admin-dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem;
+  width: 100%;
+  margin: 0;
+  padding: 2rem 4rem;
   background: var(--bg-subtle);
   min-height: 100vh;
 }

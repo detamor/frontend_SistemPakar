@@ -64,24 +64,6 @@
       </div>
     </section>
 
-    <!-- How it works -->
-    <section class="section-white">
-      <div class="page-container">
-        <div class="section-header">
-          <h2>Cara Penggunaan</h2>
-          <p>Tiga langkah mudah untuk mendapatkan hasil diagnosis</p>
-        </div>
-        <div class="steps-grid">
-          <div v-for="(step, i) in steps" :key="i" class="step-item animate-fade-in-up" :class="`delay-${(i+1)*100}`">
-            <div class="step-number">{{ i + 1 }}</div>
-            <div class="sp-card" style="padding:1.5rem;">
-              <h3 style="font-size:1.0625rem;margin-bottom:.5rem;">{{ step.title }}</h3>
-              <p style="font-size:.875rem;margin:0;">{{ step.desc }}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- CTA -->
     <section class="section-cta" v-if="!isAuthenticated">
@@ -149,11 +131,7 @@ const features = [
   },
 ]
 
-const steps = [
-  { title: 'Pilih Tanaman', desc: 'Pilih jenis tanaman hias yang ingin didiagnosis dari daftar yang tersedia.' },
-  { title: 'Input Gejala', desc: 'Centang gejala yang Anda amati dan tentukan tingkat keyakinan untuk setiap gejala.' },
-  { title: 'Dapatkan Hasil', desc: 'Sistem menganalisis dan memberikan diagnosis penyakit beserta solusi perawatan.' },
-]
+
 </script>
 
 <style scoped>
@@ -260,27 +238,7 @@ a { text-decoration: none; }
 .feature-link  { display: inline-flex; align-items: center; gap: .3rem; margin-top: 1rem; font-size: .8125rem; font-weight: 600; color: var(--primary); text-decoration: none; transition: color .15s; }
 .feature-link:hover { color: var(--primary-dark); }
 
-/* Steps */
-.steps-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-  max-width: 760px;
-  margin: 0 auto;
-}
-@media (min-width: 640px) { .steps-grid { grid-template-columns: repeat(3, 1fr); } }
 
-.step-item { display: flex; flex-direction: column; gap: .75rem; }
-.step-number {
-  width: 42px; height: 42px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #fff;
-  font-weight: 800;
-  font-size: 1.125rem;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto;
-}
 
 /* CTA */
 .cta-box { text-align: center; max-width: 600px; margin: 0 auto; }
