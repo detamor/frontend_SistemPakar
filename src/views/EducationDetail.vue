@@ -27,14 +27,22 @@
             <div>
               <h1 class="text-2xl sm:text-3xl font-bold text-white mb-3">{{ module.title }}</h1>
               <div class="flex items-center gap-3 flex-wrap">
-                <span v-if="module.category" class="glass-badge !text-xs">{{ module.category }}</span>
-                <span class="text-xs text-slate-500">👁️ {{ module.view_count || 0 }} views</span>
+                <span v-if="module.is_maintenance_guide" class="guide-badge">✦ Panduan</span>
+              </div>
+              <div v-if="maintenanceTags.length" class="vital-tags-row">
+                <span
+                  v-for="tag in maintenanceTags"
+                  :key="tag"
+                  class="vital-tag-box"
+                >
+                  {{ tag }}
+                </span>
               </div>
             </div>
             <button @click="toggleBookmark" :disabled="bookmarking"
-              class="glass-btn !text-xs shrink-0"
-              :class="module.is_bookmarked ? 'glass-btn-primary' : 'glass-btn-secondary'">
-              {{ module.is_bookmarked ? '📑 Bookmarked' : '📑 Bookmark' }}
+              class="bookmark-star-btn !text-xs shrink-0"
+              :class="{ 'bookmark-star-btn--saved': module.is_bookmarked }">
+              {{ module.is_bookmarked ? '★ Tersimpan' : '☆ Simpan' }}
             </button>
           </div>
         </div>
@@ -42,34 +50,6 @@
         <!-- Thumbnail -->
         <div v-if="module.image" class="glass-card overflow-hidden">
           <img :src="getImageUrl(module.image)" :alt="module.title" @error="handleImageError" class="w-full max-h-96 object-cover" />
-        </div>
-
-        <!-- Maintenance Summary Dashboard (Premium Structured Feature) -->
-        <div v-if="module.is_maintenance_guide" class="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-in">
-          <div class="glass-card-strong p-4 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-2xl mb-2">💧</div>
-            <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Penyiraman</div>
-            <div class="text-sm font-semibold text-white">{{ module.watering_info || '-' }}</div>
-          </div>
-          <div class="glass-card-strong p-4 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-2xl mb-2">☀️</div>
-            <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Cahaya</div>
-            <div class="text-sm font-semibold text-white">{{ module.light_info || '-' }}</div>
-          </div>
-          <div class="glass-card-strong p-4 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-2xl mb-2">☁️</div>
-            <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Kelembapan</div>
-            <div class="text-sm font-semibold text-white">{{ module.humidity_info || '-' }}</div>
-          </div>
-          <div class="glass-card-strong p-4 text-center hover:scale-105 transition-transform duration-300">
-            <div class="text-2xl mb-2">🏆</div>
-            <div class="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Kesulitan</div>
-            <div class="text-sm font-semibold" :class="{
-              'text-emerald-400': module.difficulty === 'Mudah',
-              'text-orange-400': module.difficulty === 'Sedang',
-              'text-rose-400': module.difficulty === 'Sulit'
-            }">{{ module.difficulty || '-' }}</div>
-          </div>
         </div>
 
         <!-- Maintenance Steps (Structured Optimization) -->
@@ -107,7 +87,7 @@
             <h2 class="text-xl font-bold text-white">Detail & Informasi Tambahan</h2>
           </div>
           
-          <div class="text-slate-300 leading-relaxed text-sm content-area" v-html="formatContent(module.content)"></div>
+          <div class="text-black leading-relaxed text-sm content-area" v-html="formatContent(module.content)"></div>
 
           <!-- Content Images -->
           <div v-if="module.content_images && module.content_images.length > 0" class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -148,6 +128,49 @@ const bookmarking = ref(false)
 const loading = computed(() => educationStore.loading)
 const module = computed(() => educationStore.currentModule)
 
+const parseHashTags = (text) => {
+  if (!text) return []
+  const matches = String(text).match(/#[a-zA-Z0-9_-]+/g) || []
+  const unique = []
+  const seen = new Set()
+  for (const tag of matches) {
+    const key = tag.toLowerCase()
+    if (!seen.has(key)) {
+      seen.add(key)
+      unique.push(tag)
+    }
+  }
+  return unique
+}
+
+const maintenanceTags = computed(() => {
+  if (!module.value?.is_maintenance_guide) return []
+
+  if (Array.isArray(module.value.vital_tags_json) && module.value.vital_tags_json.length) {
+    const normalized = parseHashTags(module.value.vital_tags_json.join(' '))
+    if (normalized.length) return normalized
+  }
+
+  const combined = [
+    module.value.watering_info,
+    module.value.light_info,
+    module.value.humidity_info,
+    module.value.difficulty
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const tags = parseHashTags(combined)
+  if (tags.length) return tags
+
+  const inferred = []
+  if (module.value.watering_info) inferred.push('#penyiraman')
+  if (module.value.light_info) inferred.push('#cahaya')
+  if (module.value.humidity_info) inferred.push('#kelembapan')
+  if (module.value.difficulty) inferred.push('#kesulitan')
+  return inferred
+})
+
 const loadDetail = async () => {
   try {
     await educationStore.fetchDetail(route.params.id)
@@ -160,7 +183,9 @@ const toggleBookmark = async () => {
   try {
     if (module.value.is_bookmarked) await educationStore.unbookmark(module.value.id)
     else await educationStore.bookmark(module.value.id)
-  } catch (error) { alert('Gagal mengubah bookmark') }
+  } catch (error) {
+    alert(error.response?.data?.message || 'Gagal mengubah bookmark')
+  }
   finally { bookmarking.value = false }
 }
 
@@ -187,10 +212,71 @@ onMounted(() => { loadDetail() })
 
 <style scoped>
 a { text-decoration: none !important; }
-.content-area :deep(p) { margin-bottom: 0.75rem; }
-.content-area :deep(h2) { color: #e2e8f0; margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.25rem; font-weight: 700; }
-.content-area :deep(h3) { color: #6ee7b7; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 600; }
+.content-area :deep(p) { margin-bottom: 0.75rem; color: #000; }
+.content-area :deep(h2) { color: #111827; margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.25rem; font-weight: 700; }
+.content-area :deep(h3) { color: #111827; margin-top: 1rem; margin-bottom: 0.5rem; font-size: 1.1rem; font-weight: 600; }
 .content-area :deep(ul), .content-area :deep(ol) { margin-left: 1.5rem; margin-bottom: 0.75rem; }
-.content-area :deep(li) { margin-bottom: 0.375rem; }
-.content-area :deep(strong) { color: #e2e8f0; }
+.content-area :deep(li) { margin-bottom: 0.375rem; color: #000; }
+.content-area :deep(strong) { color: #000; }
+
+.bookmark-star-btn {
+  font-size: .8125rem;
+  padding: .45rem .9rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(148, 163, 184, .45);
+  background: rgba(255,255,255,.6);
+  color: #475569;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.bookmark-star-btn:hover:not(:disabled) {
+  border-color: #60a5fa;
+  color: #1d4ed8;
+  background: rgba(239, 246, 255, .85);
+}
+.bookmark-star-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+.bookmark-star-btn--saved {
+  border-color: #16a34a;
+  color: #166534;
+  background: rgba(220, 252, 231, .85);
+}
+
+.guide-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .25rem;
+  font-size: .68rem;
+  font-weight: 800;
+  letter-spacing: .01em;
+  color: #b45309;
+  background: linear-gradient(135deg, #ffedd5, #fef3c7);
+  border: 1px solid #fdba74;
+  border-radius: 9999px;
+  padding: .2rem .55rem;
+}
+
+.vital-tags-row {
+  margin-top: .9rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: .55rem;
+}
+
+.vital-tag-box {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  min-width: 52px;
+  font-size: .86rem;
+  font-weight: 700;
+  color: #065f46;
+  background: rgba(209, 250, 229, .85);
+  border: 1px solid rgba(16, 185, 129, .35);
+  border-radius: .7rem;
+  padding: .4rem .75rem;
+}
 </style>

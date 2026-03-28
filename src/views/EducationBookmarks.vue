@@ -53,16 +53,20 @@
             <!-- Content -->
             <div class="p-4 space-y-3">
               <h3 class="text-sm font-bold text-white cursor-pointer hover:text-emerald-300 transition-colors line-clamp-2" @click="goToDetail(bookmark.educational_module.id)">{{ bookmark.educational_module.title }}</h3>
-              <p class="text-xs text-slate-400 line-clamp-2">{{ bookmark.educational_module.description || truncateText(bookmark.educational_module.content, 120) }}</p>
+              <p class="text-xs text-slate-400 line-clamp-2">{{ truncateText(bookmark.educational_module.content, 120) }}</p>
               <div class="flex items-center gap-3 text-xs text-slate-500">
                 <span>📅 {{ formatDate(bookmark.created_at) }}</span>
-                <span>⏱ {{ estimateReadingTime(bookmark.educational_module.content) }} min</span>
               </div>
-              <div class="flex items-center gap-2 pt-2 border-t border-white/5">
+              <div class="flex items-center justify-between gap-2 pt-2 border-t border-white/5">
                 <router-link :to="`/education/${bookmark.educational_module.id}`" class="glass-btn glass-btn-primary !text-xs !py-1.5 !px-3">Baca</router-link>
-                <button @click.stop="downloadModule(bookmark.educational_module)" class="glass-btn glass-btn-secondary !text-xs !py-1.5 !px-3">Download</button>
-                <button @click.stop="removeBookmark(bookmark.educational_module.id)" :disabled="removing"
-                  class="glass-btn !text-xs !py-1.5 !px-3 ml-auto" style="background:rgba(239,68,68,0.15); color:#fca5a5; border:1px solid rgba(239,68,68,0.3);">
+                <button
+                  type="button"
+                  @click.stop="removeBookmark(bookmark.educational_module.id)"
+                  :disabled="removingId === bookmark.educational_module.id"
+                  class="bookmark-remove-btn"
+                  :aria-busy="removingId === bookmark.educational_module.id"
+                >
+                  <span class="bookmark-remove-btn__icon" aria-hidden="true">★</span>
                   Hapus
                 </button>
               </div>
@@ -81,7 +85,8 @@ import { useEducationStore } from '../stores/education'
 
 const router = useRouter()
 const educationStore = useEducationStore()
-const removing = ref(false)
+/** ID modul yang sedang di-unbookmark (satu kartu saja, hindari double submit) */
+const removingId = ref(null)
 const loading = computed(() => educationStore.loading)
 const bookmarks = computed(() => educationStore.bookmarks)
 
@@ -90,24 +95,20 @@ const goToDetail = (id) => { router.push(`/education/${id}`) }
 
 const removeBookmark = async (id) => {
   if (!confirm('Hapus modul ini dari bookmark?')) return
-  removing.value = true
-  try { await educationStore.unbookmark(id); await loadBookmarks() }
-  catch (error) { alert('Gagal menghapus bookmark') }
-  finally { removing.value = false }
-}
-
-const downloadModule = (module) => {
+  removingId.value = id
   try {
-    const content = `MODUL EDUKASI: ${module.title}\n${module.category ? `Kategori: ${module.category}` : ''}\n${module.description ? `\nDeskripsi:\n${module.description}` : ''}\n\n${module.content || ''}\n\n---\nSumber: System Pakar - Tanaman Hias Expert\nDiunduh pada: ${new Date().toLocaleString('id-ID')}`.trim()
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a'); link.href = url; link.download = `${module.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.txt`
-    document.body.appendChild(link); link.click(); document.body.removeChild(link); URL.revokeObjectURL(url)
-  } catch (error) { alert('Gagal mengunduh modul') }
+    await educationStore.unbookmark(id)
+    // Daftar bookmark + is_bookmarked di modul lain disinkronkan di store (syncBookmarksToModules)
+    await loadBookmarks()
+  } catch (error) {
+    const msg = error.response?.data?.message || 'Gagal menghapus bookmark'
+    alert(msg)
+  } finally {
+    removingId.value = null
+  }
 }
 
 const truncateText = (text, length) => text ? (text.length <= length ? text : text.substring(0, length) + '...') : ''
-const estimateReadingTime = (content) => content ? (Math.ceil(content.length / 5 / 200) || 1) : 0
 const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' })
 const handleImageError = (event) => { event.target.style.display = 'none' }
 
@@ -116,4 +117,33 @@ onMounted(() => { loadBookmarks() })
 
 <style scoped>
 a { text-decoration: none !important; }
+
+/* Sama seperti gaya ★ Tersimpan di halaman detail (hijau mint + teks hijau tua) */
+.bookmark-remove-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.45rem 0.9rem;
+  border-radius: 9999px;
+  border: 1px solid #16a34a;
+  background: rgba(220, 252, 231, 0.85);
+  color: #166534;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+.bookmark-remove-btn:hover:not(:disabled) {
+  background: rgba(187, 247, 208, 0.95);
+  border-color: #15803d;
+  color: #14532d;
+}
+.bookmark-remove-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+.bookmark-remove-btn__icon {
+  font-size: 0.75rem;
+  line-height: 1;
+}
 </style>

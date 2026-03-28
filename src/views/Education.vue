@@ -84,16 +84,11 @@
               <svg width="32" height="32" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
             </div>
             <div class="module-thumb-overlay">Baca Selengkapnya →</div>
-            <span v-if="module.category" class="module-cat-badge">{{ module.category }}</span>
             <span v-if="module.is_maintenance_guide" class="maintenance-badge" title="Panduan Pemeliharaan Terstruktur">📋 Panduan</span>
           </div>
           <div class="module-body">
             <h3 class="module-title-text" @click="goToDetail(module.id)">{{ module.title }}</h3>
-            <p class="module-desc">{{ module.description || truncateText(module.content, 110) }}</p>
-            <div class="module-meta">
-              <span>⏱ {{ estimateReadingTime(module.content) }} min</span>
-              <span>👁 {{ module.view_count || 0 }}</span>
-            </div>
+            <p class="module-desc">{{ truncateText(module.content, 110) }}</p>
             <div class="module-actions">
               <button @click.stop="toggleBookmark(module)" class="bookmark-btn" :class="{ 'bookmark-btn--saved': module.is_bookmarked }">
                 {{ module.is_bookmarked ? '★ Tersimpan' : '☆ Simpan' }}
@@ -117,16 +112,11 @@
             <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:.5rem;">
               <h3 class="module-title-text" @click="goToDetail(module.id)" style="font-size:.9375rem;">{{ module.title }}</h3>
               <div style="display:flex;flex-direction:column;align-items:flex-end;gap:.25rem;">
-                <span v-if="module.category" class="module-cat-badge" style="position:static;">{{ module.category }}</span>
                 <span v-if="module.is_maintenance_guide" class="maintenance-badge" style="position:static;font-size:.625rem;padding:.15rem .45rem;">📋 Panduan</span>
               </div>
             </div>
-            <p class="module-desc">{{ module.description || truncateText(module.content, 140) }}</p>
+            <p class="module-desc">{{ truncateText(module.content, 140) }}</p>
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;">
-              <div class="module-meta">
-                <span>⏱ {{ estimateReadingTime(module.content) }} min</span>
-                <span>👁 {{ module.view_count || 0 }}</span>
-              </div>
               <div style="display:flex;gap:.5rem;">
                 <button @click.stop="toggleBookmark(module)" class="bookmark-btn" :class="{ 'bookmark-btn--saved': module.is_bookmarked }">{{ module.is_bookmarked ? '★' : '☆' }}</button>
                 <RouterLink :to="`/education/${module.id}`" class="sp-btn sp-btn-primary sp-btn-sm">Baca →</RouterLink>
@@ -149,14 +139,14 @@ const educationStore = useEducationStore()
 
 const selectedCategory = ref(null)
 const currentPage      = ref(1)
-const viewMode         = ref('grid')
+const viewMode         = ref('list')
 const searchQuery      = ref('')
 const searchTimeout    = ref(null)
 
 const loading = computed(() => educationStore.loading)
 const modules = computed(() => {
   let list = educationStore.modules?.data ? educationStore.modules.data : Array.isArray(educationStore.modules) ? educationStore.modules : []
-  return list.map(m => ({ ...m, is_bookmarked: m.is_bookmarked || false }))
+  return list
 })
 
 const allModules    = ref([])
@@ -184,13 +174,14 @@ const loadAllModules = async () => {
 
 const goToDetail          = (id) => router.push(`/education/${id}`)
 const truncateText        = (t, l) => !t ? '' : t.length <= l ? t : t.substring(0, l) + '...'
-const estimateReadingTime = (c) => !c ? 0 : Math.ceil(c.length / 5 / 200) || 1
 
 const toggleBookmark = async (module) => {
   try {
     if (module.is_bookmarked) { await educationStore.unbookmark(module.id); module.is_bookmarked = false }
     else                      { await educationStore.bookmark(module.id);   module.is_bookmarked = true  }
-  } catch { alert('Gagal mengubah bookmark') }
+  } catch (error) {
+    alert(error.response?.data?.message || 'Gagal mengubah bookmark')
+  }
 }
 
 const getThumbnailImage = (m) => {
@@ -309,13 +300,6 @@ a { text-decoration: none; }
   opacity: 0; transition: opacity .2s;
 }
 .module-card:hover .module-thumb-overlay { opacity: 1; }
-.module-cat-badge {
-  position: absolute; top: .5rem; left: .5rem;
-  background: rgba(22,163,74,.9); color: #fff;
-  font-size: .6875rem; font-weight: 700;
-  padding: .2rem .6rem; border-radius: 9999px;
-  z-index: 10;
-}
 .maintenance-badge {
   position: absolute; top: .5rem; right: .5rem;
   background: rgba(245,158,11,.95); color: #fff;

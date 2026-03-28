@@ -181,9 +181,8 @@ export const useAdminStore = defineStore('admin', {
         const formData = new FormData()
         formData.append('image', file)
 
-        const response = await api.post('/admin/education/upload-image', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        })
+        // Biarkan browser set multipart boundary otomatis.
+        const response = await api.post('/admin/education/upload-image', formData)
 
         return response.data
       } catch (error) {

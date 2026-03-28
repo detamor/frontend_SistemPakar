@@ -42,9 +42,6 @@
       >
         <div class="module-header">
           <h3>{{ module.title }}</h3>
-          <span v-if="module.category" class="module-category">
-            {{ module.category }}
-          </span>
         </div>
         
         <!-- Thumbnail Image -->
@@ -53,7 +50,7 @@
         </div>
         
         <p class="module-description">
-          {{ module.description || 'Tidak ada deskripsi' }}
+          {{ truncateText(module.content, 120) || 'Tidak ada konten' }}
         </p>
         <p class="module-content-preview">
           {{ truncateText(module.content, 100) }}
@@ -129,18 +126,6 @@
               />
             </div>
 
-            <div class="form-group">
-              <label for="description">Deskripsi Singkat *</label>
-              <textarea
-                id="description"
-                v-model="form.description"
-                placeholder="Deskripsi singkat tentang modul ini"
-                rows="3"
-                required
-                :disabled="saving"
-              ></textarea>
-            </div>
-
             <div class="form-group pb-4 border-b border-slate-100 mb-4">
               <label class="flex items-center gap-2 cursor-pointer">
                 <input
@@ -160,27 +145,27 @@
               <h4 class="text-sm font-bold text-emerald-800 flex items-center gap-2 mb-2">
                 <span>📋 Data Kebutuhan Vital</span>
               </h4>
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-group">
-                  <label class="text-xs">Info Penyiraman</label>
-                  <input v-model="form.watering_info" type="text" placeholder="Contoh: 2x seminggu" class="!py-1.5 !text-sm" />
+              <div class="form-group">
+                <label class="text-xs">Tag Kebutuhan Vital</label>
+                <div class="tag-box-grid">
+                  <div
+                    v-for="(tag, index) in form.maintenance_tags_inputs"
+                    :key="`tag-input-${index}`"
+                    class="tag-box-item"
+                  >
+                    <span class="tag-box-prefix">#</span>
+                    <input
+                      v-model="form.maintenance_tags_inputs[index]"
+                      type="text"
+                      placeholder="isi tag"
+                      class="tag-box-input"
+                      @input="handleTagInput(index)"
+                    />
+                  </div>
                 </div>
-                <div class="form-group">
-                  <label class="text-xs">Info Cahaya</label>
-                  <input v-model="form.light_info" type="text" placeholder="Contoh: Matahari Pagi" class="!py-1.5 !text-sm" />
-                </div>
-                <div class="form-group">
-                  <label class="text-xs">Info Kelembapan</label>
-                  <input v-model="form.humidity_info" type="text" placeholder="Contoh: Tinggi (70%)" class="!py-1.5 !text-sm" />
-                </div>
-                <div class="form-group">
-                  <label class="text-xs">Tingkat Kesulitan</label>
-                  <select v-model="form.difficulty" class="!py-1.5 !text-sm">
-                    <option value="Mudah">Mudah</option>
-                    <option value="Sedang">Sedang</option>
-                    <option value="Sulit">Sulit</option>
-                  </select>
-                </div>
+                <p class="text-[10px] text-slate-500 mt-1">
+                  Kotak baru akan muncul otomatis ketika tag sebelumnya terisi.
+                </p>
               </div>
 
               <!-- Maintenance Steps -->
@@ -302,10 +287,6 @@
             <span class="detail-value">{{ deleteModule.category }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Deskripsi:</span>
-            <span class="detail-value">{{ deleteModule.description }}</span>
-          </div>
-          <div class="detail-item">
             <span class="detail-label">Konten:</span>
             <span class="detail-value">{{ truncateText(deleteModule.content, 100) }}</span>
           </div>
@@ -343,10 +324,10 @@ const deleteModule = ref(null)
 const form = ref({
   title: '',
   category: '',
-  description: '',
   content: '',
   content_images: [],
   is_maintenance_guide: false,
+  maintenance_tags_inputs: [''],
   watering_info: '',
   light_info: '',
   humidity_info: '',
@@ -370,6 +351,77 @@ const removeStep = (index) => {
 
 const uploading = ref(false)
 const imageInput = ref(null)
+
+const normalizeHashtags = (text) => {
+  if (!text) return []
+  const rawTokens = String(text)
+    .split(/[,\s]+/)
+    .map((t) => t.trim())
+    .filter(Boolean)
+
+  const unique = []
+  const seen = new Set()
+  for (const token of rawTokens) {
+    const normalized = token.startsWith('#') ? token : `#${token}`
+    const key = normalized.toLowerCase()
+    if (!seen.has(key)) {
+      seen.add(key)
+      unique.push(normalized)
+    }
+  }
+  return unique
+}
+
+const normalizeTagValue = (value) => {
+  if (!value) return ''
+  return String(value).replace(/#/g, '').trim()
+}
+
+const normalizeTagInputs = (inputs) => {
+  const filled = (inputs || [])
+    .map(normalizeTagValue)
+    .filter(Boolean)
+
+  return [...filled, '']
+}
+
+const handleTagInput = (index) => {
+  form.value.maintenance_tags_inputs[index] = normalizeTagValue(
+    form.value.maintenance_tags_inputs[index]
+  )
+  form.value.maintenance_tags_inputs = normalizeTagInputs(form.value.maintenance_tags_inputs)
+}
+
+const buildMaintenanceTags = (moduleData) => {
+  if (Array.isArray(moduleData?.vital_tags_json) && moduleData.vital_tags_json.length) {
+    return normalizeHashtags(moduleData.vital_tags_json.join(' ')).join(' ')
+  }
+
+  const combined = [
+    moduleData?.watering_info,
+    moduleData?.light_info,
+    moduleData?.humidity_info,
+    moduleData?.difficulty
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const existingHashtags = normalizeHashtags(combined)
+  if (existingHashtags.length) return existingHashtags.join(' ')
+
+  const inferred = []
+  if (moduleData?.watering_info) inferred.push('#penyiraman')
+  if (moduleData?.light_info) inferred.push('#cahaya')
+  if (moduleData?.humidity_info) inferred.push('#kelembapan')
+  if (moduleData?.difficulty) inferred.push('#kesulitan')
+  return inferred.join(' ')
+}
+
+const buildMaintenanceTagInputs = (moduleData) => {
+  const tagsText = buildMaintenanceTags(moduleData)
+  const normalized = normalizeHashtags(tagsText).map((tag) => normalizeTagValue(tag))
+  return normalizeTagInputs(normalized)
+}
 
 onMounted(() => {
   fetchModules()
@@ -401,10 +453,10 @@ const editModule = async (module) => {
       form.value = {
         title: fullModule.title,
         category: fullModule.category || '',
-        description: fullModule.description || '',
         content: fullModule.content,
         content_images: fullModule.content_images || [],
         is_maintenance_guide: fullModule.is_maintenance_guide || false,
+        maintenance_tags_inputs: buildMaintenanceTagInputs(fullModule),
         watering_info: fullModule.watering_info || '',
         light_info: fullModule.light_info || '',
         humidity_info: fullModule.humidity_info || '',
@@ -418,10 +470,10 @@ const editModule = async (module) => {
       form.value = {
         title: module.title,
         category: module.category || '',
-        description: module.description || '',
         content: module.content,
         content_images: module.content_images || [],
         is_maintenance_guide: module.is_maintenance_guide || false,
+        maintenance_tags_inputs: buildMaintenanceTagInputs(module),
         watering_info: module.watering_info || '',
         light_info: module.light_info || '',
         humidity_info: module.humidity_info || '',
@@ -437,10 +489,10 @@ const editModule = async (module) => {
     form.value = {
       title: module.title,
       category: module.category || '',
-      description: module.description || '',
       content: module.content,
       content_images: module.content_images || [],
       is_maintenance_guide: module.is_maintenance_guide || false,
+      maintenance_tags_inputs: buildMaintenanceTagInputs(module),
       watering_info: module.watering_info || '',
       light_info: module.light_info || '',
       humidity_info: module.humidity_info || '',
@@ -462,10 +514,10 @@ const closeModal = () => {
   form.value = {
     title: '',
     category: '',
-    description: '',
     content: '',
     content_images: [],
     is_maintenance_guide: false,
+    maintenance_tags_inputs: [''],
     watering_info: '',
     light_info: '',
     humidity_info: '',
@@ -534,9 +586,26 @@ const getImageUrl = (imagePath) => {
 const saveModule = async () => {
   saving.value = true
   try {
+    const payload = { ...form.value }
+    const tags = normalizeHashtags((form.value.maintenance_tags_inputs || []).join(' '))
+    if (payload.is_maintenance_guide) {
+      payload.vital_tags_json = tags
+      payload.watering_info = null
+      payload.light_info = null
+      payload.humidity_info = null
+      payload.difficulty = null
+    } else {
+      payload.vital_tags_json = []
+      payload.watering_info = null
+      payload.light_info = null
+      payload.humidity_info = null
+      payload.difficulty = null
+    }
+    delete payload.maintenance_tags_inputs
+
     const response = showEditModal.value
-      ? await adminStore.updateEducationModule(currentModule.value.id, form.value)
-      : await adminStore.createEducationModule(form.value)
+      ? await adminStore.updateEducationModule(currentModule.value.id, payload)
+      : await adminStore.createEducationModule(payload)
 
     if (response.success) {
       alert(response.message || 'Modul berhasil disimpan')
@@ -641,14 +710,6 @@ const truncateText = (text, length) => {
   font-size: 1.25rem;
   color: #2c3e50;
   margin: 0;
-}
-
-.module-category {
-  background: #f0f0f0;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.85rem;
-  color: #666;
 }
 
 .module-description {
@@ -1069,6 +1130,37 @@ const truncateText = (text, length) => {
 .btn-remove-image:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.tag-box-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.5rem;
+}
+
+.tag-box-item {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.tag-box-prefix {
+  padding: 0.55rem 0.45rem 0.55rem 0.65rem;
+  color: #059669;
+  font-weight: 700;
+  font-size: 0.875rem;
+}
+
+.tag-box-input {
+  width: 100%;
+  border: none !important;
+  padding: 0.55rem 0.65rem 0.55rem 0.15rem !important;
+  font-size: 0.875rem !important;
+  background: transparent !important;
+  outline: none;
 }
 </style>
 
