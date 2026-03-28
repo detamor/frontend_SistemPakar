@@ -1,14 +1,11 @@
 <template>
   <div class="min-h-screen" style="background:var(--bg-page);">
     <!-- Page Header -->
-    <div class="sp-page-header" style="padding:calc(64px + 1.75rem) 1.25rem 1.75rem;">
+    <div class="sp-page-header page-hero" style="padding:calc(64px + 2rem) 1.25rem 2rem;">
       <div class="page-container">
-        <RouterLink to="/" class="sp-btn sp-btn-secondary sp-btn-sm" style="margin-bottom:1rem;display:inline-flex;">
-          <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-          Kembali
-        </RouterLink>
-        <h1 style="margin-bottom:.375rem;">Diagnosis Penyakit</h1>
-        <p style="margin:0;font-size:.9375rem;">Pilih tanaman dan gejala yang terlihat untuk mendapatkan diagnosis.</p>
+        <div class="hero-badge">🌿 Smart Diagnosis</div>
+        <h1 class="hero-title">Diagnosis Penyakit</h1>
+        <p class="hero-subtitle">Pilih tanaman dan gejala yang terlihat untuk mendapatkan diagnosis.</p>
       </div>
     </div>
 
@@ -68,7 +65,6 @@
             </div>
           </div>
 
-          <!-- Gejala list -->
           <div v-if="symptoms.length > 0" class="symptoms-list">
             <div
               v-for="symptom in symptoms" :key="symptom.id"
@@ -104,7 +100,6 @@
               </select>
             </div>
 
-            <!-- Count -->
             <div v-if="selectedSymptoms.length > 0" class="symptom-count">
               <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               {{ selectedSymptoms.length }} gejala dipilih
@@ -262,7 +257,6 @@ const getImageUrl = (path) => {
     return path
   }
   const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'
-  // VITE_API_BASE_URL biasanya: http://IP:8000/api -> kita butuh host tanpa /api untuk storage/images
   const apiHost = apiBase.replace(/\/api\/?$/, '')
   return path.startsWith('/') ? `${apiHost}${path}` : `${apiHost}/${path}`
 }
@@ -299,6 +293,47 @@ onMounted(async () => { clearErrors(); await Promise.all([loadPlants(), fetchCFL
 <style scoped>
 a { text-decoration: none; }
 
+/* Hero header */
+.page-hero {
+  position: relative;
+  overflow: hidden;
+}
+.page-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(var(--primary-rgb, 34,197,94), .08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: .375rem;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--primary-50);
+  border: 1px solid var(--primary-200);
+  border-radius: 999px;
+  padding: .25rem .75rem;
+  margin-bottom: .75rem;
+}
+.hero-title {
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  margin: 0 0 .5rem;
+  line-height: 1.2;
+}
+.hero-subtitle {
+  margin: 0;
+  font-size: .9375rem;
+  color: var(--text-muted);
+  max-width: 480px;
+}
+
 .diagnosis-form { display: flex; flex-direction: column; gap: 1.25rem; }
 .form-section   { padding: 1.5rem; }
 
@@ -333,7 +368,6 @@ a { text-decoration: none; }
   padding: 0;
   overflow: hidden;
   font-family: inherit;
-  /* Supaya kartu terasa lebih "premium" */
   box-shadow: 0 1px 0 rgba(0,0,0,.03);
 }
 .plant-card:hover {
@@ -348,7 +382,6 @@ a { text-decoration: none; }
 
 .plant-img-wrap {
   width: 100%;
-  /* Lebih lebar dan besar agar terlihat mewah */
   aspect-ratio: 16/10;
   min-height: 170px;
   overflow: hidden;
@@ -367,7 +400,6 @@ a { text-decoration: none; }
   filter: saturate(1.06);
 }
 .plant-img-wrap::after {
-  /* Overlay tipis biar tampilan lebih "mewah" */
   content: '';
   position: absolute;
   inset: 0;
