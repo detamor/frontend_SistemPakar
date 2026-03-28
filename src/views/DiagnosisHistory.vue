@@ -1,326 +1,261 @@
 <template>
-  <div class="rw-root">
-
-    <!-- ── Background ── -->
-    <div class="rw-bg">
-      <div class="rw-bg__orb rw-bg__orb--a"></div>
-      <div class="rw-bg__orb rw-bg__orb--b"></div>
-      <div class="rw-bg__grid"></div>
-    </div>
-
-    <!-- ── Header ── -->
-    <header class="rw-header">
-      <div class="rw-wrap">
-        <div class="rw-header__inner">
-          <div>
-            <div class="rw-eyebrow">
-              <span class="rw-eyebrow__pip"></span>
-              <span>Sistem Pakar Tanaman</span>
-            </div>
-            <h1 class="rw-header__title">Riwayat Diagnosis</h1>
-            <p class="rw-header__sub">Pantau dan kelola semua hasil diagnosis tanaman Anda</p>
+  <div class="diagnosis-history-page">
+    <!-- Page Header (Education Style) -->
+    <header class="edu-hero">
+      <div class="hero-bg-leaf">🌿</div>
+      <div class="hero-bg-leaf hero-bg-leaf--2">🍃</div>
+      <div class="page-container">
+        <div class="edu-hero-inner">
+          <div class="hero-text">
+            <span class="hero-eyebrow">Rekam Medis</span>
+            <h1 class="edu-title">Riwayat Diagnosis</h1>
+            <p class="edu-sub">Pantau dan kelola hasil diagnosis kesehatan tanaman Anda</p>
           </div>
-          <RouterLink to="/diagnosis" class="rw-btn-cta">
-            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M8 3v10M3 8h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
-            Diagnosis Baru
+          <RouterLink to="/diagnosis" class="hero-action-btn">
+            <span class="btn-icon" style="font-size: 1.25rem; font-weight: 700; line-height: 1;">+</span>
+            <span>Diagnosis Baru</span>
           </RouterLink>
         </div>
       </div>
-    </header>
+    </header> 
 
-    <!-- ── Toast ── -->
-    <Transition name="toast-slide">
-      <div v-if="toastMsg" class="rw-toast" :class="toastType === 'success' ? 'rw-toast--ok' : 'rw-toast--err'">
-        <div class="rw-toast__icon-wrap">
-          <svg v-if="toastType === 'success'" width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M2.5 7l3 3 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          <svg v-else width="14" height="14" fill="none" viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+    <!-- Toast notification -->
+    <Transition name="toast">
+      <div v-if="toastMsg" class="custom-toast" :class="toastType">
+        <div class="toast-indicator"></div>
+        <div class="toast-body">
+          <span class="toast-icon">{{ toastType === 'success' ? '✅' : '⚠️' }}</span>
+          <span class="toast-text">{{ toastMsg }}</span>
         </div>
-        <span>{{ toastMsg }}</span>
       </div>
     </Transition>
 
-    <!-- ── Main ── -->
-    <main class="rw-wrap rw-main">
-
-      <!-- Loading -->
-      <div v-if="loading && diagnosisHistory.length === 0" class="rw-state">
-        <div class="rw-loader">
-          <div class="rw-loader__leaf">🌿</div>
-          <div class="rw-loader__bar"><div class="rw-loader__fill"></div></div>
-        </div>
-        <p class="rw-state__label">Memuat riwayat diagnosis…</p>
-      </div>
-
-      <!-- Empty -->
-      <div v-else-if="diagnosisHistory.length === 0" class="rw-empty">
-        <div class="rw-empty__art">
-          <div class="rw-empty__circle">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-              <path d="M24 8C24 8 14 17 14 26C14 31.523 18.477 36 24 36C29.523 36 34 31.523 34 26C34 17 24 8 24 8Z" fill="#c8e6c0" stroke="#6aa84f" stroke-width="1.5"/>
-              <path d="M24 13C24 13 19 19 19 25" stroke="#4a7c3a" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
+    <!-- Main Content -->
+    <main class="history-main">
+      <div class="history-container">
+        
+        <!-- Loading State -->
+        <div v-if="loading && diagnosisHistory.length === 0" class="state-container loading-state">
+          <div class="modern-loader">
+            <div class="loader-circle"></div>
+            <div class="loader-circle"></div>
+            <div class="loader-circle"></div>
           </div>
-          <div class="rw-empty__rings">
-            <div class="rw-empty__ring rw-empty__ring--1"></div>
-            <div class="rw-empty__ring rw-empty__ring--2"></div>
-          </div>
-        </div>
-        <h2 class="rw-empty__title">Belum ada riwayat</h2>
-        <p class="rw-empty__text">Mulai diagnosis pertama Anda untuk memantau kesehatan tanaman secara berkala.</p>
-        <RouterLink to="/diagnosis" class="rw-btn-cta">Mulai Diagnosis Sekarang</RouterLink>
-      </div>
-
-      <!-- ── History List ── -->
-      <div v-else class="rw-list">
-
-        <!-- Stats Bar -->
-        <div class="rw-stats">
-          <div class="rw-stat">
-            <span class="rw-stat__num">{{ diagnosisHistory.length }}</span>
-            <span class="rw-stat__label">Total Diagnosis</span>
-          </div>
-          <div class="rw-stat__sep"></div>
-          <div class="rw-stat">
-            <span class="rw-stat__num rw-stat__num--green">{{ diagnosisHistory.filter(d => d.status === 'completed').length }}</span>
-            <span class="rw-stat__label">Selesai</span>
-          </div>
-          <div class="rw-stat__sep"></div>
-          <div class="rw-stat">
-            <span class="rw-stat__num rw-stat__num--amber">{{ diagnosisHistory.filter(d => d.status === 'pending').length }}</span>
-            <span class="rw-stat__label">Menunggu</span>
-          </div>
+          <p>Menyelaraskan riwayat diagnosis...</p>
         </div>
 
-        <!-- Cards -->
-        <article
-          v-for="(diagnosis, i) in diagnosisHistory"
-          :key="diagnosis.id"
-          class="rw-card"
-          :style="`--delay:${i * 55}ms`"
-        >
-          <!-- Accent bar (left) -->
-          <div class="rw-card__accent" :class="`rw-accent--${diagnosis.status}`"></div>
+        <!-- Empty State -->
+        <div v-else-if="diagnosisHistory.length === 0" class="state-container empty-state">
+          <div class="empty-illustration">
+            <div class="illu-circle"></div>
+            <span class="illu-emoji">🌿</span>
+          </div>
+          <h2 class="empty-title">Belum ada riwayat</h2>
+          <p class="empty-desc">Mulai perjalanan sehat tanaman Anda dengan melakukan diagnosis pertama hari ini.</p>
+          <router-link to="/diagnosis" class="cta-btn">Buat Diagnosis Pertama</router-link>
+        </div>
 
-          <!-- Card body -->
-          <div class="rw-card__body">
-
-            <!-- ── Row 1: Header ── -->
-            <div class="rw-card__header">
-              <div class="rw-card__plant-row">
-                <div class="rw-plant-badge">
-                  <span>🌿</span>
+        <!-- History List (Premium Design) -->
+        <TransitionGroup name="list" tag="div" v-else class="history-list">
+          <article v-for="diagnosis in diagnosisHistory" :key="diagnosis.id" class="diagnosis-card-v2">
+            <!-- Card Header -->
+            <div class="card-header">
+              <div class="plant-info">
+                <div class="plant-avatar">
+                  {{ (diagnosis.plant?.name || 'T')[0].toUpperCase() }}
                 </div>
-                <div class="rw-card__meta">
-                  <h3 class="rw-card__name">{{ diagnosis.plant?.name || 'Tanaman' }}</h3>
-                  <time class="rw-card__time">{{ formatDate(diagnosis.created_at) }}</time>
+                <div class="plant-meta">
+                  <h3 class="plant-name">{{ diagnosis.plant?.name || 'Tanaman' }}</h3>
+                  <time class="diagnosis-date">{{ formatDate(diagnosis.created_at) }}</time>
                 </div>
               </div>
-              <span class="rw-status-pill" :class="`rw-status--${diagnosis.status}`">
-                <span class="rw-status__dot"></span>
-                {{ getStatusText(diagnosis.status) }}
-              </span>
-            </div>
-
-            <!-- ── Row 2: Disease Result ── -->
-            <div v-if="diagnosis.disease" class="rw-result-box">
-              <div class="rw-result-box__top">
-                <div class="rw-result-box__left">
-                  <p class="rw-result-box__eyebrow">Penyakit Terdeteksi</p>
-                  <p class="rw-result-box__name">{{ diagnosis.disease.name }}</p>
-                </div>
-                <div class="rw-certainty-ring">
-                  <svg width="52" height="52" viewBox="0 0 52 52">
-                    <circle cx="26" cy="26" r="20" fill="none" stroke="var(--sage-100)" stroke-width="4"/>
-                    <circle
-                      cx="26" cy="26" r="20" fill="none" stroke="var(--sage-500)" stroke-width="4"
-                      stroke-linecap="round"
-                      :stroke-dasharray="`${(diagnosis.certainty_value * 125.66).toFixed(1)} 125.66`"
-                      stroke-dashoffset="31.4"
-                      style="transform:rotate(-90deg);transform-origin:center;transition:stroke-dasharray .8s"
-                    />
-                    <text x="26" y="31" text-anchor="middle" font-size="10" font-weight="600" fill="var(--sage-700)" font-family="inherit">
-                      {{ (diagnosis.certainty_value * 100).toFixed(0) }}%
-                    </text>
-                  </svg>
-                </div>
-              </div>
-              <div v-if="diagnosis.matched_symptoms_count" class="rw-result-box__tags">
-                <span class="rw-tag rw-tag--green">
-                  <svg width="10" height="10" fill="none" viewBox="0 0 10 10"><path d="M2 5l2 2 4-4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                  {{ diagnosis.matched_symptoms_count }} gejala cocok
+              <div class="status-wrapper">
+                <span class="status-badge-v2" :class="diagnosis.status">
+                  <span class="dot"></span>
+                  {{ getStatusText(diagnosis.status) }}
                 </span>
               </div>
-              <p v-if="diagnosis.recommendation" class="rw-result-box__rec">{{ getRecommendationPreview(diagnosis.recommendation) }}</p>
             </div>
 
-            <!-- No result -->
-            <div v-else class="rw-no-result">
-              <span v-if="diagnosis.status === 'pending'" class="rw-pulse-dot"></span>
-              <span>{{ diagnosis.status === 'pending' ? 'Sedang diproses…' : 'Belum ada hasil diagnosis' }}</span>
-            </div>
-
-            <!-- ── Row 3: Notes ── -->
-            <div class="rw-panel rw-panel--notes">
-              <div class="rw-panel__head">
-                <div class="rw-panel__label">
-                  <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M2 1.5A.5.5 0 012.5 1h7a.5.5 0 01.5.5v7a.5.5 0 01-.5.5H4.5L2 12V1.5z" stroke="currentColor" stroke-width="1"/></svg>
-                  Catatan Evaluasi
+            <!-- Result Highlight -->
+            <div v-if="diagnosis.disease" class="result-highlight">
+              <div class="result-top">
+                <div class="result-label">Hasil Diagnosis:</div>
+                <div class="certainty-score" :class="{ 'high': diagnosis.certainty_value >= 0.7 }">
+                  {{ (diagnosis.certainty_value * 100).toFixed(0) }}% <small>pasti</small>
                 </div>
-                <button
-                  @click="openNotesModal(diagnosis)"
-                  class="rw-ghost-btn"
-                  :disabled="savingNotes === diagnosis.id || deletingNotes === diagnosis.id"
-                >{{ diagnosis.user_notes ? 'Ubah' : '+ Tambah' }}</button>
               </div>
-              <p v-if="diagnosis.user_notes" class="rw-panel__text">{{ diagnosis.user_notes }}</p>
-              <p v-else class="rw-panel__empty">Belum ada catatan tambahan.</p>
+              <h4 class="disease-name">{{ diagnosis.disease.name }}</h4>
+              <div v-if="diagnosis.matched_symptoms_count" class="symptoms-count">
+                Terdeteksi melalui <span>{{ diagnosis.matched_symptoms_count }}</span> gejala yang cocok
+              </div>
+              <p v-if="diagnosis.recommendation" class="result-preview">
+                {{ getRecommendationPreview(diagnosis.recommendation) }}
+              </p>
+            </div>
+            
+            <div v-else class="result-placeholder" :class="{ 'is-pending': diagnosis.status === 'pending' }">
+              <span class="placeholder-icon">{{ diagnosis.status === 'pending' ? '⏳' : '🔍' }}</span>
+              <p>{{ diagnosis.status === 'pending' ? 'Sedang dianalisis oleh sistem...' : 'Belum ada hasil diagnosis yang tersedia.' }}</p>
             </div>
 
-            <!-- ── Row 4: Feedback ── -->
-            <div v-if="diagnosis.disease" class="rw-panel rw-panel--feedback">
-              <!-- Not yet given -->
-              <template v-if="!diagnosisFeedbacks[diagnosis.id]">
-                <div class="rw-panel__head">
-                  <div class="rw-panel__label">
-                    <svg width="12" height="12" fill="none" viewBox="0 0 12 12"><path d="M6 1l1.3 2.7 3 .4-2.2 2.1.5 3L6 7.8l-2.6 1.4.5-3L1.7 4.1l3-.4L6 1z" stroke="currentColor" stroke-width="1"/></svg>
-                    Seberapa akurat hasilnya?
-                  </div>
-                </div>
-                <div class="rw-fb-row">
-                  <button v-for="r in feedbackRatings" :key="r.value"
-                    @click="submitFeedback(diagnosis.id, r.value)"
-                    :disabled="submittingFeedback === diagnosis.id"
-                    class="rw-fb-chip" :class="`rw-fb-chip--${r.cssKey}`">
-                    {{ r.icon }} {{ r.label }}
+            <!-- Interaction Panels -->
+            <div class="interaction-grid">
+              <!-- Evaluation Notes -->
+              <div class="interaction-panel notes-area">
+                <div class="panel-header">
+                  <span class="panel-icon">📝</span>
+                  <span class="panel-title">Catatan Gejala Tambahan</span>
+                  <button @click="openNotesModal(diagnosis)" class="panel-action-btn" :disabled="savingNotes === diagnosis.id || deletingNotes === diagnosis.id">
+                    {{ diagnosis.user_notes ? 'Ubah' : 'Tambah' }}
                   </button>
                 </div>
-              </template>
-
-              <!-- Given -->
-              <template v-else>
-                <div class="rw-fb-given">
-                  <div class="rw-fb-given__left">
-                    <span class="rw-panel__label">Penilaian Anda</span>
-                    <span class="rw-fb-badge" :class="`rw-fb-badge--${diagnosisFeedbacks[diagnosis.id].accuracy}`">
-                      {{ getFeedbackIcon(diagnosisFeedbacks[diagnosis.id].accuracy) }}
-                      {{ getFeedbackText(diagnosisFeedbacks[diagnosis.id].accuracy) }}
-                    </span>
-                  </div>
-                  <button @click="openFeedbackModal(diagnosis)" class="rw-ghost-btn">Ubah</button>
+                <div class="panel-body">
+                  <p v-if="diagnosis.user_notes" class="note-text">{{ diagnosis.user_notes }}</p>
+                  <p v-else class="note-placeholder">Berikan info tambahan untuk admin...</p>
                 </div>
-              </template>
-            </div>
+              </div>
 
-            <!-- ── Row 5: Actions ── -->
-            <div class="rw-card__actions">
-              <RouterLink :to="`/diagnosis/${diagnosis.id}`" class="rw-action-primary">
-                Lihat Detail
-                <svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M2.5 6.5h8M6.5 2.5l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </RouterLink>
-              <button @click="downloadPdf(diagnosis.id)" :disabled="loading" class="rw-action-ghost">
-                <svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M6.5 1.5v7M3.5 5.5l3 3 3-3M2 10.5h9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                Unduh PDF
-              </button>
-              <button @click="openConsultationModal(diagnosis)" :disabled="loading" class="rw-action-ghost">
-                <svg width="13" height="13" fill="none" viewBox="0 0 13 13"><path d="M11 6.5A4.5 4.5 0 016.5 11H2l1.5-2A4.5 4.5 0 016.5 2a4.5 4.5 0 014.5 4.5z" stroke="currentColor" stroke-width="1.2"/></svg>
-                Konsultasi WA
-              </button>
-            </div>
-
-          </div><!-- /card body -->
-        </article>
-
-        <!-- Pagination -->
-        <div class="rw-pagination">
-          <button @click="loadPage(currentPage - 1)" :disabled="currentPage === 1 || loading" class="rw-page-btn">
-            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M10 12L6 8l4-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <div class="rw-page-info">
-            <span class="rw-page-info__num">{{ currentPage }}</span>
-            <span class="rw-page-info__label">dari halaman</span>
-          </div>
-          <button @click="loadPage(currentPage + 1)" :disabled="!hasNextPage || loading" class="rw-page-btn">
-            <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-        </div>
-
-      </div>
-    </main>
-
-    <!-- ── Consultation Modal ── -->
-    <ConsultationWhatsAppModal :show="showConsultationModal" :diagnosis="selectedDiagnosis" @close="closeConsultationModal" @success="handleConsultationSuccess"/>
-
-    <!-- ── Feedback Modal ── -->
-    <Transition name="rw-modal">
-      <div v-if="showFeedbackModal" class="rw-overlay" @click.self="closeFeedbackModal">
-        <div class="rw-modal">
-          <div class="rw-modal__head">
-            <h3 class="rw-modal__title">Ubah Penilaian</h3>
-            <button @click="closeFeedbackModal" class="rw-modal__close">
-              <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </button>
-          </div>
-          <div class="rw-modal__body">
-            <div class="rw-field">
-              <label class="rw-field__label">Rating Akurasi</label>
-              <div class="rw-fb-row rw-fb-row--lg">
-                <label v-for="r in feedbackRatings" :key="r.value"
-                  class="rw-fb-chip rw-fb-chip--modal" :class="[`rw-fb-chip--${r.cssKey}`, { 'is-sel': feedbackForm.accuracy === r.value }]">
-                  <input type="radio" :value="r.value" v-model="feedbackForm.accuracy" class="sr-only"/>
-                  {{ r.icon }} {{ r.label }}
-                </label>
+              <!-- Feedback Section -->
+              <div v-if="diagnosis.disease" class="interaction-panel feedback-area">
+                <div v-if="!diagnosisFeedbacks[diagnosis.id]" class="feedback-input">
+                  <div class="panel-header">
+                    <span class="panel-icon">⭐</span>
+                    <span class="panel-title">Beri Penilaian Hasil</span>
+                  </div>
+                  <div class="feedback-quick-options">
+                    <button v-for="rating in feedbackRatings" :key="rating.value" 
+                      @click="submitFeedback(diagnosis.id, rating.value)"
+                      :disabled="submittingFeedback === diagnosis.id"
+                      class="fb-circle-btn" :title="rating.label">
+                      {{ rating.icon }}
+                    </button>
+                  </div>
+                </div>
+                <div v-else class="feedback-display">
+                  <div class="panel-header">
+                    <span class="panel-icon">🙌</span>
+                    <span class="panel-title">Tanggapan Anda</span>
+                    <button @click="openFeedbackModal(diagnosis)" class="panel-action-btn">Ubah</button>
+                  </div>
+                  <div class="fb-badge-compact" :class="diagnosisFeedbacks[diagnosis.id].accuracy">
+                    {{ getFeedbackIcon(diagnosisFeedbacks[diagnosis.id].accuracy) }}
+                    {{ getFeedbackText(diagnosisFeedbacks[diagnosis.id].accuracy) }}
+                  </div>
+                </div>
               </div>
             </div>
-            <div class="rw-field">
-              <label class="rw-field__label">Komentar <span class="rw-field__opt">(opsional)</span></label>
-              <textarea v-model="feedbackForm.comment" placeholder="Bagikan pendapat Anda…" rows="3" class="rw-textarea"></textarea>
-            </div>
-            <div v-if="feedbackError" class="rw-alert-err">{{ feedbackError }}</div>
-          </div>
-          <div class="rw-modal__foot">
-            <button @click="closeFeedbackModal" class="rw-action-ghost">Batal</button>
-            <button @click="submitFeedbackForm" :disabled="!!submittingFeedback" class="rw-action-primary">
-              {{ submittingFeedback ? 'Menyimpan…' : 'Simpan Penilaian' }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </Transition>
 
-    <!-- ── Notes Modal ── -->
-    <Transition name="rw-modal">
-      <div v-if="showNotesModal" class="rw-overlay" @click.self="closeNotesModal">
-        <div class="rw-modal">
-          <div class="rw-modal__head">
-            <h3 class="rw-modal__title">Catatan Evaluasi Admin</h3>
-            <button @click="closeNotesModal" class="rw-modal__close">
-              <svg width="16" height="16" fill="none" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-            </button>
+            <!-- Action Footer -->
+            <div class="card-footer">
+              <RouterLink :to="`/diagnosis/${diagnosis.id}`" class="footer-btn btn-primary-alt">
+                <span>Detail</span>
+                <span class="icon">→</span>
+              </RouterLink>
+              <button @click="downloadPdf(diagnosis.id)" :disabled="loading" class="footer-btn btn-outline">
+                <span>PDF</span>
+                <span class="icon">📄</span>
+              </button>
+              <button @click="openConsultationModal(diagnosis)" :disabled="loading" class="footer-btn btn-outline">
+                <span>WhatsApp</span>
+                <span class="icon">💬</span>
+              </button>
+            </div>
+          </article>
+        </TransitionGroup>
+
+        <!-- Pagination -->
+        <nav v-if="diagnosisHistory.length > 0" class="pagination-container-v2">
+          <button @click="loadPage(currentPage - 1)" :disabled="currentPage === 1 || loading" class="nav-page-btn prev">
+            <span class="icon">←</span>
+            <span>Kembali</span>
+          </button>
+          <div class="page-indicator">
+            Halaman <strong>{{ currentPage }}</strong>
           </div>
-          <div class="rw-modal__body">
-            <p class="rw-modal__hint">Isi catatan jika ada gejala yang belum tersedia di daftar, agar admin dapat mengevaluasi dan menambahkan gejala baru.</p>
-            <textarea v-model="notesForm.user_notes" placeholder="Contoh: Daun tampak bercak putih halus di bagian bawah…" rows="4" class="rw-textarea"></textarea>
-            <div v-if="notesError" class="rw-alert-err">{{ notesError }}</div>
-          </div>
-          <div class="rw-modal__foot">
-            <button v-if="notesForm.hasExisting" @click="deleteNotes"
-              :disabled="deletingNotes === notesForm.diagnosisId || savingNotes === notesForm.diagnosisId"
-              class="rw-action-danger">
-              {{ deletingNotes === notesForm.diagnosisId ? 'Menghapus…' : 'Hapus' }}
-            </button>
-            <div style="display:flex;gap:.5rem;margin-left:auto;">
-              <button @click="closeNotesModal" class="rw-action-ghost">Batal</button>
-              <button @click="saveNotes"
-                :disabled="savingNotes === notesForm.diagnosisId || deletingNotes === notesForm.diagnosisId"
-                class="rw-action-primary">
-                {{ savingNotes === notesForm.diagnosisId ? 'Menyimpan…' : 'Simpan' }}
+          <button @click="loadPage(currentPage + 1)" :disabled="!hasNextPage || loading" class="nav-page-btn next">
+            <span>Lanjut</span>
+            <span class="icon">→</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Consultation Modal -->
+      <ConsultationWhatsAppModal :show="showConsultationModal" :diagnosis="selectedDiagnosis" @close="closeConsultationModal" @success="handleConsultationSuccess" />
+
+      <!-- Feedback Modal -->
+      <Transition name="modal-fade">
+        <div v-if="showFeedbackModal" class="modern-modal-overlay" @click="closeFeedbackModal">
+          <div class="modern-modal-card" @click.stop>
+            <div class="modal-header-v2">
+              <h3>Ubah Feedback</h3>
+              <button @click="closeFeedbackModal" class="close-modal-btn">✕</button>
+            </div>
+            <div class="modal-body-v2">
+              <div class="form-group">
+                <label class="form-label">Bagaimana menurut Anda?</label>
+                <div class="rating-selector-v2">
+                  <label v-for="rating in feedbackRatings" :key="rating.value" 
+                    class="rating-opt-v2" :class="{ selected: feedbackForm.accuracy === rating.value }">
+                    <input type="radio" :value="rating.value" v-model="feedbackForm.accuracy" class="hidden-radio" />
+                    <span class="opt-emoji">{{ rating.icon }}</span>
+                    <span class="opt-label">{{ rating.label }}</span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label for="comment" class="form-label">Komentar Tambahan</label>
+                <textarea id="comment" v-model="feedbackForm.comment" placeholder="Ada saran atau masukan?" rows="3" class="modern-textarea"></textarea>
+              </div>
+              <div v-if="feedbackError" class="modal-alert error">{{ feedbackError }}</div>
+            </div>
+            <div class="modal-footer-v2">
+              <button @click="closeFeedbackModal" class="modal-btn-secondary">Batal</button>
+              <button @click="submitFeedbackForm" :disabled="submittingFeedback" class="modal-btn-primary">
+                {{ submittingFeedback ? 'Menyimpan...' : 'Simpan Perubahan' }}
               </button>
             </div>
           </div>
         </div>
-      </div>
-    </Transition>
+      </Transition>
 
+      <!-- Notes Modal -->
+      <Transition name="modal-fade">
+        <div v-if="showNotesModal" class="modern-modal-overlay" @click="closeNotesModal">
+          <div class="modern-modal-card" @click.stop>
+            <div class="modal-header-v2">
+              <h3>Catatan Gejala</h3>
+              <button @click="closeNotesModal" class="close-modal-btn">✕</button>
+            </div>
+            <div class="modal-body-v2">
+              <div class="info-bubble">
+                Info tambahan ini membantu admin mengevaluasi akurasi sistem, terutama untuk gejala yang belum tersedia di daftar.
+              </div>
+              <div class="form-group mt-4">
+                <textarea
+                  v-model="notesForm.user_notes"
+                  placeholder="Contoh: Muncul bintik hitam kecil di sekitar tepi daun..."
+                  rows="5"
+                  class="modern-textarea large"
+                ></textarea>
+              </div>
+              <div v-if="notesError" class="modal-alert error">{{ notesError }}</div>
+            </div>
+            <div class="modal-footer-v2">
+              <button v-if="notesForm.hasExisting" @click="deleteNotes" :disabled="deletingNotes === notesForm.diagnosisId || savingNotes === notesForm.diagnosisId" class="modal-btn-danger">
+                Hapus
+              </button>
+              <div class="footer-actions-right">
+                <button @click="closeNotesModal" class="modal-btn-secondary">Batal</button>
+                <button @click="saveNotes" :disabled="savingNotes === notesForm.diagnosisId || deletingNotes === notesForm.diagnosisId" class="modal-btn-primary">
+                  {{ savingNotes === notesForm.diagnosisId ? 'Menyimpan...' : 'Simpan' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </main>
   </div>
 </template>
 
@@ -345,698 +280,872 @@ const notesForm = ref({ diagnosisId: null, user_notes: '', hasExisting: false })
 const notesError = ref(null)
 const savingNotes = ref(null)
 const deletingNotes = ref(null)
-const toastMsg = ref(null)
-const toastType = ref('success')
 
 const feedbackRatings = [
-  { value: 'accurate',          label: 'Akurat',        icon: '😊', cssKey: 'good'   },
-  { value: 'somewhat_accurate', label: 'Cukup Akurat',  icon: '😐', cssKey: 'fair'   },
-  { value: 'inaccurate',        label: 'Tidak Akurat',  icon: '😞', cssKey: 'poor'   },
+  { value: 'accurate', label: 'Akurat', icon: '😊', class: 'rating-accurate' },
+  { value: 'somewhat_accurate', label: 'Cukup Akurat', icon: '😐', class: 'rating-somewhat' },
+  { value: 'inaccurate', label: 'Tidak Akurat', icon: '😞', class: 'rating-inaccurate' }
 ]
 
-const diagnosisHistory = computed(() =>
-  diagnosisStore.diagnosisHistory?.data ?? []
-)
+const diagnosisHistory = computed(() => diagnosisStore.diagnosisHistory?.data ? diagnosisStore.diagnosisHistory.data : [])
 
 const loadHistory = async (page = 1) => {
   loading.value = true
   try {
-    const res = await diagnosisStore.fetchHistory(page)
-    if (res.data?.data) {
-      currentPage.value = res.data.current_page ?? 1
-      hasNextPage.value = !!res.data.next_page_url
-      res.data.data.forEach(d => { if (d.feedback) diagnosisFeedbacks.value[d.id] = d.feedback })
+    const response = await diagnosisStore.fetchHistory(page)
+    if (response.data && response.data.data) {
+      currentPage.value = response.data.current_page || 1
+      hasNextPage.value = !!response.data.next_page_url
+      
+      response.data.data.forEach(d => {
+        if (d.feedback) {
+          diagnosisFeedbacks.value[d.id] = d.feedback
+        }
+      })
     }
-  } catch (e) { console.error(e) }
+  } catch (error) { console.error('Error loading history:', error) }
   finally { loading.value = false }
 }
 
-const loadPage = p => { if (p >= 1) loadHistory(p) }
-const downloadPdf = async id => { try { await diagnosisStore.downloadPdf(id) } catch { alert('Gagal mengunduh PDF.') } }
-const openConsultationModal = d => { selectedDiagnosis.value = d; showConsultationModal.value = true }
+const loadPage = (page) => { if (page >= 1) loadHistory(page) }
+const downloadPdf = async (id) => { try { await diagnosisStore.downloadPdf(id) } catch (error) { alert('Gagal mengunduh PDF.') } }
+const openConsultationModal = (d) => { selectedDiagnosis.value = d; showConsultationModal.value = true }
 const closeConsultationModal = () => { showConsultationModal.value = false; selectedDiagnosis.value = null }
-const handleConsultationSuccess = () => loadHistory(currentPage.value)
-const formatDate = s => new Date(s).toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
-const getStatusText = s => ({ pending:'Menunggu', completed:'Selesai', consulted:'Dikonsultasikan' }[s] ?? s)
-const getRecommendationPreview = r => { if (!r) return ''; const t = r.replace(/\*\*/g,'').replace(/\n/g,' '); return t.length > 140 ? t.slice(0,140)+'…' : t }
-const getFeedbackIcon = a => ({ accurate:'😊', somewhat_accurate:'😐', inaccurate:'😞' }[a] ?? '😊')
-const getFeedbackText = a => ({ accurate:'Akurat', somewhat_accurate:'Cukup Akurat', inaccurate:'Tidak Akurat' }[a] ?? a)
-const showToast = (msg, type = 'success') => { toastMsg.value = msg; toastType.value = type; setTimeout(() => toastMsg.value = null, 3200) }
+const handleConsultationSuccess = () => { loadHistory(currentPage.value) }
+const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+const getStatusText = (status) => ({ pending: 'Menunggu', completed: 'Selesai', consulted: 'Dikonsultasikan' }[status] || status)
+const getRecommendationPreview = (rec) => { if (!rec) return ''; const text = rec.replace(/\*\*/g, '').replace(/\n/g, ' '); return text.length > 150 ? text.substring(0, 150) + '...' : text }
+
+const toastMsg  = ref(null)
+const toastType = ref('success')
+const showToast = (msg, type = 'success') => {
+  toastMsg.value = msg; toastType.value = type
+  setTimeout(() => { toastMsg.value = null }, 3000)
+}
 
 const submitFeedback = async (diagnosisId, accuracy) => {
   submittingFeedback.value = diagnosisId
-  try { await diagnosisStore.submitFeedback(diagnosisId, accuracy, null); diagnosisFeedbacks.value[diagnosisId] = { accuracy, comment: null }; showToast('Terima kasih atas penilaian Anda!') }
-  catch { showToast('Gagal mengirim penilaian.', 'error') }
+  try {
+    await diagnosisStore.submitFeedback(diagnosisId, accuracy, null)
+    diagnosisFeedbacks.value[diagnosisId] = { accuracy, comment: null }
+    showToast('Terima kasih atas feedback Anda!')
+  } catch { showToast('Gagal mengirim feedback.', 'error') }
   finally { submittingFeedback.value = null }
 }
-const openFeedbackModal = d => { const ex = diagnosisFeedbacks.value[d.id]; feedbackForm.value = { diagnosisId: d.id, accuracy: ex?.accuracy ?? null, comment: ex?.comment ?? '' }; feedbackError.value = null; showFeedbackModal.value = true }
+
+const openFeedbackModal = (diagnosis) => {
+  const existing = diagnosisFeedbacks.value[diagnosis.id]
+  feedbackForm.value = { diagnosisId: diagnosis.id, accuracy: existing?.accuracy || null, comment: existing?.comment || '' }
+  showFeedbackModal.value = true; feedbackError.value = null
+}
 const closeFeedbackModal = () => { showFeedbackModal.value = false; feedbackForm.value = { diagnosisId: null, accuracy: null, comment: '' }; feedbackError.value = null }
+
 const submitFeedbackForm = async () => {
   if (!feedbackForm.value.accuracy) { feedbackError.value = 'Pilih rating terlebih dahulu'; return }
   submittingFeedback.value = feedbackForm.value.diagnosisId
-  try { await diagnosisStore.submitFeedback(feedbackForm.value.diagnosisId, feedbackForm.value.accuracy, feedbackForm.value.comment || null); diagnosisFeedbacks.value[feedbackForm.value.diagnosisId] = { accuracy: feedbackForm.value.accuracy, comment: feedbackForm.value.comment }; closeFeedbackModal(); showToast('Penilaian berhasil diperbarui!') }
-  catch (err) { feedbackError.value = err.response?.data?.message ?? 'Gagal mengirim penilaian.' }
+  try {
+    await diagnosisStore.submitFeedback(feedbackForm.value.diagnosisId, feedbackForm.value.accuracy, feedbackForm.value.comment || null)
+    diagnosisFeedbacks.value[feedbackForm.value.diagnosisId] = { accuracy: feedbackForm.value.accuracy, comment: feedbackForm.value.comment }
+    closeFeedbackModal(); showToast('Feedback berhasil diperbarui!')
+  } catch (error) { feedbackError.value = error.response?.data?.message || 'Gagal mengirim feedback.' }
   finally { submittingFeedback.value = null }
 }
-const openNotesModal = d => { notesForm.value = { diagnosisId: d.id, user_notes: d.user_notes ?? '', hasExisting: !!d.user_notes }; notesError.value = null; showNotesModal.value = true }
-const closeNotesModal = () => { showNotesModal.value = false; notesForm.value = { diagnosisId: null, user_notes: '', hasExisting: false }; notesError.value = null }
-const saveNotes = async () => {
-  const id = notesForm.value.diagnosisId; const text = String(notesForm.value.user_notes ?? '').trim()
-  if (!id) return; if (!text) { notesError.value = 'Catatan tidak boleh kosong.'; return }
-  savingNotes.value = id
-  try { await diagnosisStore.updateDiagnosisNotes(id, text); const t = diagnosisHistory.value.find(d => d.id === id); if (t) t.user_notes = text; showToast('Catatan berhasil disimpan!'); closeNotesModal() }
-  catch (err) { notesError.value = err.response?.data?.message ?? 'Gagal menyimpan catatan.' }
-  finally { savingNotes.value = null }
-}
-const deleteNotes = async () => {
-  const id = notesForm.value.diagnosisId; if (!id) return
-  deletingNotes.value = id
-  try { await diagnosisStore.deleteDiagnosisNotes(id); const t = diagnosisHistory.value.find(d => d.id === id); if (t) t.user_notes = null; showToast('Catatan berhasil dihapus!'); closeNotesModal() }
-  catch (err) { notesError.value = err.response?.data?.message ?? 'Gagal menghapus catatan.' }
-  finally { deletingNotes.value = null }
+
+const openNotesModal = (diagnosis) => {
+  notesForm.value = {
+    diagnosisId: diagnosis.id,
+    user_notes: diagnosis.user_notes || '',
+    hasExisting: !!diagnosis.user_notes
+  }
+  notesError.value = null
+  showNotesModal.value = true
 }
 
-onMounted(() => loadHistory())
+const closeNotesModal = () => {
+  showNotesModal.value = false
+  notesForm.value = { diagnosisId: null, user_notes: '', hasExisting: false }
+  notesError.value = null
+}
+
+const normalizeNotes = (value) => {
+  if (value === null || value === undefined) return ''
+  return String(value).trim()
+}
+
+const saveNotes = async () => {
+  const diagnosisId = notesForm.value.diagnosisId
+  const normalized = normalizeNotes(notesForm.value.user_notes)
+
+  if (!diagnosisId) return
+  if (!normalized) {
+    notesError.value = 'Catatan tidak boleh kosong.'
+    return
+  }
+
+  savingNotes.value = diagnosisId
+  try {
+    await diagnosisStore.updateDiagnosisNotes(diagnosisId, normalized)
+    const target = diagnosisHistory.value.find(d => d.id === diagnosisId)
+    if (target) target.user_notes = normalized
+    showToast('Catatan evaluasi berhasil disimpan!')
+    closeNotesModal()
+  } catch (error) {
+    notesError.value = error.response?.data?.message || 'Gagal menyimpan catatan.'
+  } finally {
+    savingNotes.value = null
+  }
+}
+
+const deleteNotes = async () => {
+  const diagnosisId = notesForm.value.diagnosisId
+  if (!diagnosisId) return
+
+  deletingNotes.value = diagnosisId
+  try {
+    await diagnosisStore.deleteDiagnosisNotes(diagnosisId)
+    const target = diagnosisHistory.value.find(d => d.id === diagnosisId)
+    if (target) target.user_notes = null
+    showToast('Catatan evaluasi berhasil dihapus!')
+    closeNotesModal()
+  } catch (error) {
+    notesError.value = error.response?.data?.message || 'Gagal menghapus catatan.'
+  } finally {
+    deletingNotes.value = null
+  }
+}
+
+const getFeedbackIcon = (accuracy) => ({ accurate: '😊', somewhat_accurate: '😐', inaccurate: '😞' }[accuracy] || '😊')
+const getFeedbackText = (accuracy) => ({ accurate: 'Akurat', somewhat_accurate: 'Cukup Akurat', inaccurate: 'Tidak Akurat' }[accuracy] || 'Akurat')
+
+onMounted(() => { loadHistory() })
 </script>
 
 <style scoped>
-/* ──────────────────────────────────────────────────────────
-   TOKENS
-────────────────────────────────────────────────────────── */
-:root {
-  --sage-50:  #f3f8f1;
-  --sage-100: #dff0d8;
-  --sage-200: #b9dba9;
-  --sage-300: #8cc47a;
-  --sage-400: #62a94e;
-  --sage-500: #4a8e38;
-  --sage-600: #39712c;
-  --sage-700: #2b5721;
-  --sage-800: #1e3f17;
-  --sage-900: #122910;
-  --amber-100: #fef3c7; --amber-600: #d97706; --amber-700: #b45309;
-  --blue-100: #dbeafe;  --blue-600: #2563eb;  --blue-700: #1d4ed8;
-  --red-100: #fee2e2;   --red-600: #dc2626;
-  --text-1: #111b0e;
-  --text-2: #3d5238;
-  --text-3: #6b7f65;
-  --text-4: #9aad93;
-  --border: rgba(74,142,56,.15);
-  --border-md: rgba(74,142,56,.25);
-  --border-strong: rgba(74,142,56,.4);
-  --bg-page: #f2f6f0;
-  --bg-card: #ffffff;
-  --bg-surface: #f8faf6;
-  --r: 16px;
-  --r-sm: 10px;
-  --r-xs: 7px;
-  --shadow-card: 0 1px 0 rgba(74,142,56,.06), 0 4px 20px rgba(0,0,0,.05), 0 1px 3px rgba(0,0,0,.04);
-  --shadow-card-hover: 0 2px 0 rgba(74,142,56,.08), 0 8px 32px rgba(0,0,0,.09), 0 2px 6px rgba(0,0,0,.06);
-  --shadow-modal: 0 20px 60px rgba(0,0,0,.18), 0 4px 16px rgba(0,0,0,.1);
-}
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap');
 
-/* ──────────────────────────────────────────────────────────
-   RESET / ROOT
-────────────────────────────────────────────────────────── */
-.rw-root {
+.diagnosis-history-page {
+  background-color: #f5f7f4;
   min-height: 100vh;
-  background: var(--bg-page);
-  font-family: 'Inter', 'DM Sans', system-ui, sans-serif;
-  color: var(--text-1);
-  position: relative;
-  overflow-x: hidden;
+  font-family: 'DM Sans', sans-serif;
+  color: #1e3a2a;
 }
-a { text-decoration: none !important; }
-* { box-sizing: border-box; }
 
-/* ──────────────────────────────────────────────────────────
-   BACKGROUND
-────────────────────────────────────────────────────────── */
-.rw-bg { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
-.rw-bg__orb {
+/* --- Hero Section (Education Theme) --- */
+.edu-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a3a2a 0%, #2d5a3d 60%, #3a7a50 100%);
+  padding: 4rem 1.5rem 3.5rem;
+  color: white;
+}
+
+.hero-bg-leaf {
   position: absolute;
-  border-radius: 50%;
-  filter: blur(100px);
-  opacity: .18;
+  font-size: 8rem;
+  opacity: .08;
+  top: -1rem; right: -1rem;
+  transform: rotate(20deg);
+  pointer-events: none;
+  user-select: none;
 }
-.rw-bg__orb--a {
-  width: 700px; height: 600px;
-  top: -250px; right: -200px;
-  background: radial-gradient(circle at 40% 40%, #8cc47a, #4a8e38, transparent);
-}
-.rw-bg__orb--b {
-  width: 500px; height: 500px;
-  bottom: -100px; left: -150px;
-  background: radial-gradient(circle, #b9dba9, transparent);
-}
-.rw-bg__grid {
-  position: absolute; inset: 0;
-  background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
-  background-size: 40px 40px;
-  opacity: .4;
+.hero-bg-leaf--2 {
+  font-size: 5rem;
+  top: auto; bottom: -1.5rem; left: -1rem; right: auto;
+  transform: rotate(-30deg);
 }
 
-/* ──────────────────────────────────────────────────────────
-   WRAP
-────────────────────────────────────────────────────────── */
-.rw-wrap {
-  max-width: 840px;
+.page-container {
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 0 1.25rem;
-  position: relative;
-  z-index: 1;
 }
 
-/* ──────────────────────────────────────────────────────────
-   HEADER
-────────────────────────────────────────────────────────── */
-.rw-header {
-  padding: 3.25rem 1.25rem 2.5rem;
-  position: relative;
-  z-index: 1;
-}
-.rw-header__inner {
+.edu-hero-inner {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 1.5rem;
   flex-wrap: wrap;
 }
-.rw-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .1em;
+
+.hero-eyebrow {
+  display: inline-block;
+  background: rgba(255,255,255,.15);
+  color: #a7f3c0;
+  font-size: .75rem;
+  font-weight: 600;
+  letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--sage-500);
+  padding: .25rem .75rem;
+  border-radius: 999px;
   margin-bottom: .75rem;
 }
-.rw-eyebrow__pip {
-  display: block;
-  width: 7px; height: 7px;
-  background: var(--sage-400);
-  border-radius: 50%;
-  box-shadow: 0 0 0 3px var(--sage-100);
-}
-.rw-header__title {
-  font-size: 2.5rem;
-  font-weight: 800;
-  letter-spacing: -.04em;
+
+.edu-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.75rem;
+  font-weight: 400;
+  color: #fff;
+  margin: 0 0 .5rem;
   line-height: 1.1;
-  color: var(--text-1);
-  margin: 0 0 .45rem;
-  background: linear-gradient(135deg, var(--text-1) 0%, var(--sage-700) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  letter-spacing: -0.01em;
 }
-.rw-header__sub {
-  font-size: .9375rem;
-  color: var(--text-3);
+
+.edu-sub {
+  font-size: 1rem;
+  color: rgba(255,255,255,.75);
   margin: 0;
 }
 
-/* ──────────────────────────────────────────────────────────
-   CTA BUTTON
-────────────────────────────────────────────────────────── */
-.rw-btn-cta {
+.hero-action-btn {
   display: inline-flex;
   align-items: center;
-  gap: .5rem;
-  padding: .7rem 1.35rem;
-  background: linear-gradient(135deg, var(--sage-500) 0%, var(--sage-700) 100%);
+  gap: .625rem;
+  padding: .75rem 1.5rem;
+  background: rgba(255,255,255,.12);
+  border: 1.5px solid rgba(255,255,255,.25);
   color: #fff;
-  border-radius: 100px;
-  font-size: .875rem;
-  font-weight: 700;
-  border: none;
-  cursor: pointer;
-  transition: transform .14s, box-shadow .14s, filter .14s;
-  box-shadow: 0 4px 16px rgba(57,113,44,.35), 0 1px 4px rgba(57,113,44,.25);
-  white-space: nowrap;
-  font-family: inherit;
-}
-.rw-btn-cta:hover { transform: translateY(-2px); filter: brightness(1.05); box-shadow: 0 6px 24px rgba(57,113,44,.4), 0 2px 6px rgba(57,113,44,.3); }
-.rw-btn-cta:active { transform: translateY(0); }
-
-/* ──────────────────────────────────────────────────────────
-   TOAST
-────────────────────────────────────────────────────────── */
-.rw-toast {
-  position: fixed;
-  bottom: 2rem; right: 2rem;
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  gap: .65rem;
-  padding: .75rem 1.1rem;
-  border-radius: 100px;
-  font-size: .8125rem;
+  border-radius: 12px;
+  font-size: .9375rem;
   font-weight: 600;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 24px rgba(0,0,0,.14);
+  text-decoration: none;
+  transition: all .2s ease;
 }
-.rw-toast--ok { background: rgba(255,255,255,.96); border: 1.5px solid var(--sage-200); color: var(--sage-700); }
-.rw-toast--err { background: rgba(255,255,255,.96); border: 1.5px solid #fca5a5; color: #b91c1c; }
-.rw-toast__icon-wrap {
-  width: 22px; height: 22px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+
+.hero-action-btn:hover {
+  background: rgba(255,255,255,.22);
+  border-color: rgba(255,255,255,.5);
+  transform: translateY(-2px);
 }
-.rw-toast--ok .rw-toast__icon-wrap { background: var(--sage-100); color: var(--sage-700); }
-.rw-toast--err .rw-toast__icon-wrap { background: #fee2e2; color: #b91c1c; }
 
-.toast-slide-enter-active, .toast-slide-leave-active { transition: all .22s cubic-bezier(.34,1.56,.64,1); }
-.toast-slide-enter-from, .toast-slide-leave-to { opacity: 0; transform: translateY(12px) scale(.95); }
-
-/* ──────────────────────────────────────────────────────────
-   MAIN
-────────────────────────────────────────────────────────── */
-.rw-main { padding-bottom: 5rem; }
-
-/* ──────────────────────────────────────────────────────────
-   STATE (loading / empty)
-────────────────────────────────────────────────────────── */
-.rw-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 6rem 2rem; text-align: center; }
-.rw-state__label { font-size: .9rem; color: var(--text-3); }
-
-.rw-loader { display: flex; flex-direction: column; align-items: center; gap: .75rem; }
-.rw-loader__leaf { font-size: 2rem; animation: leafBounce 1.2s ease-in-out infinite; }
-@keyframes leafBounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
-.rw-loader__bar { width: 120px; height: 3px; background: var(--sage-100); border-radius: 99px; overflow: hidden; }
-.rw-loader__fill { height: 100%; background: linear-gradient(90deg, var(--sage-400), var(--sage-600)); border-radius: 99px; animation: barFlow 1.5s ease-in-out infinite; }
-@keyframes barFlow { 0%{width:0%;margin-left:0} 50%{width:80%;margin-left:10%} 100%{width:0%;margin-left:100%} }
-
-.rw-empty { display: flex; flex-direction: column; align-items: center; gap: 1.25rem; padding: 5rem 2rem; text-align: center; }
-.rw-empty__art { position: relative; width: 80px; height: 80px; display: flex; align-items: center; justify-content: center; }
-.rw-empty__circle { width: 72px; height: 72px; background: linear-gradient(135deg, var(--sage-50), var(--sage-100)); border: 1.5px solid var(--sage-200); border-radius: 50%; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
-.rw-empty__ring { position: absolute; border-radius: 50%; border: 1px solid var(--sage-200); animation: ripple 3s ease-out infinite; }
-.rw-empty__ring--1 { inset: -14px; animation-delay: 0s; }
-.rw-empty__ring--2 { inset: -28px; animation-delay: .8s; }
-@keyframes ripple { 0%{opacity:.8;transform:scale(.85)} 100%{opacity:0;transform:scale(1)} }
-.rw-empty__title { font-size: 1.25rem; font-weight: 700; color: var(--text-1); margin: 0; }
-.rw-empty__text { font-size: .9rem; color: var(--text-3); max-width: 340px; line-height: 1.65; margin: 0; }
-
-/* ──────────────────────────────────────────────────────────
-   STATS BAR
-────────────────────────────────────────────────────────── */
-.rw-stats {
-  display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: .875rem 1.25rem;
-  margin-bottom: 1.25rem;
-  box-shadow: var(--shadow-card);
+/* --- Main Content --- */
+.history-main {
+  max-width: 860px;
+  margin: -2.5rem auto 0;
+  padding: 0 1.5rem 5rem;
+  position: relative;
+  z-index: 10;
 }
-.rw-stat { display: flex; flex-direction: column; align-items: center; gap: 1px; }
-.rw-stat__num { font-size: 1.375rem; font-weight: 800; color: var(--text-1); line-height: 1; }
-.rw-stat__num--green { color: var(--sage-600); }
-.rw-stat__num--amber { color: var(--amber-600); }
-.rw-stat__label { font-size: .7rem; font-weight: 600; color: var(--text-4); text-transform: uppercase; letter-spacing: .06em; }
-.rw-stat__sep { width: 1px; height: 30px; background: var(--border); }
 
-/* ──────────────────────────────────────────────────────────
-   LIST
-────────────────────────────────────────────────────────── */
-.rw-list { display: flex; flex-direction: column; gap: 1rem; }
-
-/* ──────────────────────────────────────────────────────────
-   CARD
-────────────────────────────────────────────────────────── */
-.rw-card {
-  display: flex;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--r);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-  animation: slideUp .4s both cubic-bezier(.22,.68,0,1.2);
-  animation-delay: var(--delay, 0ms);
-  transition: box-shadow .2s, transform .2s, border-color .2s;
-}
-.rw-card:hover { box-shadow: var(--shadow-card-hover); transform: translateY(-2px); border-color: var(--border-md); }
-
-@keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
-
-/* Accent bar */
-.rw-card__accent {
-  width: 4px;
-  flex-shrink: 0;
-}
-.rw-accent--pending   { background: linear-gradient(180deg, #f59e0b, #d97706); }
-.rw-accent--completed { background: linear-gradient(180deg, var(--sage-400), var(--sage-600)); }
-.rw-accent--consulted { background: linear-gradient(180deg, #60a5fa, #2563eb); }
-
-/* Card body */
-.rw-card__body {
-  flex: 1;
-  padding: 1.25rem 1.375rem 1.25rem 1.25rem;
+.history-list {
   display: flex;
   flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* --- Card Design --- */
+.diagnosis-card-v2 {
+  background: white;
+  border-radius: 20px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  border: 1.5px solid #edf2ed;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.diagnosis-card-v2:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(30, 58, 42, 0.08);
+  border-color: #3a7a50;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+}
+
+.plant-info {
+  display: flex;
+  align-items: center;
   gap: 1rem;
 }
 
-/* Card header */
-.rw-card__header { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-.rw-card__plant-row { display: flex; align-items: center; gap: .875rem; }
-.rw-plant-badge {
-  width: 44px; height: 44px;
-  background: linear-gradient(135deg, var(--sage-50), var(--sage-100));
-  border: 1.5px solid var(--sage-200);
-  border-radius: var(--r-sm);
+.plant-avatar {
+  width: 48px;
+  height: 48px;
+  background: #f0fdf4;
+  color: #1a6a3a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  font-weight: 800;
+  font-size: 1.5rem;
+  border: 1px solid #dcfce7;
+}
+
+.plant-name {
+  font-size: 1.125rem;
+  font-weight: 700;
+  margin: 0;
+  color: #1e3a2a;
+}
+
+.diagnosis-date {
+  font-size: 0.8125rem;
+  color: #6a8a72;
+}
+
+/* --- Badges --- */
+.status-badge-v2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.875rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-badge-v2.pending { background: #fffbeb; color: #b45309; }
+.status-badge-v2.completed { background: #f0fdf4; color: #166534; }
+.status-badge-v2.consulted { background: #f0f9ff; color: #075985; }
+
+.status-badge-v2 .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+/* --- Result Highlight --- */
+.result-highlight {
+  background: #f8fafc;
+  border-radius: 16px;
+  padding: 1.25rem;
+  border: 1px solid #edf2f7;
+  margin-bottom: 1.25rem;
+}
+
+.result-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.result-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: #94a3b8;
+  letter-spacing: 0.05em;
+}
+
+.certainty-score {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #f59e0b;
+}
+
+.certainty-score.high { color: #10b981; }
+
+.certainty-score small {
+  font-size: 0.7rem;
+  opacity: 0.8;
+}
+
+.disease-name {
+  font-size: 1.25rem;
+  font-weight: 800;
+  margin: 0 0 0.5rem;
+  color: #1a3a2a;
+}
+
+.symptoms-count {
+  font-size: 0.8125rem;
+  color: #6a8a72;
+  margin-bottom: 0.75rem;
+}
+
+.symptoms-count span {
+  font-weight: 700;
+  color: #1e3a2a;
+}
+
+.result-preview {
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: #4b6a55;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.result-placeholder {
+  background: #f8fbf9;
+  border: 1.5px dashed #d9e4d4;
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  color: #6a8a72;
+}
+
+.result-placeholder.is-pending {
+  background: #fffdf5;
+  border-style: solid;
+  border-color: #fef3c7;
+  color: #b45309;
+}
+
+.placeholder-icon {
+  font-size: 1.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+/* --- Interaction Panels --- */
+.interaction-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .interaction-grid { grid-template-columns: 1fr; }
+}
+
+.interaction-panel {
+  background: #fff;
+  border: 1.5px solid #edf2ed;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.panel-icon { font-size: 1rem; }
+
+.panel-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #9aad9a;
+  text-transform: uppercase;
+  flex: 1;
+}
+
+.panel-action-btn {
+  background: #f1f5f1;
+  border: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #4b6a55;
+  padding: 0.3rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.panel-action-btn:hover { background: #e2e8e2; color: #1e3a2a; }
+
+.note-text {
+  font-size: 0.8125rem;
+  color: #334e3d;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.note-placeholder {
+  font-size: 0.8125rem;
+  color: #adbcaa;
+  font-style: italic;
+  margin: 0;
+}
+
+/* --- Feedback Styling --- */
+.feedback-quick-options {
+  display: flex;
+  gap: 0.625rem;
+}
+
+.fb-circle-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid #edf2ed;
+  background: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.25rem;
-  flex-shrink: 0;
-  box-shadow: 0 2px 6px rgba(74,142,56,.1);
-}
-.rw-card__name { font-size: .9375rem; font-weight: 700; color: var(--text-1); margin: 0 0 2px; }
-.rw-card__time { font-size: .75rem; color: var(--text-4); font-weight: 500; display: block; }
-
-/* Status pill */
-.rw-status-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .3rem .8rem;
-  border-radius: 100px;
-  font-size: .72rem;
-  font-weight: 700;
-  letter-spacing: .03em;
-  white-space: nowrap;
-}
-.rw-status-pill .rw-status__dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  display: block;
-}
-.rw-status--pending   { background: var(--amber-100); color: var(--amber-700); border: 1px solid rgba(217,119,6,.2); }
-.rw-status--pending .rw-status__dot   { background: var(--amber-600); animation: dotPulse 1.4s ease-in-out infinite; }
-.rw-status--completed { background: var(--sage-50); color: var(--sage-700); border: 1px solid var(--sage-200); }
-.rw-status--completed .rw-status__dot { background: var(--sage-500); }
-.rw-status--consulted { background: var(--blue-100); color: var(--blue-700); border: 1px solid rgba(37,99,235,.2); }
-.rw-status--consulted .rw-status__dot { background: var(--blue-600); }
-@keyframes dotPulse { 0%,100%{opacity:1} 50%{opacity:.4} }
-
-/* ──────────────────────────────────────────────────────────
-   RESULT BOX
-────────────────────────────────────────────────────────── */
-.rw-result-box {
-  background: linear-gradient(135deg, var(--sage-50) 0%, rgba(185,219,169,.15) 100%);
-  border: 1px solid var(--sage-200);
-  border-radius: var(--r-sm);
-  padding: 1rem 1.125rem;
-}
-.rw-result-box__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: .625rem; }
-.rw-result-box__eyebrow { font-size: .7rem; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--text-3); margin: 0 0 4px; }
-.rw-result-box__name { font-size: 1.0625rem; font-weight: 800; color: var(--text-1); margin: 0; line-height: 1.3; }
-.rw-result-box__tags { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: .5rem; }
-.rw-result-box__rec { font-size: .8125rem; color: var(--text-3); line-height: 1.65; margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-
-.rw-certainty-ring { flex-shrink: 0; }
-
-/* Tag chips */
-.rw-tag {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: .22rem .55rem;
-  border-radius: 100px;
-  font-size: .7rem;
-  font-weight: 700;
-}
-.rw-tag--green { background: var(--sage-100); color: var(--sage-700); border: 1px solid var(--sage-200); }
-
-.rw-no-result {
-  display: flex;
-  align-items: center;
-  gap: .6rem;
-  font-size: .875rem;
-  color: var(--text-3);
-  padding: .875rem 1rem;
-  background: var(--bg-surface);
-  border: 1px dashed var(--border-md);
-  border-radius: var(--r-sm);
-}
-.rw-pulse-dot {
-  width: 8px; height: 8px;
-  background: #f59e0b;
-  border-radius: 50%;
-  flex-shrink: 0;
-  animation: dotPulse 1.2s ease-in-out infinite;
-}
-
-/* ──────────────────────────────────────────────────────────
-   PANELS (notes / feedback)
-────────────────────────────────────────────────────────── */
-.rw-panel {
-  background: var(--bg-surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  padding: .75rem 1rem;
-}
-.rw-panel__head { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .45rem; }
-.rw-panel__label {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  font-size: .72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: .07em;
-  color: var(--text-3);
-}
-.rw-panel__text { font-size: .8125rem; color: var(--text-2); line-height: 1.65; margin: 0; }
-.rw-panel__empty { font-size: .8rem; color: var(--text-4); font-style: italic; margin: 0; }
-
-.rw-ghost-btn {
-  background: transparent;
-  border: 1.5px solid var(--border-md);
-  color: var(--sage-600);
-  border-radius: 100px;
-  padding: .28rem .7rem;
-  font-size: .72rem;
-  font-weight: 700;
   cursor: pointer;
-  transition: all .15s;
-  font-family: inherit;
-  letter-spacing: .02em;
+  transition: all 0.2s ease;
 }
-.rw-ghost-btn:hover { border-color: var(--sage-500); background: var(--sage-50); }
-.rw-ghost-btn:disabled { opacity: .45; cursor: not-allowed; }
 
-/* ──────────────────────────────────────────────────────────
-   FEEDBACK CHIPS
-────────────────────────────────────────────────────────── */
-.rw-fb-row { display: flex; gap: .45rem; flex-wrap: wrap; }
-.rw-fb-row--lg { gap: .5rem; }
+.fb-circle-btn:hover {
+  transform: scale(1.15) rotate(5deg);
+  border-color: #3a7a50;
+  background: #f0fdf4;
+}
 
-.rw-fb-chip {
+.fb-badge-compact {
   display: inline-flex;
   align-items: center;
-  gap: .3rem;
-  padding: .38rem .8rem;
-  font-size: .775rem;
+  gap: 0.375rem;
+  font-size: 0.875rem;
   font-weight: 600;
-  border: 1.5px solid var(--border-md);
-  border-radius: 100px;
-  background: var(--bg-card);
-  cursor: pointer;
-  transition: all .15s;
-  font-family: inherit;
-  color: var(--text-2);
+  padding: 0.3rem 0.625rem;
+  border-radius: 8px;
 }
-.rw-fb-chip:hover { border-color: var(--sage-400); background: var(--sage-50); color: var(--sage-700); }
-.rw-fb-chip:disabled { opacity: .5; cursor: not-allowed; }
 
-/* modal variant */
-.rw-fb-chip--modal { cursor: pointer; }
-.rw-fb-chip--modal.is-sel { border-color: var(--sage-500); background: var(--sage-50); color: var(--sage-700); box-shadow: 0 0 0 3px rgba(74,142,56,.1); }
+.fb-badge-compact.accurate { color: #059669; background: #ecfdf5; }
+.fb-badge-compact.somewhat_accurate { color: #d97706; background: #fffbeb; }
+.fb-badge-compact.inaccurate { color: #dc2626; background: #fef2f2; }
 
-/* Hover overrides per type */
-.rw-fb-chip--good:hover, .rw-fb-chip--good.is-sel { border-color: var(--sage-500); background: var(--sage-50); color: var(--sage-700); }
-.rw-fb-chip--fair:hover, .rw-fb-chip--fair.is-sel { border-color: var(--amber-600); background: var(--amber-100); color: var(--amber-700); }
-.rw-fb-chip--poor:hover, .rw-fb-chip--poor.is-sel { border-color: #f87171; background: var(--red-100); color: #991b1b; }
-
-.rw-fb-given { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
-.rw-fb-given__left { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
-
-.rw-fb-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: .3rem;
-  padding: .28rem .7rem;
-  border-radius: 100px;
-  font-size: .775rem;
-  font-weight: 700;
-  border: 1.5px solid transparent;
-}
-.rw-fb-badge--accurate        { background: var(--sage-50); border-color: var(--sage-200); color: var(--sage-700); }
-.rw-fb-badge--somewhat_accurate { background: var(--amber-100); border-color: rgba(217,119,6,.3); color: var(--amber-700); }
-.rw-fb-badge--inaccurate      { background: var(--red-100); border-color: rgba(220,38,38,.2); color: #991b1b; }
-
-/* ──────────────────────────────────────────────────────────
-   CARD ACTIONS
-────────────────────────────────────────────────────────── */
-.rw-card__actions {
+/* --- Footer Buttons --- */
+.card-footer {
   display: flex;
-  gap: .5rem;
-  flex-wrap: wrap;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
+  gap: 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #edf2ed;
 }
-.rw-action-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .525rem 1.05rem;
-  font-size: .8125rem;
-  font-weight: 700;
-  border-radius: 100px;
-  background: linear-gradient(135deg, var(--sage-500), var(--sage-700));
-  border: none;
-  color: #fff;
-  cursor: pointer;
-  font-family: inherit;
-  transition: transform .12s, box-shadow .12s, filter .12s;
-  box-shadow: 0 2px 10px rgba(57,113,44,.3);
-  text-decoration: none !important;
-}
-.rw-action-primary:hover { transform: translateY(-1px); filter: brightness(1.08); box-shadow: 0 4px 16px rgba(57,113,44,.35); }
-.rw-action-primary:active { transform: none; }
-.rw-action-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
 
-.rw-action-ghost {
-  display: inline-flex;
-  align-items: center;
-  gap: .4rem;
-  padding: .5rem .95rem;
-  font-size: .8125rem;
-  font-weight: 600;
-  border-radius: 100px;
-  border: 1.5px solid var(--border-md);
-  background: var(--bg-card);
-  color: var(--text-2);
-  cursor: pointer;
-  font-family: inherit;
-  transition: all .15s;
-}
-.rw-action-ghost:hover { border-color: var(--sage-400); background: var(--sage-50); color: var(--sage-700); }
-.rw-action-ghost:disabled { opacity: .45; cursor: not-allowed; }
-
-.rw-action-danger {
-  display: inline-flex; align-items: center; gap: .4rem;
-  padding: .5rem .95rem; font-size: .8125rem; font-weight: 600;
-  border-radius: 100px; border: 1.5px solid rgba(220,38,38,.25);
-  background: var(--red-100); color: var(--red-600);
-  cursor: pointer; font-family: inherit; transition: all .15s;
-}
-.rw-action-danger:hover { background: #fecaca; border-color: rgba(220,38,38,.4); }
-.rw-action-danger:disabled { opacity: .45; cursor: not-allowed; }
-
-/* ──────────────────────────────────────────────────────────
-   PAGINATION
-────────────────────────────────────────────────────────── */
-.rw-pagination {
+.footer-btn {
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  margin-top: 2rem;
-}
-.rw-page-btn {
-  width: 38px; height: 38px;
-  border-radius: 50%;
-  border: 1.5px solid var(--border-md);
-  background: var(--bg-card);
-  color: var(--text-2);
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  font-weight: 700;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .15s;
-  box-shadow: 0 1px 4px rgba(0,0,0,.04);
+  transition: all 0.2s ease;
+  border: 1.5px solid transparent;
 }
-.rw-page-btn:hover:not(:disabled) { border-color: var(--sage-400); background: var(--sage-50); color: var(--sage-700); box-shadow: 0 2px 8px rgba(74,142,56,.15); }
-.rw-page-btn:disabled { opacity: .3; cursor: not-allowed; }
-.rw-page-info { text-align: center; }
-.rw-page-info__num { display: block; font-size: 1.125rem; font-weight: 800; color: var(--text-1); line-height: 1; }
-.rw-page-info__label { font-size: .7rem; color: var(--text-4); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
 
-/* ──────────────────────────────────────────────────────────
-   MODAL / OVERLAY
-────────────────────────────────────────────────────────── */
-.rw-overlay {
-  position: fixed; inset: 0; z-index: 500;
-  background: rgba(10,20,8,.5);
+.btn-primary-alt {
+  background: #1a3a2a;
+  color: white;
+  text-decoration: none;
+}
+
+.btn-primary-alt:hover { background: #2d5a3d; transform: scale(1.02); }
+
+.btn-outline {
+  background: white;
+  border-color: #d9e4d4;
+  color: #4b6a55;
+}
+
+.btn-outline:hover {
+  border-color: #3a7a50;
+  color: #3a7a50;
+  background: #f0fdf4;
+}
+
+/* --- Pagination --- */
+.pagination-container-v2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 3.5rem;
+}
+
+.nav-page-btn {
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid #d9e4d4;
+  background: white;
+  font-weight: 700;
+  font-size: 0.875rem;
+  color: #4b6a55;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.nav-page-btn:not(:disabled):hover {
+  border-color: #1a3a2a;
+  color: #1a3a2a;
+  background: #f5f7f4;
+}
+
+.nav-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.page-indicator { font-size: 0.875rem; color: #6a8a72; }
+.page-indicator strong { color: #1e3a2a; font-size: 1rem; }
+
+/* --- Transitions --- */
+.list-enter-active, .list-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+.list-enter-from, .list-leave-to { opacity: 0; transform: translateY(24px); }
+
+/* --- Loading State --- */
+.state-container {
+  padding: 4.5rem 1.5rem;
+  text-align: center;
+  background: white;
+  border-radius: 24px;
+  border: 1.5px solid #edf2ed;
+}
+
+.modern-loader {
+  display: flex;
+  justify-content: center;
+  gap: 0.625rem;
+  margin-bottom: 1.5rem;
+}
+
+.loader-circle {
+  width: 14px;
+  height: 14px;
+  background: #3a7a50;
+  border-radius: 50%;
+  animation: loader-bounce 0.6s infinite alternate;
+}
+
+.loader-circle:nth-child(2) { animation-delay: 0.15s; }
+.loader-circle:nth-child(3) { animation-delay: 0.3s; }
+
+@keyframes loader-bounce {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(-12px); opacity: 0.3; }
+}
+
+/* --- Empty State --- */
+.empty-illustration {
+  position: relative;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 1.5rem;
+}
+
+.illu-circle {
+  position: absolute;
+  inset: 0;
+  background: #dcfce7;
+  border-radius: 50%;
+  animation: pulse-green 2.5s infinite;
+}
+
+.illu-emoji {
+  position: relative;
+  font-size: 3.5rem;
+  line-height: 90px;
+}
+
+@keyframes pulse-green {
+  0% { transform: scale(1); opacity: 0.6; }
+  70% { transform: scale(1.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.empty-title { font-family: 'DM Serif Display', serif; font-size: 1.75rem; color: #1a3a2a; margin-bottom: 0.75rem; }
+.empty-desc { color: #6a8a72; max-width: 340px; margin: 0 auto 2.5rem; line-height: 1.6; }
+
+.cta-btn {
+  background: #1a3a2a;
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 14px;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(26, 58, 42, 0.2);
+}
+
+.cta-btn:hover { background: #2d5a3d; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(26, 58, 42, 0.3); }
+
+/* --- Modals --- */
+.modern-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  z-index: 1100;
 }
-.rw-modal {
-  background: var(--bg-card);
-  border: 1px solid var(--border-md);
-  border-radius: 20px;
-  width: 100%; max-width: 480px;
-  box-shadow: var(--shadow-modal);
+
+.modern-modal-card {
+  background: white;
+  width: 100%;
+  max-width: 520px;
+  border-radius: 24px;
   overflow: hidden;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  animation: modal-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.rw-modal__head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 1.125rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-  background: linear-gradient(135deg, var(--sage-50), var(--bg-card));
+
+@keyframes modal-pop {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
-.rw-modal__title { font-size: 1.0625rem; font-weight: 800; color: var(--text-1); margin: 0; }
-.rw-modal__close {
-  width: 32px; height: 32px;
-  border: 1.5px solid var(--border-md);
-  background: var(--bg-card);
+
+.modal-header-v2 {
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header-v2 h3 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: #1a3a2a; margin: 0; }
+
+.close-modal-btn {
+  background: #f1f5f1;
+  border: none;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  color: var(--text-3);
-  transition: all .15s;
-}
-.rw-modal__close:hover { border-color: var(--sage-400); background: var(--sage-50); color: var(--text-1); }
-.rw-modal__body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1.125rem; }
-.rw-modal__hint { font-size: .8125rem; color: var(--text-3); line-height: 1.65; margin: 0; background: var(--sage-50); border: 1px solid var(--sage-200); border-radius: var(--r-xs); padding: .625rem .875rem; }
-.rw-modal__foot {
-  display: flex; align-items: center; gap: .5rem;
-  padding: .875rem 1.5rem;
-  border-top: 1px solid var(--border);
-  background: var(--bg-surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6a8a72;
+  transition: all 0.2s;
 }
 
-.rw-modal-enter-active, .rw-modal-leave-active { transition: opacity .2s; }
-.rw-modal-enter-active .rw-modal, .rw-modal-leave-active .rw-modal { transition: transform .22s cubic-bezier(.34,1.56,.64,1), opacity .2s; }
-.rw-modal-enter-from, .rw-modal-leave-to { opacity: 0; }
-.rw-modal-enter-from .rw-modal, .rw-modal-leave-to .rw-modal { transform: scale(.94) translateY(12px); opacity: 0; }
+.close-modal-btn:hover { background: #1a3a2a; color: white; }
 
-/* ──────────────────────────────────────────────────────────
-   FORM ELEMENTS
-────────────────────────────────────────────────────────── */
-.rw-field { display: flex; flex-direction: column; gap: .45rem; }
-.rw-field__label { font-size: .8125rem; font-weight: 700; color: var(--text-2); }
-.rw-field__opt { font-weight: 400; color: var(--text-4); }
-.rw-textarea {
-  width: 100%; padding: .75rem .875rem;
-  border: 1.5px solid var(--border-md);
-  border-radius: var(--r-xs);
-  background: var(--bg-card);
-  font-size: .875rem; color: var(--text-1);
-  font-family: inherit; resize: vertical;
-  transition: border-color .15s, box-shadow .15s;
+.modal-body-v2 { padding: 2rem; }
+
+.form-group { margin-bottom: 1.5rem; }
+.form-label { display: block; font-size: 0.9375rem; font-weight: 700; color: #1e3a2a; margin-bottom: 0.75rem; }
+
+.modern-textarea {
+  width: 100%;
+  padding: 1rem 1.25rem;
+  border-radius: 14px;
+  border: 1.5px solid #d9e4d4;
+  font-family: inherit;
+  font-size: 0.9375rem;
+  transition: all 0.2s;
+  background: #fdfdfd;
 }
-.rw-textarea:focus { outline: none; border-color: var(--sage-400); box-shadow: 0 0 0 4px rgba(74,142,56,.1); }
-.rw-textarea::placeholder { color: var(--text-4); }
-.rw-alert-err { background: var(--red-100); border: 1.5px solid rgba(220,38,38,.2); color: #991b1b; border-radius: var(--r-xs); padding: .6rem .875rem; font-size: .8125rem; font-weight: 600; }
-.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
+
+.modern-textarea:focus { outline: none; border-color: #3a7a50; box-shadow: 0 0 0 4px rgba(58, 122, 80, 0.1); background: white; }
+
+.rating-selector-v2 { display: flex; gap: 0.75rem; }
+.rating-opt-v2 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  border-radius: 16px;
+  border: 1.5px solid #edf2ed;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.rating-opt-v2.selected { border-color: #3a7a50; background: #f0fdf4; }
+.opt-emoji { font-size: 1.75rem; margin-bottom: 0.5rem; }
+.opt-label { font-size: 0.75rem; font-weight: 700; color: #6a8a72; text-align: center; }
+.rating-opt-v2.selected .opt-label { color: #1a6a3a; }
+
+.modal-footer-v2 {
+  padding: 1.25rem 2rem;
+  background: #f8faf9;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.875rem;
+  border-top: 1px solid #edf2ed;
+}
+
+.modal-btn-primary {
+  background: #1a3a2a;
+  color: white;
+  border: none;
+  padding: 0.875rem 1.75rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-btn-primary:hover { background: #2d5a3d; }
+.modal-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.modal-btn-secondary {
+  background: white;
+  border: 1.5px solid #d9e4d4;
+  color: #4b6a55;
+  padding: 0.875rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-btn-secondary:hover { border-color: #1a3a2a; color: #1a3a2a; }
+
+.modal-btn-danger {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1.5px solid #fee2e2;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.modal-btn-danger:hover { background: #fee2e2; border-color: #fecaca; }
+
+.footer-actions-right { display: flex; gap: 0.875rem; margin-left: auto; }
+
+.hidden-radio { display: none; }
+
+.info-bubble {
+  background: #ecfdf5;
+  color: #065f46;
+  padding: 1.25rem;
+  border-radius: 14px;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  border-left: 4px solid #10b981;
+}
+
+.modal-alert {
+  padding: 1rem;
+  border-radius: 10px;
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+.modal-alert.error { background: #fef2f2; color: #991b1b; border: 1px solid #fee2e2; }
+
+/* Toast Notification */
+.custom-toast {
+  position: fixed;
+  bottom: 2.5rem;
+  right: 2.5rem;
+  z-index: 10000;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  width: 340px;
+}
+
+.toast-indicator { width: 8px; background: #3a7a50; }
+.custom-toast.error .toast-indicator { background: #dc2626; }
+
+.toast-body { padding: 1.25rem; display: flex; align-items: center; gap: 1rem; }
+.toast-icon { font-size: 1.5rem; }
+.toast-text { font-size: 0.9375rem; font-weight: 700; color: #1a3a2a; }
+
+.toast-enter-active, .toast-leave-active { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.toast-enter-from { opacity: 0; transform: translateX(100px); }
+.toast-leave-to { opacity: 0; transform: scale(0.95); transform-origin: right bottom; }
+
+.modal-fade-enter-active, .modal-fade-leave-active { transition: opacity 0.3s ease; }
+.modal-fade-enter-from, .modal-fade-leave-to { opacity: 0; }
 </style>

@@ -1,20 +1,26 @@
 <template>
-  <div class="min-h-screen" style="background:var(--bg-page);">
-    <!-- Page Header -->
-    <div class="sp-page-header page-hero" style="padding:calc(64px + 2rem) 1.25rem 2rem;">
+  <div class="diagnosis-page">
+    <!-- Page Header (Unified Hero Style) -->
+    <header class="edu-hero">
+      <div class="hero-bg-leaf">🌿</div>
+      <div class="hero-bg-leaf hero-bg-leaf--2">🍃</div>
       <div class="page-container">
-        <div class="hero-badge">🌿 Smart Diagnosis</div>
-        <h1 class="hero-title">Diagnosis Penyakit</h1>
-        <p class="hero-subtitle">Pilih tanaman dan gejala yang terlihat untuk mendapatkan diagnosis.</p>
+        <div class="edu-hero-inner">
+          <div class="hero-text">
+            <span class="hero-eyebrow">Smart Diagnosis</span>
+            <h1 class="edu-title">Diagnosis Penyakit</h1>
+            <p class="edu-sub">Pilih tanaman dan gejala yang terlihat untuk mendapatkan diagnosis.</p>
+          </div>
+        </div>
       </div>
-    </div>
+    </header>
 
-    <!-- Form -->
-    <div class="page-container" style="padding-top:2rem;padding-bottom:3rem;max-width:860px;">
+    <!-- Form Section -->
+    <div class="page-container" style="padding-bottom:5rem;max-width:860px;margin-top:-2.5rem;position:relative;z-index:20;">
       <form @submit.prevent="handleDiagnosis" class="diagnosis-form">
 
         <!-- Error global -->
-        <div v-if="error" class="sp-alert sp-alert-danger" role="alert" style="margin-bottom:1.5rem;">
+        <div v-if="error" class="sp-alert sp-alert-danger animate-fade-in" role="alert" style="margin-bottom:1.5rem;">
           <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           {{ error }}
         </div>
@@ -24,8 +30,8 @@
           <div class="step-header">
             <div class="step-num">1</div>
             <div>
-              <h2 style="font-size:1.125rem;margin:0 0 .2rem;">Pilih Tanaman</h2>
-              <p style="font-size:.8125rem;margin:0;">Pilih jenis tanaman hias yang ingin didiagnosis</p>
+              <h2 class="step-title">Pilih Tanaman</h2>
+              <p class="step-subtitle">Pilih jenis tanaman hias yang ingin didiagnosis</p>
             </div>
           </div>
 
@@ -60,8 +66,8 @@
           <div class="step-header">
             <div class="step-num">2</div>
             <div>
-              <h2 style="font-size:1.125rem;margin:0 0 .2rem;">Pilih Gejala</h2>
-              <p style="font-size:.8125rem;margin:0;">Centang gejala yang Anda amati, lalu tentukan tingkat keyakinan</p>
+              <h2 class="step-title">Pilih Gejala</h2>
+              <p class="step-subtitle">Centang gejala yang Anda amati, lalu tentukan tingkat keyakinan</p>
             </div>
           </div>
 
@@ -121,14 +127,14 @@
           <div class="step-header">
             <div class="step-num">3</div>
             <div>
-              <h2 style="font-size:1.125rem;margin:0 0 .2rem;">Catatan Tambahan <span style="font-weight:400;color:var(--text-muted);font-size:.875rem;">(opsional)</span></h2>
-              <p style="font-size:.8125rem;margin:0;">Isi jika gejala yang Anda alami belum ada di daftar pilihan gejala. Catatan ini akan membantu administrator sebagai bahan evaluasi untuk menambahkan gejala baru.</p>
+              <h2 class="step-title">Catatan Tambahan <span style="font-weight:400;color:var(--text-muted);font-size:.875rem;">(opsional)</span></h2>
+              <p class="step-subtitle">Isi jika gejala yang Anda alami belum ada di daftar pilihan.</p>
             </div>
           </div>
           <textarea
             id="notes"
             v-model="form.user_notes"
-            placeholder="Contoh: Tanaman sudah 2 minggu tidak tumbuh, kondisi lingkungan cukup lembab..."
+            placeholder="Contoh: Daun tampak bercak putih halus di bagian bawah yang belum ada di daftar."
             rows="3"
             :disabled="processing"
             class="glass-input"
@@ -163,12 +169,12 @@
               :disabled="processing || selectedSymptoms.length === 0 || !form.plant_id"
               class="sp-btn sp-btn-primary sp-btn-lg submit-btn"
             >
-              <span v-if="processing" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
+              <span v-if="processing" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;margin-right:.5rem;"></span>
               {{ processing ? 'Memproses Diagnosis...' : 'Proses Diagnosis' }}
             </button>
             <span v-if="selectedSymptoms.length > 0" style="font-size:.875rem;color:var(--text-muted);">{{ selectedSymptoms.length }} gejala dipilih</span>
           </div>
-          <p style="font-size:.8rem;color:var(--text-faint);margin-top:.75rem;text-align:center;">Proses diagnosis memakan waktu beberapa detik</p>
+          <p style="font-size:.8rem;color:var(--text-faint);margin-top:.875rem;text-align:center;">Proses diagnosis memakan waktu beberapa detik untuk hasil terbaik.</p>
         </div>
       </form>
     </div>
@@ -291,67 +297,102 @@ onMounted(async () => { clearErrors(); await Promise.all([loadPlants(), fetchCFL
 </script>
 
 <style scoped>
-a { text-decoration: none; }
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700&display=swap');
 
-/* Hero header */
-.page-hero {
+.diagnosis-page {
+  background-color: #f5f7f4;
+  min-height: 100vh;
+  font-family: 'DM Sans', sans-serif;
+  color: #1e3a2a;
+}
+
+/* --- Hero Section (Education Theme) --- */
+.edu-hero {
   position: relative;
   overflow: hidden;
+  background: linear-gradient(135deg, #1a3a2a 0%, #2d5a3d 60%, #3a7a50 100%);
+  padding: 4rem 1.5rem 3.5rem;
+  color: white;
 }
-.page-hero::before {
-  content: '';
+
+.hero-bg-leaf {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(var(--primary-rgb, 34,197,94), .08) 0%, transparent 60%);
+  font-size: 8rem;
+  opacity: .08;
+  top: -1rem; right: -1rem;
+  transform: rotate(20deg);
   pointer-events: none;
+  user-select: none;
 }
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: .375rem;
+.hero-bg-leaf--2 {
+  font-size: 5rem;
+  top: auto; bottom: -1.5rem; left: -1rem; right: auto;
+  transform: rotate(-30deg);
+}
+
+.page-container {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.edu-hero-inner {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  background: rgba(255,255,255,.15);
+  color: #a7f3c0;
   font-size: .75rem;
-  font-weight: 700;
-  letter-spacing: .06em;
+  font-weight: 600;
+  letter-spacing: .08em;
   text-transform: uppercase;
-  color: var(--primary);
-  background: var(--primary-50);
-  border: 1px solid var(--primary-200);
-  border-radius: 999px;
   padding: .25rem .75rem;
+  border-radius: 999px;
   margin-bottom: .75rem;
 }
-.hero-title {
-  font-size: clamp(1.5rem, 4vw, 2rem);
-  font-weight: 800;
-  letter-spacing: -.02em;
+
+.edu-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.75rem;
+  font-weight: 400;
+  color: #fff;
   margin: 0 0 .5rem;
-  line-height: 1.2;
+  line-height: 1.1;
+  letter-spacing: -0.01em;
 }
-.hero-subtitle {
+
+.edu-sub {
+  font-size: 1rem;
+  color: rgba(255,255,255,.75);
   margin: 0;
-  font-size: .9375rem;
-  color: var(--text-muted);
-  max-width: 480px;
 }
 
 .diagnosis-form { display: flex; flex-direction: column; gap: 1.25rem; }
-.form-section   { padding: 1.5rem; }
+.form-section   { padding: 1.75rem 1.5rem; }
 
 /* Step header */
-.step-header { display: flex; align-items: flex-start; gap: .875rem; margin-bottom: 1.25rem; }
+.step-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.75rem; }
 .step-num {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: var(--primary); color: #fff;
-  font-weight: 700; font-size: .9375rem;
+  width: 34px; height: 34px; border-radius: 50%;
+  background: #1a3a2a; color: #fff;
+  font-weight: 700; font-size: 1rem;
   display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; margin-top: 2px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(26, 58, 42, 0.2);
 }
+.step-title { font-size: 1.125rem; font-weight: 700; color: #1e3a2a; margin: 0 0 .25rem; }
+.step-subtitle { font-size: .875rem; color: #6a8a72; margin: 0; }
 
 /* Plants grid */
 .plants-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: .875rem;
+  gap: 1rem;
 }
 @media (min-width: 480px) { .plants-grid { grid-template-columns: repeat(3, 1fr); } }
 @media (min-width: 768px) { .plants-grid { grid-template-columns: repeat(4, 1fr); } }
@@ -359,117 +400,99 @@ a { text-decoration: none; }
 .plant-card {
   position: relative;
   display: flex; flex-direction: column;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--bg-surface);
+  border: 1.5px solid #edf2ed;
+  border-radius: 16px;
+  background: white;
   cursor: pointer;
-  transition: border-color .15s, box-shadow .15s, background .15s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
   padding: 0;
   overflow: hidden;
   font-family: inherit;
-  box-shadow: 0 1px 0 rgba(0,0,0,.03);
+  box-shadow: 0 2px 4px rgba(30, 58, 42, 0.04);
 }
 .plant-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow);
+  border-color: #3a7a50;
+  box-shadow: 0 8px 16px rgba(30, 58, 42, 0.08);
+  transform: translateY(-2px);
 }
 .plant-card--selected {
-  border-color: var(--primary) !important;
-  background: linear-gradient(180deg, var(--primary-50), var(--bg-surface)) !important;
+  border-color: #1a3a2a !important;
+  background: #f0fdf4 !important;
+  box-shadow: 0 8px 16px rgba(26, 58, 42, 0.1) !important;
 }
 .plant-card:disabled { opacity: .6; cursor: not-allowed; }
 
 .plant-img-wrap {
   width: 100%;
   aspect-ratio: 16/10;
-  min-height: 170px;
+  min-height: 140px;
   overflow: hidden;
-  background: var(--bg-subtle);
+  background: #e8f0e8;
   position: relative;
 }
-.plant-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  transition: transform .35s ease, filter .35s ease;
-}
-.plant-card:hover .plant-img {
-  transform: scale(1.06);
-  filter: saturate(1.06);
-}
-.plant-img-wrap::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,.00), rgba(0,0,0,.10));
-  pointer-events: none;
-}
-.plant-img-fallback { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-faint); }
+.plant-img { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+.plant-card:hover .plant-img { transform: scale(1.08); }
 
-.plant-info { padding: .75rem .9rem; flex: 1; }
-.plant-name { font-size: .9rem; font-weight: 700; color: var(--gray-900); margin-bottom: 2px; }
-.plant-sci  { font-size: .73rem; color: var(--text-muted); font-style: italic; margin: 0; }
+.plant-info { padding: .875rem; flex: 1; }
+.plant-name { font-size: .9375rem; font-weight: 700; color: #1e3a2a; margin-bottom: 2px; }
+.plant-sci  { font-size: .75rem; color: #6a8a72; font-style: italic; margin: 0; }
 
 .plant-check {
-  position: absolute; top: .5rem; right: .5rem;
+  position: absolute; top: .625rem; right: .625rem;
   width: 24px; height: 24px; border-radius: 50%;
-  background: var(--primary); color: #fff;
+  background: #1a3a2a; color: #fff;
   display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
 }
 
 /* Symptoms */
-.symptoms-list  { display: flex; flex-direction: column; gap: 2px; max-height: 440px; overflow-y: auto; }
-.symptom-row {
-  display: flex; align-items: center; flex-wrap: wrap; gap: .625rem;
-  padding: .75rem;
-  border: 1.5px solid transparent;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: background .12s, border-color .12s;
-}
-.symptom-row:hover { background: var(--bg-subtle); }
-.symptom-row--selected { background: var(--primary-50); border-color: var(--primary-200); }
+.symptoms-list  { display: flex; flex-direction: column; gap: 0.25rem; max-height: 480px; overflow-y: auto; padding-right: .5rem; }
+.symptoms-list::-webkit-scrollbar { width: 6px; }
+.symptoms-list::-webkit-scrollbar-thumb { background: #d9e4d4; border-radius: 10px; }
 
-.symptom-check {
-  width: 17px; height: 17px;
-  accent-color: var(--primary);
+.symptom-row {
+  display: flex; align-items: center; flex-wrap: wrap; gap: .75rem;
+  padding: .875rem;
+  border: 1.5px solid transparent;
+  border-radius: 12px;
   cursor: pointer;
-  flex-shrink: 0;
+  transition: all 0.15s ease;
 }
-.symptom-label { flex: 1; font-size: .9rem; color: var(--gray-800); cursor: pointer; min-width: 0; }
-.symptom-code  { font-size: .75rem; font-weight: 700; color: var(--primary); font-family: monospace; margin-right: .25rem; }
+.symptom-row:hover { background: #f8faf9; border-color: #edf2ed; }
+.symptom-row--selected { background: #f0fdf4; border-color: #d9e4d4; }
+
+.symptom-check { width: 18px; height: 18px; accent-color: #1a3a2a; cursor: pointer; flex-shrink: 0; }
+.symptom-label { flex: 1; font-size: .9375rem; color: #334e3d; cursor: pointer; min-width: 0; }
+.symptom-code  { font-size: .8rem; font-weight: 700; color: #3a7a50; background: #e8f0e8; padding: 1px 6px; border-radius: 4px; margin-right: .5rem; }
 
 .symptom-cf-select {
   width: auto !important;
-  min-width: 200px;
-  padding: .375rem 2.25rem .375rem .75rem !important;
-  font-size: .8125rem !important;
-  background-color: var(--bg-surface) !important;
-  color: var(--text-main) !important;
-  border-color: var(--border-strong) !important;
+  min-width: 220px;
+  padding: .5rem 2.25rem .5rem .875rem !important;
+  font-size: .875rem !important;
+  background-color: white !important;
+  border: 1.5px solid #d9e4d4 !important;
+  border-radius: 10px !important;
+  outline: none;
 }
-.symptom-cf-select option { background: #fff; color: var(--text-main); }
+.symptom-cf-select:focus { border-color: #3a7a50; }
 
 .symptom-count {
-  display: flex; align-items: center; gap: .375rem;
-  margin-top: .75rem; padding-top: .75rem;
-  border-top: 1px solid var(--border);
-  font-size: .8125rem; font-weight: 600; color: var(--primary);
+  display: flex; align-items: center; gap: .5rem;
+  margin-top: 1rem; padding-top: 1rem;
+  border-top: 1px solid #edf2ed;
+  font-size: .875rem; font-weight: 700; color: #1a3a2a;
 }
 
-.symptoms-empty {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-muted);
-  font-size: .9rem;
-  background: var(--bg-subtle);
-  border-radius: var(--radius);
-}
+.symptoms-empty { text-align: center; padding: 3rem; color: #6a8a72; background: #f8faf9; border-radius: 16px; border: 1.5px dashed #d9e4d4; }
 
 /* Submit */
-.submit-section { background: var(--bg-subtle); border-color: var(--border); }
-.submit-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.submit-btn { flex: 1; min-width: 200px; }
+.submit-section { background: #f0fdf4; border-color: #dcfce7; }
+.submit-row { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+.submit-btn { flex: 1; min-width: 240px; }
+
+/* Animations */
+.animate-fade-in { animation: fadeIn 0.4s ease-out forwards; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>

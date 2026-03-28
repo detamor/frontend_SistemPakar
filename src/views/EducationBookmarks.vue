@@ -15,6 +15,9 @@
             <h1 class="bm-title">Bookmark Saya</h1>
             <p class="bm-sub">Modul edukasi yang telah Anda simpan</p>
           </div>
+          <router-link to="/education" class="sp-btn sp-btn-primary bm-explore-btn-header">
+            📚 Jelajahi Modul Edukasi
+          </router-link>
         </div>
       </div>
     </section>
@@ -33,9 +36,6 @@
         <div class="bm-empty-icon">📑</div>
         <h2 class="bm-empty-title">Belum Ada Bookmark</h2>
         <p class="bm-empty-sub">Simpan modul edukasi favorit untuk dibaca nanti</p>
-        <router-link to="/education" class="sp-btn sp-btn-primary">
-          📚 Jelajahi Modul Edukasi
-        </router-link>
       </div>
 
       <!-- List -->
@@ -160,7 +160,13 @@ a { text-decoration: none; }
 }
 .bm-hero-inner {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.bm-explore-btn-header {
+  margin-bottom: 2px;
 }
 .bm-back-link {
   display: inline-flex;
@@ -334,6 +340,15 @@ a { text-decoration: none; }
 @media (max-width: 640px) {
   .bm-grid {
     grid-template-columns: 1fr;
+  }
+  .bm-hero-inner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .bm-explore-btn-header {
+    width: 100%;
+    justify-content: center;
   }
 }
 </style>

@@ -1,32 +1,30 @@
 <template>
   <div class="feedback-comments-page">
-    <div class="mb-6 flex justify-between items-center">
-      <router-link
-        to="/admin"
-        class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition-colors text-sm font-medium"
-      >
-        <span>←</span>
-        <span>Kembali ke Dashboard</span>
-      </router-link>
-      <div class="text-xs text-slate-400 font-medium">
-        Terakhir diperbarui: {{ lastUpdate }}
+    <header class="edu-hero">
+      <div class="hero-bg-leaf">🌿</div>
+      <div class="hero-bg-leaf hero-bg-leaf--2">🍃</div>
+      <div class="page-container header-flex-box">
+        <div class="hero-text">
+          <span class="hero-eyebrow">Admin Console</span>
+          <h1 class="edu-title">Feedback Pengguna</h1>
+          <p class="edu-sub">
+            Evaluasi kualitas hasil diagnosis dan peningkatan basis pengetahuan sistem pakar.
+          </p>
+        </div>
+        <div class="hero-side-info text-right">
+          <div class="text-xs text-emerald-200 font-bold uppercase tracking-widest mb-1">Status Sistem</div>
+          <div class="text-sm text-white font-medium">Terakhir diperbarui: {{ lastUpdate }}</div>
+        </div>
       </div>
-    </div>
-
-    <div class="mb-10">
-      <h1 class="text-3xl font-black text-slate-800 mb-2">Komentar Feedback Pengguna</h1>
-      <p class="text-slate-500 font-medium max-w-3xl">
-        Kumpulan komentar terbaru dari pengguna untuk evaluasi kualitas hasil diagnosis dan peningkatan berkelanjutan basis pengetahuan sistem pakar.
-      </p>
-    </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start mt-6">
+    </header>
+    <main class="page-container admin-main-content">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         <!-- Left Column: Chart & Summary -->
         <div class="lg:col-span-5 xl:col-span-4 lg:sticky lg:top-8">
           <div class="rounded-3xl border border-slate-100 bg-slate-50/50 p-6 sm:p-8 shadow-sm">
-            <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2">
-              <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
+            <h3 class="card-header-title">
+              <span class="indicator bg-amber"></span>
               Tingkat Kepuasan / Akurasi Sistem
             </h3>
             <div class="h-64 flex items-center justify-center chart-wrap">
@@ -68,10 +66,10 @@
           <template v-else>
             <!-- Section 1: Feedback -->
         <div class="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm">
-          <h2 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 bg-emerald-500 rounded-full"></span>
+          <h3 class="card-header-title">
+            <span class="indicator bg-emerald"></span>
             Komentar Feedback Pengguna
-          </h2>
+          </h3>
           <div v-if="feedbackCommentItems.length" class="space-y-5">
             <div
               v-for="item in feedbackCommentItems"
@@ -117,10 +115,10 @@
 
         <!-- Section 2: Evaluation Notes -->
         <div class="rounded-3xl border border-slate-100 bg-white p-6 sm:p-8 shadow-sm">
-          <h2 class="text-xl font-black text-slate-800 mb-6 flex items-center gap-2">
-            <span class="w-2.5 h-2.5 bg-indigo-500 rounded-full"></span>
+          <h3 class="card-header-title">
+            <span class="indicator bg-indigo"></span>
             Catatan Evaluasi Diagnosis Pengguna
-          </h2>
+          </h3>
           <div v-if="evaluationNoteItems.length" class="space-y-5">
             <div
               v-for="item in evaluationNoteItems"
@@ -163,6 +161,7 @@
       </template>
     </div>
     </div>
+    </main>
   </div>
 </template>
 
@@ -319,12 +318,116 @@ onMounted(async () => {
 
 <style scoped>
 .feedback-comments-page {
-  width: 100%;
-  margin: 0;
-  padding: 2rem 4rem;
-  background: var(--bg-subtle);
+  background-color: #f5f7f4;
   min-height: 100vh;
+  font-family: 'DM Sans', sans-serif;
+  color: #1e3a2a;
 }
+
+/* --- Hero Section --- */
+.edu-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #064e3b 0%, #166534 60%, #15803d 100%);
+  padding: 3rem 1.5rem 4.5rem;
+  color: white;
+  margin-bottom: 0;
+}
+
+.hero-bg-leaf {
+  position: absolute;
+  font-size: 8rem; opacity: .08;
+  top: -1rem; right: -1rem;
+  transform: rotate(20deg);
+  pointer-events: none;
+}
+.hero-bg-leaf--2 {
+  font-size: 5rem;
+  top: auto; bottom: -1.5rem; left: -1rem;
+  transform: rotate(-30deg);
+}
+
+.page-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.header-flex-box {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 2rem;
+}
+
+@media (max-width: 768px) {
+  .header-flex-box { flex-direction: column; align-items: flex-start; gap: 1.5rem; }
+}
+
+.modern-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 1rem;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s;
+}
+.modern-back-btn:hover { background: rgba(255,255,255,0.2); transform: translateX(-4px); }
+
+.hero-eyebrow {
+  display: inline-block;
+  color: #a7f3c0;
+  font-size: .8125rem;
+  font-weight: 800;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-bottom: 0.75rem;
+}
+
+.edu-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.75rem;
+  font-weight: 400;
+  color: #fff;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.edu-sub {
+  font-size: 1.0625rem;
+  color: rgba(255,255,255,0.7);
+  margin-top: 1rem;
+  max-width: 600px;
+}
+
+.admin-main-content {
+  padding: 2rem 1.5rem 6rem; /* Added top padding */
+  margin-top: 0; /* Removed negative overlap for cleaner look */
+  position: relative;
+  z-index: 10;
+}
+
+.card-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #4b6a55;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2rem;
+}
+
+.indicator { width: 10px; height: 10px; border-radius: 50%; }
+.bg-emerald { background: #10b981; }
+.bg-amber { background: #f59e0b; }
+.bg-indigo { background: #6366f1; }
 
 .chart-wrap {
   max-width: 420px;

@@ -1,125 +1,117 @@
 <template>
-  <div class="admin-dashboard">
-    <div class="flex justify-between items-start mb-6 mt-0">
-      <div class="flex items-center gap-4">
-        <div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center">
-          <svg class="w-7 h-7 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-        </div>
-        <div class="flex flex-col border-none">
-          <h1 class="text-2xl font-black text-slate-800 -m-1 leading-none">Dashboard Admin</h1>
-          <p class="text-slate-500 text-sm m-0 -mt-1">Insight & Analitik Sistem Pakar</p>
+  <div class="admin-dashboard-page">
+    <!-- Page Header (Unified Hero Style) -->
+    <header class="edu-hero">
+      <div class="hero-bg-leaf">🌿</div>
+      <div class="hero-bg-leaf hero-bg-leaf--2">🍃</div>
+      <div class="page-container">
+        <div class="edu-hero-inner">
+          <div class="hero-text">
+            <span class="hero-eyebrow">Admin Control Center</span>
+            <h1 class="edu-title">Dashboard Admin</h1>
+            <p class="edu-sub">Insight & Analitik Sistem Pakar <span class="last-update">| Terakhir diperbarui: {{ lastUpdate }}</span></p>
+          </div>
         </div>
       </div>
+    </header>
+
+    <!-- Dashboard Content -->
+    <div class="page-container dashboard-main-content">
       
-      <div class="text-xs text-slate-400 font-medium mt-1">
-        Terakhir diperbarui: {{ lastUpdate }}
-      </div>
-    </div>
-    
-    <!-- Quick Links -->
-    <div class="bg-slate-50 p-6 rounded-3xl border border-slate-200/50 mb-8">
-      <h2 class="text-lg font-bold text-slate-800 mb-6">Navigasi Manajemen</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <router-link to="/admin/users" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
-          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">👥</div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Users</p>
-        </router-link>
-        <router-link to="/admin/education" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
-          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📚</div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Edukasi</p>
-        </router-link>
-        <router-link to="/admin/plants" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
-          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🌿</div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Tanaman</p>
-        </router-link>
-        <router-link to="/admin/diseases" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
-          <div class="mb-2 group-hover:scale-110 transition-transform flex items-center justify-center gap-1">
-            <span class="text-[1.15rem]">📊</span>
-            <span class="text-[1.15rem]">🦠</span>
-            <span class="text-[1.15rem]">🔍</span>
+      <!-- Navigasi Manajemen (Quick Links) -->
+      <section class="dashboard-section">
+        <div class="section-card quick-links-card">
+          <h2 class="section-title">Navigasi Manajemen</h2>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <router-link to="/admin/users" class="nav-item-card">
+              <div class="nav-icon">👥</div>
+              <p class="nav-label">Users</p>
+            </router-link>
+            <router-link to="/admin/education" class="nav-item-card">
+              <div class="nav-icon">📚</div>
+              <p class="nav-label">Edukasi</p>
+            </router-link>
+            <router-link to="/admin/plants" class="nav-item-card">
+              <div class="nav-icon">🌿</div>
+              <p class="nav-label">Tanaman</p>
+            </router-link>
+            <router-link to="/admin/diseases" class="nav-item-card complex-icon">
+              <div class="nav-icon-group">
+                <span>📊</span><span>🦠</span><span>🔍</span>
+              </div>
+              <p class="nav-label">Table CF</p>
+              <p class="nav-sub">Penyakit & Gejala</p>
+            </router-link>
+            <router-link to="/admin/cf-levels" class="nav-item-card">
+              <div class="nav-icon">📊</div>
+              <p class="nav-label">Bobot CF</p>
+            </router-link>
+            <router-link to="/admin/feedback-comments" class="nav-item-card">
+              <div class="nav-icon">🗒️</div>
+              <p class="nav-label">Feedback</p>
+            </router-link>
           </div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Table CF</p>
-          <p class="text-[10px] font-semibold text-slate-500 mt-1">CRUD penyakit dan gejala</p>
-        </router-link>
-        <router-link to="/admin/cf-levels" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
-          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">📊</div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Bobot CF</p>
-        </router-link>
-        <router-link to="/admin/feedback-comments" class="group bg-white p-4 rounded-xl border border-slate-200 hover:border-emerald-500 hover:shadow-lg transition-all text-center">
-          <div class="text-2xl mb-2 group-hover:scale-110 transition-transform">🗒️</div>
-          <p class="text-[11px] font-bold text-slate-600 uppercase tracking-tight">Feedback</p>
-        </router-link>
-      </div>
-    </div>
+        </div>
+      </section>
 
-    <!-- Charts Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      <!-- Ringkasan basis pengetahuan (dari database) -->
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 class="text-sm font-bold text-slate-700 mb-5 flex items-center gap-2">
-          <span class="w-2 h-2 bg-emerald-500 rounded-full"></span>
-          Ringkasan Sistem
-        </h3>
-        <div class="flex justify-center mb-5">
-          <div class="grid grid-cols-2 gap-3 w-full max-w-[560px]">
-            <div
-              v-for="stat in systemStats"
-              :key="stat.label"
-              class="w-full h-32 flex flex-col items-center justify-center text-center p-2 rounded-xl bg-emerald-50/80 border border-emerald-100 hover:bg-emerald-100/50 transition-colors cursor-default"
-            >
-              <span class="block text-2xl font-black text-emerald-600 leading-none mb-1">{{ stat.num }}</span>
-              <span class="text-[11px] font-semibold text-slate-500">{{ stat.label }}</span>
+      <!-- Stats Grid -->
+      <div class="stats-overview-grid">
+        
+        <!-- Ringkasan Sistem -->
+        <section class="dashboard-section chart-section">
+          <div class="section-card">
+            <h3 class="card-header-title">
+              <span class="indicator bg-emerald"></span>
+              Ringkasan Sistem
+            </h3>
+            <div class="system-stats-grid">
+              <div v-for="stat in systemStats" :key="stat.label" class="stat-box">
+                <span class="stat-value text-emerald">{{ stat.num }}</span>
+                <span class="stat-label">{{ stat.label }}</span>
+              </div>
+            </div>
+            <div class="stats-divider"></div>
+            <div class="total-diagnosis-box">
+              <div class="diagnosis-icon">🩺</div>
+              <p class="diagnosis-value text-emerald">{{ quickStats.totalDiagnoses || 0 }}</p>
+              <p class="diagnosis-label">Total Diagnosis</p>
             </div>
           </div>
-        </div>
-        <div class="h-px bg-slate-100 my-5"></div>
-        <div class="flex justify-center mt-4">
-          <div class="w-full max-w-[560px] h-32 bg-emerald-50/80 rounded-xl border border-emerald-100 flex flex-col items-center justify-center text-center hover:bg-emerald-100/50 transition-colors">
-            <div class="w-8 h-8 bg-emerald-100/60 text-emerald-600 rounded-md flex items-center justify-center mb-1 text-sm">🩺</div>
-            <p class="text-2xl font-black text-emerald-600 leading-none mb-1">{{ quickStats.totalDiagnoses || 0 }}</p>
-            <p class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Jumlah Diagnosis</p>
-          </div>
-        </div>
-      </div>
+        </section>
 
-      <!-- Feedback Distribution -->
-      <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-        <h3 class="text-sm font-bold text-slate-700 mb-6 flex items-center gap-2">
-          <span class="w-2 h-2 bg-amber-500 rounded-full"></span>
-          Tingkat Kepuasan / Akurasi Sistem
-        </h3>
-        <div class="h-64 flex items-center justify-center chart-wrap">
-          <Doughnut v-if="feedbackChartData.labels.length" :data="feedbackChartData" :options="chartOptions" />
-          <div v-else class="text-slate-300 text-xs italic">Belum ada feedback terkumpul</div>
-        </div>
-        <div v-if="feedbackSummary.length" class="mt-5 border-t border-slate-100 pt-4 flex flex-col gap-3">
-          <p class="text-[10.5px] text-slate-500 font-bold px-2 mb-0.5 uppercase tracking-wider">
-            Total Feedback: {{ totalFeedbackCount }}
-          </p>
-          <div
-            v-for="item in feedbackSummary"
-            :key="item.key"
-            class="rounded-xl border transition-colors shadow-sm"
-            :class="feedbackItemClass(item.key)"
-            style="padding: 11px 15px;"
-          >
-            <div class="flex items-center justify-between gap-4">
-              <div class="flex-1">
-                <div class="text-[12px] font-bold text-slate-800 mb-1 flex items-center gap-1.5">
-                  <span class="text-[14px]">{{ item.icon }}</span> 
-                  <span>{{ item.label }}</span>
+        <!-- Akurasi & Feedback -->
+        <section class="dashboard-section chart-section">
+          <div class="section-card">
+            <h3 class="card-header-title">
+              <span class="indicator bg-amber"></span>
+              Kepuasan & Akurasi Sistem
+            </h3>
+            <div class="chart-container">
+              <Doughnut v-if="feedbackChartData.labels.length" :data="feedbackChartData" :options="chartOptions" />
+              <div v-else class="empty-chart-msg">Belum ada feedback terkumpul</div>
+            </div>
+            
+            <div v-if="feedbackSummary.length" class="feedback-summary-list">
+              <p class="total-feedback-text">Total Feedback: {{ totalFeedbackCount }}</p>
+              <div v-for="item in feedbackSummary" :key="item.key" 
+                class="feedback-item-card" :class="item.key">
+                <div class="feedback-content">
+                  <div class="feedback-info">
+                    <div class="feedback-label-row">
+                      <span class="feedback-icon">{{ item.icon }}</span>
+                      <span class="feedback-name">{{ item.label }}</span>
+                    </div>
+                    <p class="feedback-desc">{{ item.description }}</p>
+                  </div>
+                  <div class="feedback-count">{{ item.total }}</div>
                 </div>
-                <p class="text-[11px] text-slate-500 leading-snug max-w-[92%]">{{ item.description }}</p>
-              </div>
-              <div class="text-[1.35rem] font-black text-slate-700 tabular-nums" style="margin-left: 8px; margin-right: 2px;">
-                {{ item.total }}
               </div>
             </div>
           </div>
-        </div>
+        </section>
       </div>
-    </div>
 
+    </div>
   </div>
 </template>
 
@@ -193,17 +185,17 @@ const feedbackSummary = computed(() => {
     accurate: {
       icon: '😊',
       label: 'Akurat',
-      description: 'Pengguna menilai hasil diagnosis sudah sesuai.'
+      description: 'Diagnosis sesuai dengan kondisi tanaman.'
     },
     somewhat_accurate: {
       icon: '😐',
       label: 'Cukup Akurat',
-      description: 'Hasil cukup membantu, tetapi masih perlu perbaikan.'
+      description: 'Hasil membantu, masih ada perbaikan.'
     },
     inaccurate: {
       icon: '😞',
       label: 'Tidak Akurat',
-      description: 'Hasil belum sesuai dan perlu evaluasi basis pengetahuan.'
+      description: 'Hasil belum sesuai, perlu evaluasi.'
     }
   }
 
@@ -230,13 +222,6 @@ const totalFeedbackCount = computed(() => {
   return dist.reduce((sum, item) => sum + Number(item.total || 0), 0)
 })
 
-const feedbackItemClass = (key) => {
-  if (key === 'accurate') return 'border-emerald-100 bg-emerald-50/60'
-  if (key === 'somewhat_accurate') return 'border-amber-100 bg-amber-50/60'
-  if (key === 'inaccurate') return 'border-rose-100 bg-rose-50/60'
-  return 'border-slate-100 bg-slate-50'
-}
-
 onMounted(async () => {
   try {
     await Promise.all([
@@ -251,18 +236,246 @@ onMounted(async () => {
 </script>
 
 <style scoped>
-.admin-dashboard {
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;600;700;800;900&display=swap');
+
+.admin-dashboard-page {
   width: 100%;
-  margin: 0;
-  padding: 2rem 4rem;
-  background: var(--bg-subtle);
   min-height: 100vh;
+  background-color: #f5f7f4;
+  font-family: 'DM Sans', sans-serif;
+  color: #1e3a2a;
 }
 
-.chart-wrap {
-  max-width: 420px;
+/* --- Hero Section --- */
+.edu-hero {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(135deg, #064e3b 0%, #166534 60%, #15803d 100%);
+  padding: 4rem 1.5rem 3.5rem;
+  color: white;
+}
+
+.hero-bg-leaf {
+  position: absolute;
+  font-size: 8rem;
+  opacity: .08;
+  top: -1rem; right: -1rem;
+  transform: rotate(20deg);
+  pointer-events: none;
+  user-select: none;
+}
+.hero-bg-leaf--2 {
+  font-size: 5rem;
+  top: auto; bottom: -1.5rem; left: -1rem; right: auto;
+  transform: rotate(-30deg);
+}
+
+.page-container {
+  max-width: 1200px;
   margin: 0 auto;
 }
+
+.hero-eyebrow {
+  display: inline-block;
+  background: rgba(255,255,255,.12);
+  color: #a7f3c0;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  padding: .3rem .875rem;
+  border-radius: 999px;
+  margin-bottom: .875rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.edu-title {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.75rem;
+  font-weight: 400;
+  color: #fff;
+  margin: 0 0 .5rem;
+  line-height: 1.1;
+}
+
+.edu-sub {
+  font-size: 1rem;
+  color: rgba(255,255,255,.7);
+  margin: 0;
+}
+
+.last-update { opacity: 0.7; font-size: 0.875rem; font-weight: 500; margin-left: 0.5rem; }
+
+/* --- Main Layout --- */
+.dashboard-main-content {
+  padding: 0 1.5rem 5rem;
+  margin-top: -2.5rem;
+  position: relative;
+  z-index: 20;
+}
+
+.dashboard-section { margin-bottom: 2rem; }
+
+.section-card {
+  background: white;
+  border-radius: 24px;
+  padding: 2rem;
+  box-shadow: 0 4px 25px rgba(30, 58, 42, 0.05);
+  border: 1.5px solid #edf2ed;
+}
+
+.section-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: #1e3a2a;
+  margin-bottom: 1.75rem;
+  letter-spacing: -0.01em;
+}
+
+/* --- Quick Links --- */
+.nav-item-card {
+  background: #f8faf9;
+  padding: 1.25rem 1rem;
+  border-radius: 20px;
+  border: 1.5px solid transparent;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.nav-item-card:hover {
+  background: white;
+  border-color: #3a7a50;
+  box-shadow: 0 12px 24px rgba(30, 58, 42, 0.08);
+  transform: translateY(-4px);
+}
+
+.nav-icon { font-size: 1.75rem; margin-bottom: 0.625rem; transition: transform 0.3s; }
+.nav-item-card:hover .nav-icon { transform: scale(1.15) rotate(5deg); }
+
+.nav-label { font-size: 0.75rem; font-weight: 800; color: #4b6a55; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+.nav-sub { font-size: 0.625rem; font-weight: 500; color: #adbcaa; margin-top: 2px; }
+
+.nav-icon-group { display: flex; gap: 2px; font-size: 1.125rem; margin-bottom: 0.625rem; }
+
+/* --- Stats and Charts --- */
+.stats-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+@media (max-width: 1024px) {
+  .stats-overview-grid { grid-template-columns: 1fr; }
+}
+
+.card-header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 800;
+  color: #4b6a55;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 2rem;
+}
+
+.indicator { width: 10px; height: 10px; border-radius: 50%; }
+.bg-emerald { background: #10b981; }
+.bg-amber { background: #f59e0b; }
+
+.system-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.stat-box {
+  background: #f0fdf4;
+  padding: 1.75rem 1rem;
+  border-radius: 18px;
+  border: 1.5px solid #dcfce7;
+  text-align: center;
+  transition: background 0.2s;
+}
+
+.stat-box:hover { background: #dcfce7; }
+
+.stat-value { display: block; font-size: 2rem; font-weight: 900; margin-bottom: 0.25rem; }
+.text-emerald { color: #059669; }
+
+.stat-label { font-size: 0.75rem; font-weight: 700; color: #6a8a72; text-transform: uppercase; }
+
+.stats-divider { height: 1.5px; background: #edf2ed; margin: 2rem 0; }
+
+.total-diagnosis-box {
+  background: #f0fdf4;
+  border: 1.5px solid #dcfce7;
+  border-radius: 20px;
+  padding: 1.75rem;
+  text-align: center;
+  transition: all 0.2s;
+}
+.total-diagnosis-box:hover { transform: scale(1.02); background: #dcfce7; }
+
+.diagnosis-icon { font-size: 1.5rem; margin-bottom: 0.5rem; display: block; }
+.diagnosis-value { font-size: 2.5rem; font-weight: 900; line-height: 1; margin: 0 0 0.5rem; }
+.diagnosis-label { font-size: 0.875rem; font-weight: 800; color: #4b6a55; text-transform: uppercase; letter-spacing: 0.05em; margin: 0; }
+
+/* --- Feedback Distribution --- */
+.chart-container {
+  height: 240px;
+  max-width: 320px;
+  margin: 0 auto 2.5rem;
+  position: relative;
+}
+
+.empty-chart-msg {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.875rem;
+  color: #adbcaa;
+  font-style: italic;
+}
+
+.feedback-summary-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border-top: 1.5px solid #edf2ed;
+  padding-top: 1.75rem;
+}
+
+.total-feedback-text {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #4b6a55;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+  padding-left: 0.5rem;
+}
+
+.feedback-item-card {
+  padding: 1.125rem;
+  border-radius: 18px;
+  border: 1.5px solid transparent;
+}
+
+.feedback-item-card.accurate { background: #f0fdf4; border-color: #dcfce7; }
+.feedback-item-card.somewhat_accurate { background: #fffbeb; border-color: #fef3c7; }
+.feedback-item-card.inaccurate { background: #fef2f2; border-color: #fee2e2; }
+
+.feedback-content { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+.feedback-label-row { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+.feedback-icon { font-size: 1.25rem; }
+.feedback-name { font-size: 0.9375rem; font-weight: 800; color: #1e3a2a; }
+.feedback-desc { font-size: 0.75rem; color: #6a8a72; margin: 0; line-height: 1.4; max-width: 200px; }
+.feedback-count { font-size: 1.75rem; font-weight: 900; color: #1e3a2a; }
 </style>
-
-
