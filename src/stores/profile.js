@@ -20,8 +20,10 @@ export const useProfileStore = defineStore('profile', {
         const token = localStorage.getItem('auth_token')
         const formData = new FormData()
         
-        if (data.name) formData.append('name', data.name)
-        if (data.email) formData.append('email', data.email)
+        formData.append('name', data.name || '')
+        formData.append('email', data.email || '')
+        formData.append('phone', data.phone || '')
+        formData.append('bio', data.bio || '')
         if (data.photo) formData.append('photo', data.photo)
 
         const response = await axios.post(

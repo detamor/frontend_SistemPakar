@@ -1,121 +1,173 @@
 <template>
-  <div class="page-wrapper">
+  <div class="profile-page">
+    <div class="profile-container">
 
-    <!-- Header -->
-    <section class="profile-hero">
-      <div class="sp-container">
-        <RouterLink to="/" class="sp-btn sp-btn-secondary sp-btn-sm" style="margin-bottom:1rem;display:inline-flex;">
-          <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-          Kembali
-        </RouterLink>
-        <h1 style="font-size:1.625rem;font-weight:800;color:var(--gray-900);margin:0 0 .25rem;">Profil Saya1</h1>
-        <p style="color:var(--text-muted);font-size:.9375rem;margin:0;">Kelola informasi profil dan keamanan akun Anda</p>
-      </div>
-    </section>
-
-    <!-- Content -->
-    <div class="sp-container profile-content">
-
-      <!-- Loading -->
-      <div v-if="loading && !user" class="sp-card" style="padding:3rem;text-align:center;">
-        <div class="sp-spinner" style="margin:0 auto 1rem;"></div>
-        <p style="color:var(--text-muted);">Memuat profil...</p>
+      <!-- Loading State -->
+      <div v-if="loading && !user" class="loading-box">
+        <div class="spinner"></div>
+        <p>Memuat...</p>
       </div>
 
       <template v-else-if="user">
+        <transition name="fade" mode="out-in">
 
-        <!-- Foto Profil -->
-        <div class="sp-card profile-section">
-          <h2 class="section-title">Foto Profil</h2>
-          <div class="photo-area">
-            <div class="photo-wrap">
-              <img v-if="user.photo || photoPreview"
-                :src="photoPreview || getPhotoUrl(user.photo)"
-                :alt="user.name"
-                class="photo-img" />
-              <div v-else class="photo-initial">{{ user.name?.charAt(0).toUpperCase() }}</div>
-              <div v-if="uploadingPhoto" class="photo-overlay">
-                <div class="sp-spinner" style="width:24px;height:24px;border-width:3px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></div>
+          <!-- ==================== VIEW MODE ==================== -->
+          <div v-if="!isEditing" key="view" class="profile-card">
+
+            <!-- Top Section: Avatar + Info -->
+            <div class="profile-header">
+              <div class="avatar-wrapper">
+                <div class="avatar">
+                  <img v-if="user.photo && !photoLoadError" :src="getPhotoUrl(user.photo)" :alt="user.name" @error="photoLoadError = true" />
+                  <svg v-else class="avatar-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                    <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                  </svg>
+                </div>
+              </div>
+
+              <div class="info">
+                <h2 class="info-name">{{ user.name }}</h2>
+                <div class="info-row">
+                  <span class="info-label">Email</span>
+                  <span class="info-value">{{ user.email }}</span>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">Phone</span>
+                  <span class="info-value">{{ user.phone || '—' }}</span>
+                </div>
               </div>
             </div>
-            <div class="photo-actions">
-              <label for="photo-upload" class="sp-btn sp-btn-primary sp-btn-sm" :class="{ 'disabled': uploadingPhoto }">
-                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                {{ user.photo ? 'Ganti Foto' : 'Upload Foto' }}
-              </label>
-              <input id="photo-upload" type="file" accept="image/jpeg,image/png,image/jpg,image/gif" @change="handlePhotoChange" :disabled="uploadingPhoto" style="display:none;" />
-              <button v-if="user.photo" @click="handleRemovePhoto" :disabled="uploadingPhoto" class="sp-btn sp-btn-sm" style="color:#dc2626;border-color:#fca5a5;background:#fff5f5;">
-                <svg width="15" height="15" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                Hapus Foto
-              </button>
+
+            <!-- Bio Section -->
+            <div class="bio-section" v-if="user.bio">
+              <span class="bio-label">Bio</span>
+              <p class="bio-text">{{ user.bio }}</p>
             </div>
-            <div v-if="selectedPhoto" class="sp-alert sp-alert-info" style="font-size:.8125rem;">
-              <strong>File:</strong> {{ selectedPhoto.name }} ({{ formatFileSize(selectedPhoto.size) }}) — klik "Simpan" untuk upload
+
+            <!-- Actions -->
+            <div class="actions-row">
+              <button @click="startEditing" class="btn btn-outline">Edit Profile</button>
+              <button @click="showPasswordModal = true" class="btn btn-outline">Ubah Password</button>
             </div>
-            <div v-if="photoError" class="sp-alert sp-alert-danger" style="font-size:.8125rem;">{{ photoError }}</div>
           </div>
-        </div>
 
-        <!-- Informasi Profil -->
-        <div class="sp-card profile-section">
-          <h2 class="section-title">Informasi Profil</h2>
-          <form @submit.prevent="handleUpdateProfile" style="display:flex;flex-direction:column;gap:1.125rem;">
-            <div>
-              <label for="name" class="sp-label">Nama Lengkap <span style="color:#dc2626;">*</span></label>
-              <input id="name" v-model="form.name" type="text" placeholder="Masukkan nama lengkap" required :disabled="loading" class="glass-input" />
-            </div>
-            <div>
-              <label for="email" class="sp-label">Email <span style="color:#dc2626;">*</span></label>
-              <input id="email" v-model="form.email" type="email" placeholder="Masukkan alamat email" required :disabled="loading" class="glass-input" />
-            </div>
-            <div v-if="error" class="sp-alert sp-alert-danger">{{ error }}</div>
-            <div v-if="success" class="sp-alert sp-alert-success">{{ success }}</div>
-            <button type="submit" :disabled="loading || uploadingPhoto" class="sp-btn sp-btn-primary" style="align-self:flex-start;min-width:160px;justify-content:center;">
-              <span v-if="loading" class="sp-spinner" style="width:16px;height:16px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
-              {{ loading ? 'Menyimpan...' : 'Simpan Perubahan' }}
-            </button>
-          </form>
-        </div>
+          <!-- ==================== EDIT MODE ==================== -->
+          <div v-else key="edit" class="profile-card">
+            <form @submit.prevent="handleUpdateProfile">
 
-        <!-- Ubah Password -->
-        <div class="sp-card profile-section">
-          <h2 class="section-title">Ubah Password</h2>
-          <form @submit.prevent="handleChangePassword" style="display:flex;flex-direction:column;gap:1.125rem;">
-            <div>
-              <label for="current_password" class="sp-label">Password Lama <span style="color:#dc2626;">*</span></label>
-              <input id="current_password" v-model="passwordForm.current_password" type="password" placeholder="Masukkan password lama" required :disabled="passwordLoading" class="glass-input" />
-            </div>
-            <div>
-              <label for="new_password" class="sp-label">Password Baru <span style="color:#dc2626;">*</span></label>
-              <input id="new_password" v-model="passwordForm.password" type="password" placeholder="Minimal 8 karakter" required minlength="8" :disabled="passwordLoading" class="glass-input" />
-              <p class="sp-field-hint">Gunakan kombinasi huruf, angka, dan karakter khusus</p>
-            </div>
-            <div>
-              <label for="password_confirmation" class="sp-label">Konfirmasi Password <span style="color:#dc2626;">*</span></label>
-              <input id="password_confirmation" v-model="passwordForm.password_confirmation" type="password" placeholder="Ulangi password baru" required :disabled="passwordLoading" class="glass-input" />
-            </div>
-            <div v-if="passwordError" class="sp-alert sp-alert-danger">{{ passwordError }}</div>
-            <div v-if="passwordSuccess" class="sp-alert sp-alert-success">{{ passwordSuccess }}</div>
-            <button type="submit" :disabled="passwordLoading" class="sp-btn sp-btn-primary" style="align-self:flex-start;min-width:160px;justify-content:center;">
-              <span v-if="passwordLoading" class="sp-spinner" style="width:16px;height:16px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
-              {{ passwordLoading ? 'Mengubah...' : 'Ubah Password' }}
-            </button>
-          </form>
-        </div>
+              <!-- Photo Profile Section -->
+              <div class="form-section">
+                <span class="form-section-title">Photo Profile</span>
+                <div class="photo-upload-row">
+                  <div class="avatar avatar--small">
+                    <img v-if="(photoPreview || user.photo) && !editPhotoLoadError" :src="photoPreview || getPhotoUrl(user.photo)" @error="editPhotoLoadError = true" />
+                    <svg v-else class="avatar-placeholder" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+                      <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                  </div>
+                  <div class="photo-upload-info">
+                    <label for="photo-upload" class="btn btn-outline btn--sm">Choose Photo</label>
+                    <span class="photo-hint">JPG, PNG max 2MB</span>
+                    <input id="photo-upload" type="file" @change="handlePhotoChange" hidden accept="image/*" />
+                  </div>
+                </div>
+              </div>
 
+              <!-- Name -->
+              <div class="form-group">
+                <label class="form-label">Name</label>
+                <input v-model="form.name" type="text" class="form-input" />
+              </div>
+
+              <!-- Email -->
+              <div class="form-group">
+                <label class="form-label">Email</label>
+                <input v-model="form.email" type="email" class="form-input" />
+              </div>
+
+              <!-- Phone -->
+              <div class="form-group">
+                <label class="form-label">Phone</label>
+                <input v-model="form.phone" type="text" class="form-input" />
+              </div>
+
+              <!-- Bio -->
+              <div class="form-group">
+                <label class="form-label">Bio</label>
+                <textarea v-model="form.bio" rows="4" class="form-input form-textarea"></textarea>
+              </div>
+
+              <!-- Feedback -->
+              <transition name="fade" mode="out-in">
+                <div v-if="error" key="error" class="feedback feedback--error">{{ error }}</div>
+                <div v-else-if="success" key="success" class="feedback feedback--success">{{ success }}</div>
+              </transition>
+
+              <!-- Actions -->
+              <div class="actions-row">
+                <button type="submit" :disabled="loading" class="btn btn-primary">
+                  <div v-if="loading" class="spinner spinner--sm"></div>
+                  Save
+                </button>
+                <button type="button" @click="cancelEditing" class="btn btn-outline">Cancel</button>
+              </div>
+
+            </form>
+          </div>
+
+        </transition>
       </template>
     </div>
+
+    <!-- ==================== PASSWORD MODAL ==================== -->
+    <transition name="fade">
+      <div v-if="showPasswordModal" class="modal-overlay" @click.self="showPasswordModal = false">
+        <div class="modal-card">
+          <h3 class="modal-title">Ubah Password</h3>
+
+          <form @submit.prevent="handleChangePassword">
+            <div class="form-group">
+              <label class="form-label">Password Lama</label>
+              <input v-model="passwordForm.current_password" type="password" class="form-input" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Password Baru</label>
+              <input v-model="passwordForm.password" type="password" class="form-input" required minlength="8" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Konfirmasi Password</label>
+              <input v-model="passwordForm.password_confirmation" type="password" class="form-input" required />
+            </div>
+
+            <div v-if="passwordError" class="feedback feedback--error">{{ passwordError }}</div>
+            <div v-if="passwordSuccess" class="feedback feedback--success">{{ passwordSuccess }}</div>
+
+            <div class="actions-row">
+              <button type="submit" :disabled="passwordLoading" class="btn btn-primary">
+                <div v-if="passwordLoading" class="spinner spinner--sm"></div>
+                Simpan
+              </button>
+              <button type="button" @click="showPasswordModal = false" class="btn btn-outline">Batal</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, reactive } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useProfileStore } from '../stores/profile'
 
 const authStore    = useAuthStore()
 const profileStore = useProfileStore()
 
+const isEditing       = ref(false)
 const loading         = ref(false)
 const passwordLoading = ref(false)
 const uploadingPhoto  = ref(false)
@@ -126,10 +178,13 @@ const passwordSuccess = ref(null)
 const photoError      = ref(null)
 const photoPreview    = ref(null)
 const selectedPhoto   = ref(null)
+const showPasswordModal = ref(false)
+const photoLoadError    = ref(false)
+const editPhotoLoadError = ref(false)
 
 const user         = computed(() => authStore.user)
-const form         = ref({ name: '', email: '' })
-const passwordForm = ref({ current_password: '', password: '', password_confirmation: '' })
+const form         = reactive({ name: '', email: '', phone: '', bio: '' })
+const passwordForm = reactive({ current_password: '', password: '', password_confirmation: '' })
 
 const getPhotoUrl = (p) => {
   if (!p) return null
@@ -137,22 +192,36 @@ const getPhotoUrl = (p) => {
   return `${import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000'}/storage/${p}`
 }
 
-const formatFileSize = (bytes) => {
-  if (!bytes) return '0 Bytes'
-  const k = 1024, s = ['Bytes','KB','MB']
-  const i = Math.floor(Math.log(bytes)/Math.log(k))
-  return Math.round(bytes/Math.pow(k,i)*100)/100 + ' ' + s[i]
+const startEditing = () => {
+  resetForm()
+  editPhotoLoadError.value = false
+  isEditing.value = true
+}
+
+const cancelEditing = () => {
+  isEditing.value = false
+  photoPreview.value = null
+  selectedPhoto.value = null
+  error.value = null
+}
+
+const resetForm = () => {
+  form.name = user.value?.name || ''
+  form.email = user.value?.email || ''
+  form.phone = user.value?.phone || ''
+  form.bio = user.value?.bio || ''
 }
 
 const handlePhotoChange = (event) => {
   const file = event.target.files[0]
   photoError.value = null
+  editPhotoLoadError.value = false
   if (!file) return
-  if (!['image/jpeg','image/png','image/jpg','image/gif'].includes(file.type)) {
-    photoError.value = 'Format tidak didukung. Gunakan JPG, PNG, atau GIF.'; event.target.value = ''; return
+  if (!file.type.startsWith('image/')) {
+    photoError.value = 'Format tidak valid.'; return
   }
   if (file.size > 2*1024*1024) {
-    photoError.value = 'Ukuran file terlalu besar. Maksimal 2MB.'; event.target.value = ''; return
+    photoError.value = 'Maksimal 2MB.'; return
   }
   selectedPhoto.value = file
   const reader = new FileReader()
@@ -160,94 +229,392 @@ const handlePhotoChange = (event) => {
   reader.readAsDataURL(file)
 }
 
-const handleRemovePhoto = async () => {
-  if (!confirm('Yakin ingin menghapus foto profil?')) return
-  photoError.value = null; uploadingPhoto.value = true
-  try {
-    const r = await profileStore.removePhoto()
-    if (r.success) { photoPreview.value = null; selectedPhoto.value = null; success.value = 'Foto berhasil dihapus'; setTimeout(() => { success.value = null }, 3000) }
-  } catch (err) { photoError.value = err.response?.data?.message || 'Gagal menghapus foto' }
-  finally { uploadingPhoto.value = false }
-}
-
 const handleUpdateProfile = async () => {
-  error.value = null; success.value = null; photoError.value = null; loading.value = true
-  const data = { name: form.value.name, email: form.value.email }
-  if (selectedPhoto.value) data.photo = selectedPhoto.value
+  error.value = null; success.value = null; loading.value = true
+  const submissionData = { ...form }
+  if (selectedPhoto.value) submissionData.photo = selectedPhoto.value
+  
   try {
-    const r = await profileStore.updateProfile(data)
-    if (r.success) { success.value = r.message || 'Profil berhasil diperbarui'; selectedPhoto.value = null; photoPreview.value = null; setTimeout(() => { success.value = null }, 3000) }
+    const r = await profileStore.updateProfile(submissionData)
+    if (r.success) { 
+      success.value = 'Profil berhasil diperbarui'
+      photoLoadError.value = false
+      setTimeout(() => { 
+        success.value = null 
+        isEditing.value = false
+        selectedPhoto.value = null
+        photoPreview.value = null
+      }, 2000) 
+    }
   } catch (err) {
-    if (err.response?.data?.errors) { const msgs = []; for (const f in err.response.data.errors) msgs.push(...err.response.data.errors[f]); error.value = msgs.join(', ') }
-    else error.value = err.response?.data?.message || 'Gagal memperbarui profil'
+    if (err.response?.data?.errors) { 
+      error.value = Object.values(err.response.data.errors).flat().join(', ') 
+    } else {
+      error.value = err.response?.data?.message || 'Gagal menyimpan'
+    }
   } finally { loading.value = false }
 }
 
 const handleChangePassword = async () => {
   passwordError.value = null; passwordSuccess.value = null; passwordLoading.value = true
   try {
-    const r = await profileStore.changePassword(passwordForm.value)
-    if (r.success) { passwordSuccess.value = r.message || 'Password berhasil diubah'; passwordForm.value = { current_password: '', password: '', password_confirmation: '' }; setTimeout(() => { passwordSuccess.value = null }, 3000) }
+    const r = await profileStore.changePassword(passwordForm)
+    if (r.success) { 
+      passwordSuccess.value = 'Password berhasil diubah'
+      passwordForm.current_password = ''
+      passwordForm.password = ''
+      passwordForm.password_confirmation = ''
+      setTimeout(() => { 
+        passwordSuccess.value = null 
+        showPasswordModal.value = false
+      }, 2000) 
+    }
   } catch (err) {
-    if (err.response?.data?.errors) { const msgs = []; for (const f in err.response.data.errors) msgs.push(...err.response.data.errors[f]); passwordError.value = msgs.join(', ') }
-    else passwordError.value = err.response?.data?.message || 'Gagal mengubah password'
+    if (err.response?.data?.errors) { 
+      passwordError.value = Object.values(err.response.data.errors).flat().join(', ') 
+    } else {
+      passwordError.value = err.response?.data?.message || 'Gagal mengubah password'
+    }
   } finally { passwordLoading.value = false }
 }
 
 onMounted(() => {
-  if (user.value) { form.value.name = user.value.name || ''; form.value.email = user.value.email || '' }
+  if (user.value) resetForm()
 })
 </script>
 
 <style scoped>
-a { text-decoration: none; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-.page-wrapper { min-height: 100vh; background: var(--bg-subtle); }
-.profile-hero {
+/* ===== Page Layout ===== */
+.profile-page {
+  min-height: 100vh;
+  background: #f8f9fa;
+  font-family: 'Inter', sans-serif;
+  color: #333;
+  padding: 24px 16px;
+}
+
+.profile-container {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+/* ===== Card ===== */
+.profile-card {
   background: #fff;
-  border-bottom: 1px solid var(--border);
-  padding: 5rem 0 1.75rem;
-}
-.profile-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  padding-top: 2rem;
-  padding-bottom: 4rem;
-  max-width: 640px;
-}
-.profile-section { padding: 1.75rem 2rem; }
-.section-title {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--gray-900);
-  margin: 0 0 1.25rem;
-  padding-bottom: .875rem;
-  border-bottom: 1px solid var(--border);
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 28px 24px;
 }
 
-/* Photo */
-.photo-area { display: flex; flex-direction: column; gap: 1rem; align-items: flex-start; }
-.photo-wrap {
-  position: relative;
-  width: 96px; height: 96px;
+@media (min-width: 640px) {
+  .profile-page { padding: 40px 24px; }
+  .profile-card { padding: 32px 32px; }
+}
+
+/* ===== Loading ===== */
+.loading-box {
+  text-align: center;
+  padding: 60px 20px;
+}
+.loading-box p {
+  margin-top: 12px;
+  color: #999;
+  font-size: 13px;
+}
+
+/* ===== Spinner ===== */
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid #e5e7eb;
+  border-top-color: #1a1a2e;
   border-radius: 50%;
-  overflow: hidden;
-  border: 3px solid var(--primary-200);
-  background: var(--primary-50);
+  animation: spin 0.7s linear infinite;
+  margin: 0 auto;
+}
+.spinner--sm {
+  width: 16px;
+  height: 16px;
+  border-width: 2px;
+  margin: 0;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ===== View Mode: Header ===== */
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.avatar-wrapper {
   flex-shrink: 0;
 }
-.photo-img  { width: 100%; height: 100%; object-fit: cover; }
-.photo-initial {
-  width: 100%; height: 100%;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 2rem; font-weight: 800; color: var(--primary-700);
+
+.avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 2px solid #e5e7eb;
+  background: #f9fafb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.photo-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,.45);
-  display: flex; align-items: center; justify-content: center;
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.photo-actions { display: flex; flex-wrap: wrap; gap: .625rem; }
-.disabled { opacity: .5; pointer-events: none; }
+
+.avatar-placeholder {
+  width: 38px;
+  height: 38px;
+  color: #c0c4cc;
+}
+
+.avatar--small {
+  width: 64px;
+  height: 64px;
+}
+.avatar--small .avatar-placeholder {
+  width: 32px;
+  height: 32px;
+}
+
+@media (min-width: 640px) {
+  .avatar { width: 80px; height: 80px; }
+  .avatar--small { width: 68px; height: 68px; }
+}
+
+/* ===== Info ===== */
+.info {
+  flex: 1;
+  min-width: 0;
+}
+
+.info-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 4px 0;
+  line-height: 1.3;
+}
+
+.info-row {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2px;
+}
+
+.info-label {
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+}
+
+.info-value {
+  font-size: 14px;
+  color: #333;
+  word-break: break-all;
+}
+
+/* ===== Bio ===== */
+.bio-section {
+  padding-top: 16px;
+}
+
+.bio-label {
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.bio-text {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+  margin: 0;
+  white-space: pre-line;
+}
+
+/* ===== Actions ===== */
+.actions-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 20px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.btn-primary {
+  background: #1a1a2e;
+  color: #fff;
+  border-color: #1a1a2e;
+}
+.btn-primary:hover { background: #2d2d44; }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-outline {
+  background: #fff;
+  color: #555;
+  border-color: #d1d5db;
+}
+.btn-outline:hover {
+  background: #f9fafb;
+  border-color: #aaa;
+  color: #333;
+}
+
+.btn--sm {
+  font-size: 12px;
+  padding: 6px 14px;
+}
+
+/* ===== Edit Mode: Photo Upload ===== */
+.form-section {
+  margin-bottom: 24px;
+}
+
+.form-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.photo-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.photo-upload-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.photo-hint {
+  font-size: 11px;
+  color: #aaa;
+}
+
+/* ===== Form Fields ===== */
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: #333;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  outline: none;
+  transition: border-color 0.15s ease;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #1a1a2e;
+  box-shadow: 0 0 0 2px rgba(26, 26, 46, 0.08);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+/* ===== Feedback ===== */
+.feedback {
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
+.feedback--error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.feedback--success {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* ===== Modal ===== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 28px 24px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+}
+
+.modal-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a2e;
+  margin: 0 0 20px 0;
+}
+
+/* ===== Transitions ===== */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
+}
 </style>
