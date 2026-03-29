@@ -129,9 +129,9 @@
           <div v-if="relevantModules.length > 0" class="sp-card sidebar-card relevant-knowledge">
             <header class="card-head mini">
               <span class="head-icon icon-amber">📚</span>
-              <h2 class="head-title">Wawasan Terkait</h2>
+              <h2 class="head-title">Modul Rekomendasi</h2>
             </header>
-            <p class="sidebar-help-text">Panduan pemeliharaan yang relevan untuk Anda:</p>
+            <p class="sidebar-help-text">Daftar panduan yang relevan untuk tanaman Anda:</p>
             <div class="mini-modules-list">
               <RouterLink 
                 v-for="module in relevantModules" :key="module.id" 
