@@ -96,7 +96,11 @@
             
             <div v-else class="result-placeholder" :class="{ 'is-pending': diagnosis.status === 'pending' }">
               <span class="placeholder-icon">{{ diagnosis.status === 'pending' ? '⏳' : '🔍' }}</span>
-              <p>{{ diagnosis.status === 'pending' ? 'Sedang dianalisis oleh sistem...' : 'Belum ada hasil diagnosis yang tersedia.' }}</p>
+              <p v-if="diagnosis.status === 'pending'">Sedang dianalisis oleh sistem...</p>
+              <p v-else-if="diagnosis.status === 'completed'">
+                Tidak ada hipotesis penyakit yang cocok dengan gejala pada basis pengetahuan.
+              </p>
+              <p v-else>Belum ada hasil diagnosis yang tersedia.</p>
             </div>
 
             <!-- Interaction Panels -->
@@ -263,6 +267,7 @@
 import { ref, onMounted, computed } from 'vue'
 import { useDiagnosisStore } from '../stores/diagnosis'
 import ConsultationWhatsAppModal from '../components/ConsultationWhatsAppModal.vue'
+import { sanitizeRecommendationWording } from '../utils/recommendationText'
 
 const diagnosisStore = useDiagnosisStore()
 const loading = ref(false)
@@ -314,7 +319,12 @@ const closeConsultationModal = () => { showConsultationModal.value = false; sele
 const handleConsultationSuccess = () => { loadHistory(currentPage.value) }
 const formatDate = (dateString) => new Date(dateString).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
 const getStatusText = (status) => ({ pending: 'Menunggu', completed: 'Selesai', consulted: 'Dikonsultasikan' }[status] || status)
-const getRecommendationPreview = (rec) => { if (!rec) return ''; const text = rec.replace(/\*\*/g, '').replace(/\n/g, ' '); return text.length > 150 ? text.substring(0, 150) + '...' : text }
+
+const getRecommendationPreview = (rec) => {
+  if (!rec) return ''
+  const text = sanitizeRecommendationWording(rec).replace(/\*\*/g, '').replace(/\n/g, ' ')
+  return text.length > 150 ? text.substring(0, 150) + '...' : text
+}
 
 const toastMsg  = ref(null)
 const toastType = ref('success')

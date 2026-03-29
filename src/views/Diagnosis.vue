@@ -174,7 +174,10 @@
             </button>
             <span v-if="selectedSymptoms.length > 0" style="font-size:.875rem;color:var(--text-muted);">{{ selectedSymptoms.length }} gejala dipilih</span>
           </div>
-          <p style="font-size:.8rem;color:var(--text-faint);margin-top:.875rem;text-align:center;">Proses diagnosis memakan waktu beberapa detik untuk hasil terbaik.</p>
+          <p style="font-size:.8rem;color:var(--text-faint);margin-top:.875rem;text-align:center;">
+            Proses diagnosis memakan waktu beberapa detik. Hipotesis penyakit diurutkan menurut nilai CF;
+            jika CF utama di bawah <strong>50%</strong>, sistem menampilkan <strong>peringatan diagnosis lemah</strong> namun hasil tetap lengkap.
+          </p>
         </div>
       </form>
     </div>

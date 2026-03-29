@@ -38,69 +38,140 @@
 
       <div v-else-if="diagnosis" class="diagnosis-content-grid">
 
-        <!-- Result Card (Main) -->
-        <div v-if="diagnosis.disease || diagnosis.disease_id" class="sp-card result-main-card">
+        <!-- Tanpa hipotesis: pending / tidak ada kecocokan aturan -->
+        <div
+          v-if="diagnosis && topTierDiagnoses.length === 0"
+          class="sp-card no-disease-result-card"
+        >
           <header class="card-head">
-            <span class="head-icon icon-blue">🔬</span>
-            <h2 class="head-title">Hasil Diagnosis Utama</h2>
+            <span class="head-icon icon-amber">⚠️</span>
+            <h2 class="head-title">
+              {{ diagnosis.status === 'pending' ? 'Hasil Belum Siap' : 'Tidak Ada Hipotesis Penyakit' }}
+            </h2>
           </header>
+          <div class="no-disease-body">
+            <template v-if="diagnosis.status === 'pending'">
+              <p class="no-disease-lead">
+                Diagnosis ini masih diproses oleh mesin sistem pakar. Jika halaman ini tidak berubah setelah beberapa saat,
+                pastikan layanan Python engine berjalan lalu muat ulang halaman.
+              </p>
+            </template>
+            <template v-else-if="diagnosis.status === 'completed'">
+              <p class="no-disease-lead">
+                <strong>Tidak ada penyakit dalam basis pengetahuan yang cocok</strong> dengan gejala yang Anda pilih untuk tanaman ini,
+                sehingga tidak ada nilai CF yang dihitung.
+              </p>
+              <p class="no-disease-detail">
+                Persentase pada daftar gejala adalah tingkat keyakinan <em>Anda</em> per gejala, bukan hasil diagnosis akhir.
+                Coba tambahkan atau ubah gejala, atau konsultasikan dengan pakar.
+              </p>
+              <p v-if="diagnosis.recommendation" class="no-disease-rec" v-html="formatRecommendation(diagnosis.recommendation)"></p>
+            </template>
+            <template v-else>
+              <p class="no-disease-lead">
+                Hasil diagnosis utama belum tersedia. Periksa status diagnosis atau coba buka ulang halaman ini.
+              </p>
+            </template>
+          </div>
+        </div>
 
-          <div class="result-display-box">
-            <div class="result-header">
-              <h3 class="disease-name-highlight">{{ diagnosis.disease?.name || 'Penyakit Tidak Diketahui' }}</h3>
-              <div class="certainty-indicator">
-                <span class="cf-label">Keyakinan:</span>
-                <span class="cf-pct" :class="getCFClass(diagnosis.certainty_value)">
-                  {{ (diagnosis.certainty_value * 100).toFixed(1) }}%
-                </span>
-                <span class="cf-badge-v2" :class="getCFBadgeClass(diagnosis.certainty_value)">
-                  {{ getCFLabel(diagnosis.certainty_value) }}
-                </span>
-              </div>
+        <!-- Hasil utama: satu hipotesis atau lebih dari satu hipotesis dengan CF tertinggi sama -->
+        <div v-else-if="diagnosis && topTierDiagnoses.length > 0" class="main-results-column">
+          <div v-if="hasTieAtTop" class="tie-top-banner sp-card">
+            <span class="tie-top-icon">⚖️</span>
+            <div>
+              <strong>Lebih dari satu hipotesis tertinggi dengan CF yang sama</strong>
+              <p class="tie-top-text">
+                Beberapa penyakit berbagi nilai CF tertinggi yang sama. Tiap hipotesis ditampilkan lengkap di bawah: bilah keyakinan, deskripsi, solusi, dan pencegahan.
+              </p>
             </div>
+          </div>
 
-            <!-- Progress Bar -->
-            <div class="cf-progress-container">
-              <div class="cf-bar-track">
-                <div class="cf-bar-fill" :class="getCFBarClass(diagnosis.certainty_value)" :style="{ width: (diagnosis.certainty_value * 100) + '%' }">
-                  <div class="bar-glow"></div>
+          <div v-if="isLowConfidence" class="sp-card cf-threshold-warning cf-threshold-warning--standalone" role="alert">
+            <strong>Peringatan: keyakinan di bawah 50%</strong>
+            <p>
+              Nilai CF hipotesis utama masuk kategori <em>diagnosis lemah</em>. Hasil tetap ditampilkan lengkap beserta peringkat lain;
+              gunakan sebagai acuan awal dan pertimbangkan gejala tambahan atau konsultasi pakar.
+            </p>
+          </div>
+
+          <div
+            v-for="(tier, tierIdx) in topTierDiagnoses"
+            :key="'tier-' + tier.id"
+            class="sp-card result-main-card"
+            :class="{ 'result-main-card--tied': hasTieAtTop }"
+          >
+            <header class="card-head">
+              <span class="head-icon icon-blue">🔬</span>
+              <div class="head-title-wrap">
+                <h2 class="head-title">
+                  <template v-if="hasTieAtTop">Hipotesis utama ({{ tierIdx + 1 }}/{{ topTierDiagnoses.length }})</template>
+                  <template v-else>Hasil Diagnosis Utama</template>
+                </h2>
+                <p v-if="hasTieAtTop" class="head-sub">{{ tier.name }}</p>
+              </div>
+            </header>
+
+            <div class="result-display-box">
+              <div class="result-header">
+                <h3 class="disease-name-highlight">{{ tier.name || 'Penyakit Tidak Diketahui' }}</h3>
+                <div class="certainty-indicator">
+                  <span class="cf-label">Keyakinan:</span>
+                  <span class="cf-pct" :class="getCFClass(tier.certainty_value)">
+                    {{ (certaintyNum(tier.certainty_value) * 100).toFixed(1) }}%
+                  </span>
+                  <span class="cf-badge-v2" :class="getCFBadgeClass(tier.certainty_value)">
+                    {{ getCFLabel(tier.certainty_value) }}
+                  </span>
                 </div>
               </div>
-              <div class="cf-bar-labels">
-                <span>Rendah</span><span>Sedang</span><span>Tinggi</span>
-              </div>
-            </div>
 
-            <div class="disease-info-details">
-              <div v-if="diagnosis.disease?.description" class="info-block">
-                <h4 class="block-title">Deskripsi</h4>
-                <p class="block-text">{{ diagnosis.disease.description }}</p>
+              <div class="cf-progress-container">
+                <div class="cf-bar-track">
+                  <div
+                    class="cf-bar-fill"
+                    :class="getCFBarClass(tier.certainty_value)"
+                    :style="{ width: Math.min(100, certaintyNum(tier.certainty_value) * 100) + '%' }"
+                  >
+                    <div class="bar-glow"></div>
+                  </div>
+                </div>
+                <div class="cf-bar-labels">
+                  <span>Rendah</span><span>Sedang</span><span>Tinggi</span>
+                </div>
               </div>
-              <div v-if="diagnosis.disease?.cause" class="info-block">
-                <h4 class="block-title accent-amber">Penyebab</h4>
-                <p class="block-text">{{ diagnosis.disease.cause }}</p>
-              </div>
-              <div v-if="diagnosis.disease?.solution" class="info-block">
-                <h4 class="block-title accent-green">Solusi Penanganan</h4>
-                <p class="block-text">{{ diagnosis.disease.solution }}</p>
-              </div>
-              <div v-if="diagnosis.disease?.prevention" class="info-block">
-                <h4 class="block-title accent-blue">Pencegahan Efektif</h4>
-                <p class="block-text">{{ diagnosis.disease.prevention }}</p>
-              </div>
-            </div>
 
-            <div v-if="diagnosis.recommendation" class="premium-recommendation">
-              <header class="rec-head">
-                <span class="rec-icon">📋</span>
-                <h4>Rekomendasi Pintar</h4>
-              </header>
-              <div class="rec-body" v-html="formatRecommendation(diagnosis.recommendation)"></div>
-            </div>
+              <div class="disease-info-details">
+                <div v-if="tier.description" class="info-block">
+                  <h4 class="block-title">Deskripsi</h4>
+                  <p class="block-text">{{ tier.description }}</p>
+                </div>
+                <div v-if="tier.cause" class="info-block">
+                  <h4 class="block-title accent-amber">Penyebab</h4>
+                  <p class="block-text">{{ tier.cause }}</p>
+                </div>
+                <div v-if="tier.solution" class="info-block">
+                  <h4 class="block-title accent-green">Solusi Penanganan</h4>
+                  <p class="block-text">{{ tier.solution }}</p>
+                </div>
+                <div v-if="tier.prevention" class="info-block">
+                  <h4 class="block-title accent-blue">Pencegahan Efektif</h4>
+                  <p class="block-text">{{ tier.prevention }}</p>
+                </div>
+              </div>
 
-            <div v-if="diagnosis.matched_symptoms_count" class="match-stat">
-              <span class="dot"></span> Berdasarkan pencocokan <strong>{{ diagnosis.matched_symptoms_count }} gejala</strong> spesifik.
+              <div v-if="tier.matched_symptoms_count" class="match-stat">
+                <span class="dot"></span> Berdasarkan pencocokan <strong>{{ tier.matched_symptoms_count }} gejala</strong> spesifik.
+              </div>
             </div>
+          </div>
+
+          <div v-if="diagnosis.recommendation" class="sp-card premium-recommendation full-width-rec">
+            <header class="rec-head">
+              <span class="rec-icon">📋</span>
+              <h4>Rekomendasi Pintar</h4>
+            </header>
+            <div class="rec-body" v-html="formatRecommendation(diagnosis.recommendation)"></div>
           </div>
         </div>
 
@@ -163,22 +234,37 @@
           </div>
         </div>
 
-        <!-- Other Possibilities (Full width below) -->
-        <div v-if="diagnosis.all_possibilities && diagnosis.all_possibilities.length > 1" class="sp-card other-possibilities-card full-width">
+        <!-- Peringkat semua hipotesis (termasuk CF di bawah 50%) -->
+        <div
+          v-if="diagnosis.all_possibilities && diagnosis.all_possibilities.length > 0"
+          class="sp-card other-possibilities-card full-width"
+        >
           <header class="card-head">
             <span class="head-icon icon-amber">📊</span>
-            <h2 class="head-title">Analisis Probabilitas Penyakit Lain</h2>
+            <h2 class="head-title">Peringkat hipotesis (nilai CF hasil perhitungan)</h2>
           </header>
+          <p class="possibilities-intro">
+            Daftar diurutkan dari CF tertinggi. Angka di bawah 50% tetap ditampilkan sebagai informasi terkait, bukan sebagai “penyakit terkonfirmasi”.
+          </p>
           <div class="possibilities-table">
-            <div v-for="(poss, i) in diagnosis.all_possibilities.slice(1, 6)" :key="poss.disease_id" class="poss-row">
-              <div class="rank">#{{ i + 2 }}</div>
+            <div
+              v-for="(poss, i) in diagnosis.all_possibilities"
+              :key="poss.disease_id + '-' + i"
+              class="poss-row"
+              :class="{ 'is-primary': isTopTierPossibility(poss), 'cf-under-half': certaintyNum(poss.certainty_value) < 0.5 }"
+            >
+              <div class="rank">
+                #{{ i + 1 }}
+                <span v-if="isTopTierPossibility(poss)" class="rank-tag">{{ hasTieAtTop ? 'CF tertinggi sama' : 'Utama' }}</span>
+              </div>
               <div class="info">
                 <h4 class="name">{{ poss.disease_name }}</h4>
                 <p v-if="poss.solution" class="sol">{{ truncate(poss.solution, 120) }}</p>
               </div>
               <div class="metrics">
-                <span class="count">{{ poss.matched_count || 0 }} Gejala Match</span>
-                <span class="v-pct">{{ (poss.certainty_value * 100).toFixed(1) }}%</span>
+                <span v-if="certaintyNum(poss.certainty_value) < 0.5" class="warn-chip">Di bawah 50%</span>
+                <span class="count">{{ poss.matched_count || 0 }} gejala cocok</span>
+                <span class="v-pct">{{ (certaintyNum(poss.certainty_value) * 100).toFixed(1) }}%</span>
               </div>
             </div>
           </div>
@@ -304,6 +390,7 @@ import { useRoute } from 'vue-router'
 import { useDiagnosisStore } from '../stores/diagnosis'
 import { useEducationStore } from '../stores/education'
 import ConsultationWhatsAppModal from '../components/ConsultationWhatsAppModal.vue'
+import { sanitizeRecommendationWording } from '../utils/recommendationText'
 
 const route = useRoute()
 const diagnosisStore = useDiagnosisStore()
@@ -333,9 +420,69 @@ const feedbackRatings = [
 const diagnosis = computed(() => {
   const d = diagnosisStore.currentDiagnosis
   if (!d) return null
-  if (d.diagnosis) return { ...d.diagnosis, plant: d.plant, disease: d.disease, symptoms: d.symptoms, certainty_value: d.certainty_value, recommendation: d.recommendation, all_possibilities: d.all_possibilities, matched_symptoms_count: d.matched_symptoms_count }
+  if (d.diagnosis) {
+    return {
+      ...d.diagnosis,
+      plant: d.plant,
+      disease: d.disease,
+      symptoms: d.symptoms,
+      certainty_value: d.certainty_value,
+      recommendation: d.recommendation,
+      all_possibilities: d.all_possibilities,
+      matched_symptoms_count: d.matched_symptoms_count,
+      tied_diseases: d.tied_diseases
+    }
+  }
   return d
 })
+
+/** CF dari API bisa string desimal */
+const certaintyNum = (v) => {
+  const n = Number(v)
+  return Number.isFinite(n) ? n : 0
+}
+
+const topTierDiagnoses = computed(() => {
+  const d = diagnosis.value
+  if (!d) return []
+  if (Array.isArray(d.tied_diseases) && d.tied_diseases.length > 0) {
+    return d.tied_diseases.map((t) => ({
+      id: t.id,
+      name: t.name,
+      code: t.code,
+      description: t.description || '',
+      cause: t.cause || '',
+      solution: t.solution || '',
+      prevention: t.prevention || '',
+      certainty_value: certaintyNum(t.certainty_value),
+      matched_symptoms_count: t.matched_symptoms_count ?? 0
+    }))
+  }
+  if (d.disease?.id) {
+    const dis = d.disease
+    return [{
+      id: dis.id,
+      name: dis.name,
+      code: dis.code,
+      description: dis.description || '',
+      cause: dis.cause || '',
+      solution: dis.solution || '',
+      prevention: dis.prevention || '',
+      certainty_value: certaintyNum(d.certainty_value),
+      matched_symptoms_count: d.matched_symptoms_count ?? 0
+    }]
+  }
+  return []
+})
+
+const hasTieAtTop = computed(() => topTierDiagnoses.value.length > 1)
+
+const isTopTierPossibility = (poss) => {
+  const arr = diagnosis.value?.all_possibilities
+  if (!arr?.length) return false
+  const maxCf = Math.max(...arr.map((r) => certaintyNum(r.certainty_value)))
+  return Math.abs(certaintyNum(poss.certainty_value) - maxCf) < 0.0001
+}
 
 const loadDetail = async () => {
   loading.value = true
@@ -367,13 +514,35 @@ const downloadPdf = async () => {
 }
 
 const formatDate = (d) => new Date(d).toLocaleDateString('id-ID', { year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit' })
-const formatRecommendation = (t) => t ? t.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>') : ''
+const formatRecommendation = (t) => {
+  if (!t) return ''
+  const cleaned = sanitizeRecommendationWording(t)
+  return cleaned.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>').replace(/\n/g, '<br>')
+}
 const truncate = (s, n) => s && s.length > n ? s.slice(0, n) + '…' : (s || '')
 
-const getCFLabel = (v) => v >= 0.7 ? 'Kepastian Tinggi' : v >= 0.4 ? 'Kepastian Sedang' : 'Kepastian Rendah'
-const getCFClass = (v) => v >= 0.7 ? 'pct-high' : v >= 0.4 ? 'pct-medium' : 'pct-low'
-const getCFBadgeClass = (v) => v >= 0.7 ? 'badge-high' : v >= 0.4 ? 'badge-medium' : 'badge-low'
-const getCFBarClass = (v) => v >= 0.7 ? 'bar-high' : v >= 0.4 ? 'bar-medium' : 'bar-low'
+const isLowConfidence = computed(() => {
+  const tiers = topTierDiagnoses.value
+  if (!tiers.length) return false
+  return certaintyNum(tiers[0].certainty_value) < 0.5
+})
+
+const getCFLabel = (v) => {
+  const x = certaintyNum(v)
+  return x >= 0.7 ? 'Kepastian Tinggi' : x >= 0.5 ? 'Kepastian Sedang' : x >= 0.4 ? 'Cukup Rendah' : 'Kepastian Rendah'
+}
+const getCFClass = (v) => {
+  const x = certaintyNum(v)
+  return x >= 0.7 ? 'pct-high' : x >= 0.5 ? 'pct-medium' : x >= 0.4 ? 'pct-medium' : 'pct-low'
+}
+const getCFBadgeClass = (v) => {
+  const x = certaintyNum(v)
+  return x >= 0.7 ? 'badge-high' : x >= 0.5 ? 'badge-medium' : 'badge-low'
+}
+const getCFBarClass = (v) => {
+  const x = certaintyNum(v)
+  return x >= 0.7 ? 'bar-high' : x >= 0.5 ? 'bar-medium' : 'bar-low'
+}
 
 const openConsultationModal = () => { showConsultationModal.value = true }
 const closeConsultationModal = () => { showConsultationModal.value = false }
@@ -568,6 +737,32 @@ onMounted(() => { loadDetail() })
   .diagnosis-content-grid { grid-template-columns: 1fr; }
 }
 
+.main-results-column {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+.main-results-column .result-main-card { margin-bottom: 0; }
+.tie-top-banner {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 1.25rem 1.5rem !important;
+  border: 1.5px solid #fde68a !important;
+  background: linear-gradient(135deg, #fffbeb 0%, #ffffff 100%) !important;
+  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.06) !important;
+}
+.tie-top-banner strong { color: #92400e; font-size: 1rem; display: block; }
+.tie-top-icon { font-size: 1.75rem; line-height: 1; flex-shrink: 0; }
+.tie-top-text { font-size: 0.875rem; color: #78350f; margin: 0.35rem 0 0; line-height: 1.55; }
+.head-title-wrap { flex: 1; min-width: 0; }
+.head-title-wrap .head-title { margin: 0; }
+.head-sub { font-size: 0.875rem; font-weight: 600; color: #6a8a72; margin: 0.35rem 0 0; }
+.main-results-column .result-main-card .card-head { align-items: flex-start; }
+.result-main-card--tied { border-top: 4px solid #fbbf24; }
+.main-results-column .full-width-rec.premium-recommendation { margin-top: 0 !important; }
+
 .full-width { grid-column: 1 / -1; }
 
 .sp-card {
@@ -588,6 +783,55 @@ onMounted(() => { loadDetail() })
 .icon-amber { color: #92400e; }
 .icon-cyan { color: #0e7490; }
 .icon-gray { color: #4b5563; }
+
+/* --- Tanpa hasil utama (ambang CF / pending) --- */
+.no-disease-result-card {
+  border: 1.5px solid #fde68a;
+  background: linear-gradient(180deg, #fffbeb 0%, #ffffff 55%);
+}
+.no-disease-body { padding-right: 0.25rem; }
+.no-disease-lead {
+  font-size: 1rem;
+  line-height: 1.75;
+  color: #1e3a2a;
+  margin: 0 0 1rem;
+}
+.no-disease-detail {
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: #4b6a55;
+  margin: 0 0 1rem;
+}
+.no-disease-rec {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: #334e3d;
+  margin: 0;
+  padding: 1rem 1.25rem;
+  background: #f8faf9;
+  border-radius: 14px;
+  border: 1px solid #e2e8f0;
+}
+
+.cf-threshold-warning {
+  background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  border: 1.5px solid #f59e0b;
+  border-radius: 16px;
+  padding: 1.125rem 1.25rem;
+  margin-bottom: 1.5rem;
+  color: #78350f;
+}
+.cf-threshold-warning strong {
+  display: block;
+  font-size: 0.9375rem;
+  margin-bottom: 0.5rem;
+}
+.cf-threshold-warning p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.65;
+}
+.cf-threshold-warning--standalone { margin-bottom: 0; }
 
 /* --- Result Display --- */
 .result-display-box {
@@ -680,9 +924,51 @@ onMounted(() => { loadDetail() })
 .s-cf { font-size: 0.75rem; color: #64748b; font-weight: 800; margin-left: auto; }
 
 /* Possibilities full width */
+.possibilities-intro {
+  font-size: 0.875rem;
+  line-height: 1.65;
+  color: #64748b;
+  margin: -0.5rem 0 1.25rem;
+}
 .possibilities-table { display: flex; flex-direction: column; gap: 0.875rem; }
 .poss-row { display: flex; align-items: center; gap: 1.25rem; padding: 1.25rem; background: #f8fafc; border-radius: 18px; border: 1px solid #edf2f7; }
-.rank { width: 40px; height: 40px; background: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: 900; color: #94a3b8; border: 1px solid #e2e8f0; flex-shrink: 0; }
+.poss-row.is-primary { border-color: #86efac; background: linear-gradient(135deg, #f0fdf4, #f8fafc); }
+.poss-row.cf-under-half { border-left: 4px solid #f59e0b; }
+.rank-tag {
+  font-size: 0.5625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #15803d;
+  background: #dcfce7;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+.warn-chip {
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #b45309;
+  background: #ffedd5;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+}
+.rank {
+  min-width: 48px;
+  padding: 0.35rem 0.25rem;
+  background: #fff;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 0.875rem;
+  font-weight: 900;
+  color: #94a3b8;
+  border: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
 .poss-row .info { flex: 1; min-width: 0; }
 .poss-row .name { font-size: 1.125rem; font-weight: 800; color: #1e293b; margin: 0 0 4px; }
 .poss-row .sol { font-size: 0.8125rem; color: #64748b; line-height: 1.5; margin: 0; }
