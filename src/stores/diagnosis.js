@@ -61,14 +61,17 @@ export const useDiagnosisStore = defineStore('diagnosis', {
 
       try {
         const token = localStorage.getItem('auth_token')
+        const headers = {
+          'Content-Type': 'application/json'
+        }
+        if (token) {
+          headers.Authorization = `Bearer ${token}`
+        }
         const response = await axios.post(
           `${API_BASE_URL}/diagnosis`,
           data,
           {
-            headers: {
-              'Authorization': `Bearer ${token}`,
-              'Content-Type': 'application/json'
-            }
+            headers
           }
         )
 
@@ -89,7 +92,7 @@ export const useDiagnosisStore = defineStore('diagnosis', {
           body?.diagnosis_id ??
           null
 
-        if (diagnosisId) {
+        if (token && diagnosisId) {
           await router.push(`/diagnosis/${diagnosisId}`)
         }
 
@@ -98,7 +101,8 @@ export const useDiagnosisStore = defineStore('diagnosis', {
         // Kasus engine timeout/503: backend tetap sudah membuat diagnosis_id.
         // Redirect ke halaman detail supaya user tidak perlu submit ulang.
         const diagnosisIdFromError = error.response?.data?.diagnosis_id
-        if (diagnosisIdFromError) {
+        const token = localStorage.getItem('auth_token')
+        if (token && diagnosisIdFromError) {
           await router.push(`/diagnosis/${diagnosisIdFromError}`)
           return error.response.data
         }

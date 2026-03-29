@@ -106,15 +106,11 @@
             </div>
 
             <div class="form-group">
-              <label for="category">Kategori *</label>
-              <input
-                id="category"
-                v-model="form.category"
-                type="text"
-                placeholder="Contoh: Perawatan Dasar"
-                required
-                :disabled="saving"
-              />
+              <label for="plant_id">Tanaman</label>
+              <select id="plant_id" v-model="form.plant_id" :disabled="saving">
+                <option value="">Umum (Semua Tanaman)</option>
+                <option v-for="p in plants" :key="p.id" :value="String(p.id)">{{ p.name }}</option>
+              </select>
             </div>
 
             <div class="form-group pb-4 border-b border-slate-100 mb-4">
@@ -274,8 +270,8 @@
             <span class="detail-value">{{ deleteModule.title }}</span>
           </div>
           <div class="detail-item">
-            <span class="detail-label">Kategori:</span>
-            <span class="detail-value">{{ deleteModule.category }}</span>
+            <span class="detail-label">Tanaman:</span>
+            <span class="detail-value">{{ deleteModule.plant?.name || 'Umum' }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">Konten:</span>
@@ -303,6 +299,7 @@ import { useAdminStore } from '../../stores/admin'
 const adminStore = useAdminStore()
 
 const modules = ref([])
+const plants = ref([])
 const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
@@ -314,7 +311,7 @@ const deleteModule = ref(null)
 
 const form = ref({
   title: '',
-  category: '',
+  plant_id: '',
   content: '',
   content_images: [],
   is_maintenance_guide: false,
@@ -415,8 +412,20 @@ const buildMaintenanceTagInputs = (moduleData) => {
 }
 
 onMounted(() => {
+  fetchPlants()
   fetchModules()
 })
+
+const fetchPlants = async () => {
+  try {
+    const response = await adminStore.fetchPlants()
+    if (response.success) {
+      plants.value = adminStore.plants || []
+    }
+  } catch {
+    plants.value = []
+  }
+}
 
 const fetchModules = async () => {
   loading.value = true
@@ -443,7 +452,7 @@ const editModule = async (module) => {
       currentModule.value = fullModule
       form.value = {
         title: fullModule.title,
-        category: fullModule.category || '',
+        plant_id: fullModule.plant_id ? String(fullModule.plant_id) : '',
         content: fullModule.content,
         content_images: fullModule.content_images || [],
         is_maintenance_guide: fullModule.is_maintenance_guide || false,
@@ -460,7 +469,7 @@ const editModule = async (module) => {
       currentModule.value = module
       form.value = {
         title: module.title,
-        category: module.category || '',
+        plant_id: module.plant_id ? String(module.plant_id) : '',
         content: module.content,
         content_images: module.content_images || [],
         is_maintenance_guide: module.is_maintenance_guide || false,
@@ -479,7 +488,7 @@ const editModule = async (module) => {
     currentModule.value = module
     form.value = {
       title: module.title,
-      category: module.category || '',
+      plant_id: module.plant_id ? String(module.plant_id) : '',
       content: module.content,
       content_images: module.content_images || [],
       is_maintenance_guide: module.is_maintenance_guide || false,
@@ -504,7 +513,7 @@ const closeModal = () => {
   showEditModal.value = false
   form.value = {
     title: '',
-    category: '',
+    plant_id: '',
     content: '',
     content_images: [],
     is_maintenance_guide: false,
@@ -578,6 +587,7 @@ const saveModule = async () => {
   saving.value = true
   try {
     const payload = { ...form.value }
+    payload.plant_id = payload.plant_id ? parseInt(payload.plant_id, 10) : null
     const tags = normalizeHashtags((form.value.maintenance_tags_inputs || []).join(' '))
     if (payload.is_maintenance_guide) {
       payload.vital_tags_json = tags

@@ -57,9 +57,9 @@ const handleKeydown = (event) => {
 
 const navLinks = computed(() => [
   { to: '/',                  label: 'Beranda',  show: true,               match: route.path === '/' },
-  { to: '/diagnosis',         label: 'Diagnosis', show: isAuthenticated.value, match: route.path === '/diagnosis' },
-  { to: '/diagnosis/history', label: 'Riwayat',  show: isAuthenticated.value, match: route.path === '/diagnosis/history' },
-  { to: '/education',         label: 'Edukasi',  show: isAuthenticated.value, match: route.path === '/education' },
+  { to: '/diagnosis',         label: 'Diagnosis', show: true,               match: route.path === '/diagnosis' },
+  { to: '/diagnosis/history', label: 'Riwayat',  show: true,               match: route.path === '/diagnosis/history' },
+  { to: '/education',         label: 'Edukasi',  show: true,               match: route.path === '/education' },
   { to: '/admin',             label: 'Admin',    show: isAdmin.value,       match: route.path.startsWith('/admin') },
   { to: '/about',             label: 'Tentang',  show: true,               match: route.path === '/about' },
 ])

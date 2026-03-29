@@ -32,7 +32,6 @@
             <th>ID</th>
             <th>Nama</th>
             <th>Email</th>
-            <th>WhatsApp</th>
             <th>Role</th>
             <th>Verified</th>
             <th>Actions</th>
@@ -43,7 +42,6 @@
             <td>{{ user.id }}</td>
             <td>{{ user.name }}</td>
             <td>{{ user.email }}</td>
-            <td>{{ user.whatsapp_number || '-' }}</td>
             <td>
               <span :class="['badge', user.role === 'admin' ? 'badge-admin' : 'badge-user']">
                 {{ user.role }}
@@ -85,11 +83,6 @@
           <div class="form-group">
             <label>Password {{ showEditModal ? '(kosongkan jika tidak diubah)' : '*' }}</label>
             <input v-model="form.password" type="password" :required="!showEditModal" :disabled="saving" />
-          </div>
-
-          <div class="form-group">
-            <label>Nomor WhatsApp</label>
-            <input v-model="form.whatsapp_number" type="tel" :disabled="saving" />
           </div>
 
           <div class="form-group">
@@ -171,7 +164,6 @@ const form = ref({
   name: '',
   email: '',
   password: '',
-  whatsapp_number: '',
   role: 'user',
   is_verified: false
 })
@@ -205,7 +197,6 @@ const editUser = (user) => {
     name: user.name,
     email: user.email,
     password: '',
-    whatsapp_number: user.whatsapp_number || '',
     role: user.role,
     is_verified: user.is_verified || false
   }
@@ -224,7 +215,6 @@ const closeModal = () => {
     name: '',
     email: '',
     password: '',
-    whatsapp_number: '',
     role: 'user',
     is_verified: false
   }
@@ -234,10 +224,10 @@ const closeModal = () => {
 const saveUser = async () => {
   saving.value = true
   try {
-    const url = showEditModal.value
-      ? `${API_BASE_URL}/admin/users/${currentUser.value.id}`
-      : `${API_BASE_URL}/admin/users`
-    
+    const endpoint = showEditModal.value
+      ? `/admin/users/${currentUser.value.id}`
+      : `/admin/users`
+
     const method = showEditModal.value ? 'put' : 'post'
     const data = { ...form.value }
     
@@ -246,12 +236,7 @@ const saveUser = async () => {
       delete data.password
     }
     
-    const response = await axios[method](url, data, {
-      headers: {
-        'Authorization': `Bearer ${getToken()}`,
-        'Content-Type': 'application/json'
-      }
-    })
+    const response = await api[method](endpoint, data)
 
     if (response.data.success) {
       alert(response.data.message || 'User berhasil disimpan')

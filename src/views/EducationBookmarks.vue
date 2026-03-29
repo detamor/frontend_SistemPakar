@@ -62,8 +62,8 @@
                 </svg>
               </div>
               <div class="bm-thumb-overlay">Baca Selengkapnya →</div>
-              <span v-if="bookmark.educational_module.category" class="bm-category-badge">
-                {{ bookmark.educational_module.category }}
+              <span class="bm-category-badge">
+                {{ bookmark.educational_module.plant?.name || 'UMUM' }}
               </span>
               <span class="bm-star-badge">★</span>
             </div>

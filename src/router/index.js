@@ -31,7 +31,7 @@ const routes = [
     path: '/diagnosis',
     name: 'Diagnosis',
     component: () => import('../views/Diagnosis.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/diagnosis/history',
@@ -49,7 +49,7 @@ const routes = [
     path: '/education',
     name: 'Education',
     component: () => import('../views/Education.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/education/bookmarks',
@@ -61,7 +61,7 @@ const routes = [
     path: '/education/:id',
     name: 'EducationDetail',
     component: () => import('../views/EducationDetail.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: false }
   },
   {
     path: '/consultation',
@@ -167,6 +167,5 @@ router.beforeEach(async (to, from, next) => {
 })
 
 export default router
-
 
 

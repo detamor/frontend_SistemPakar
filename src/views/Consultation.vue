@@ -188,9 +188,19 @@ const handleConsultation = async () => {
       catch (uploadError) { console.error('PDF upload error:', uploadError) }
     }
     // Send WhatsApp
-    try { await consultationStore.sendWhatsApp(consultationId) }
-    catch (waError) { console.error('WhatsApp error:', waError) }
-    success.value = 'Konsultasi berhasil dikirim! Pakar akan menghubungi Anda via WhatsApp.'
+    try {
+      const waRes = await consultationStore.sendWhatsApp(consultationId)
+      const waUrl = waRes?.whatsapp_url
+      if (waUrl) {
+        window.open(waUrl, '_blank', 'noopener,noreferrer')
+        success.value = 'WhatsApp siap dibuka. Jika pesan/PDF tidak terkirim otomatis, kirim manual lewat WhatsApp.'
+      } else {
+        success.value = 'Konsultasi berhasil diproses. Silakan hubungi pakar via WhatsApp.'
+      }
+    } catch (waError) {
+      console.error('WhatsApp error:', waError)
+      success.value = 'Konsultasi dibuat. Silakan hubungi pakar via WhatsApp secara manual.'
+    }
     form.value.message = ''; pdfFile.value = null
     if (pdfFileInput.value) pdfFileInput.value.value = ''
     await consultationStore.fetchConsultations()

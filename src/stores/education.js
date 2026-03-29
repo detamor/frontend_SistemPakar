@@ -53,23 +53,21 @@ export const useEducationStore = defineStore('education', {
     },
 
     // Get all modules
-    async fetchModules(category = null, page = 1, search = null) {
+    async fetchModules(options = {}) {
       this.loading = true
       this.error = null
 
       try {
         const token = localStorage.getItem('auth_token')
-        const params = { page }
-        if (category) params.category = category
-        if (search && search.trim()) params.search = search.trim()
+        const params = { page: options.page || 1 }
+        if (options.plantId) params.plant_id = options.plantId
+        if (options.search && String(options.search).trim()) params.search = String(options.search).trim()
 
         const response = await axios.get(
           `${API_BASE_URL}/education`,
           {
             params,
-            headers: {
-              'Authorization': `Bearer ${token}`
-            }
+            headers: token ? { 'Authorization': `Bearer ${token}` } : undefined
           }
         )
 
@@ -210,5 +208,3 @@ export const useEducationStore = defineStore('education', {
     }
   }
 })
-
-

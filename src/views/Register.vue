@@ -11,102 +11,63 @@
         </div>
       </div>
 
-      <!-- Step Indicator -->
-      <div class="step-indicator">
-        <div v-for="(s, i) in steps" :key="i" class="step-item">
-          <div class="step-dot" :class="{ 'step-dot--active': step > i, 'step-dot--current': step === i + 1 }">
-            <svg v-if="step > i + 1" width="12" height="12" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"/></svg>
-            <span v-else>{{ i + 1 }}</span>
-          </div>
-          <span class="step-label" :class="{ 'step-label--active': step === i + 1 }">{{ s }}</span>
-          <div v-if="i < steps.length - 1" class="step-line" :class="{ 'step-line--done': step > i + 1 }"></div>
-        </div>
-      </div>
-
       <!-- Card -->
       <div class="sp-card auth-card">
 
-        <!-- Step 1: Data Akun -->
-        <template v-if="step === 1">
-          <div class="auth-card-header">
-            <h2 class="auth-title">Buat Akun Baru</h2>
-            <p class="auth-sub">Isi data di bawah untuk mendaftar</p>
-          </div>
-          <form @submit.prevent="handleRegister" style="display:flex;flex-direction:column;gap:1.125rem;margin-top:1.5rem;">
-            <div>
-              <label for="reg-name" class="sp-label">Nama Lengkap <span style="color:#dc2626;">*</span></label>
-              <input id="reg-name" v-model="form.name" type="text" placeholder="Masukkan nama lengkap" required :disabled="loading" class="glass-input" autocomplete="name" />
-            </div>
-            <div>
-              <label for="reg-email" class="sp-label">Email <span style="color:#dc2626;">*</span></label>
-              <input id="reg-email" v-model="form.email" type="email" placeholder="contoh@email.com" required :disabled="loading" class="glass-input" autocomplete="email" />
-              <p class="sp-field-hint">Kode OTP akan dikirim ke email ini</p>
-            </div>
-            <div>
-              <label for="reg-phone" class="sp-label">Nomor WhatsApp <span style="color:var(--text-muted);font-weight:400;font-size:.8125rem;">(opsional)</span></label>
-              <input id="reg-phone" v-model="form.whatsapp_number" type="tel" placeholder="08xxxxxxxxxx" :disabled="loading" class="glass-input" autocomplete="tel" />
-              <p class="sp-field-hint">Untuk fitur konsultasi langsung ke pakar via WhatsApp</p>
-            </div>
-            <div>
-              <label for="reg-pass" class="sp-label">Password <span style="color:#dc2626;">*</span></label>
-              <input id="reg-pass" v-model="form.password" type="password" placeholder="Minimal 8 karakter" required :disabled="loading" class="glass-input" autocomplete="new-password" />
-            </div>
-            <div>
-              <label for="reg-pass2" class="sp-label">Konfirmasi Password <span style="color:#dc2626;">*</span></label>
-              <input id="reg-pass2" v-model="form.password_confirmation" type="password" placeholder="Ulangi password" required :disabled="loading" class="glass-input" autocomplete="new-password" />
-            </div>
-            <div v-if="error" class="sp-alert sp-alert-danger" role="alert">
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              {{ error }}
-            </div>
-            <button type="submit" :disabled="loading" class="sp-btn sp-btn-primary sp-btn-lg" style="width:100%;justify-content:center;margin-top:.25rem;">
-              <span v-if="loading" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
-              {{ loading ? 'Mengirim OTP...' : 'Daftar & Kirim OTP' }}
-            </button>
-          </form>
-        </template>
+        <div class="auth-card-header">
+          <h2 class="auth-title">Buat Akun Baru</h2>
+          <p class="auth-sub">Isi data di bawah untuk mendaftar</p>
+        </div>
 
-        <!-- Step 2: Verifikasi OTP -->
-        <template v-if="step === 2">
-          <div class="auth-card-header">
-            <h2 class="auth-title">Verifikasi OTP</h2>
-            <p class="auth-sub">Masukkan kode OTP yang dikirim ke:</p>
-            <div class="otp-email-badge">
-              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-              {{ form.email }}
+        <form @submit.prevent="handleRegister" style="display:flex;flex-direction:column;gap:1.125rem;margin-top:1.5rem;">
+          <div>
+            <label for="reg-name" class="sp-label">Nama Lengkap <span style="color:#dc2626;">*</span></label>
+            <input id="reg-name" v-model="form.name" type="text" placeholder="Masukkan nama lengkap" required :disabled="loading" class="glass-input" autocomplete="name" />
+          </div>
+          <div>
+            <label for="reg-email" class="sp-label">Email <span style="color:#dc2626;">*</span></label>
+            <input id="reg-email" v-model="form.email" type="email" placeholder="contoh@email.com" required :disabled="loading" class="glass-input" autocomplete="email" />
+          </div>
+          <div>
+            <label for="reg-pass" class="sp-label">Password <span style="color:#dc2626;">*</span></label>
+            <div style="position:relative;">
+              <input id="reg-pass" v-model="form.password" :type="showPassword ? 'text' : 'password'" placeholder="Minimal 8 karakter" required :disabled="loading" class="glass-input" autocomplete="new-password" style="padding-right:2.75rem;" />
+              <button type="button" @click="showPassword = !showPassword" :disabled="loading" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:var(--text-muted);">
+                <svg v-if="showPassword" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.477 10.48a3 3 0 104.243 4.243M9.88 5.08A9.955 9.955 0 0112 4c5.523 0 10 5 10 8 0 1.248-.77 2.832-2.1 4.29M6.228 6.228C3.99 7.77 2 10.04 2 12c0 3 4.477 8 10 8 1.647 0 3.174-.445 4.52-1.128" />
+                </svg>
+                <svg v-else width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
+            <p class="sp-field-hint">Minimal 8 karakter, bebas kombinasi huruf/angka/simbol.</p>
+          </div>
+          <div>
+            <label for="reg-pass2" class="sp-label">Konfirmasi Password <span style="color:#dc2626;">*</span></label>
+            <div style="position:relative;">
+              <input id="reg-pass2" v-model="form.password_confirmation" :type="showPasswordConfirmation ? 'text' : 'password'" placeholder="Ulangi password" required :disabled="loading" class="glass-input" autocomplete="new-password" style="padding-right:2.75rem;" />
+              <button type="button" @click="showPasswordConfirmation = !showPasswordConfirmation" :disabled="loading" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:var(--text-muted);">
+                <svg v-if="showPasswordConfirmation" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.477 10.48a3 3 0 104.243 4.243M9.88 5.08A9.955 9.955 0 0112 4c5.523 0 10 5 10 8 0 1.248-.77 2.832-2.1 4.29M6.228 6.228C3.99 7.77 2 10.04 2 12c0 3 4.477 8 10 8 1.647 0 3.174-.445 4.52-1.128" />
+                </svg>
+                <svg v-else width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
             </div>
           </div>
-          <form @submit.prevent="handleVerifyOtp" style="display:flex;flex-direction:column;gap:1.25rem;margin-top:1.5rem;">
-            <div>
-              <label for="otp" class="sp-label" style="text-align:center;display:block;">Kode OTP (6 digit) <span style="color:#dc2626;">*</span></label>
-              <input
-                id="otp" v-model="otpCode"
-                type="text" maxlength="6"
-                placeholder="_ _ _ _ _ _"
-                required :disabled="loading"
-                class="glass-input otp-input"
-                inputmode="numeric" pattern="[0-9]*"
-                @input="otpCode = otpCode.replace(/\D/g, '')"
-                autocomplete="one-time-code"
-              />
-              <p class="sp-field-hint" style="text-align:center;">Cek inbox dan folder spam email Anda</p>
-            </div>
-            <div v-if="error" class="sp-alert sp-alert-danger" role="alert">
-              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              {{ error }}
-            </div>
-            <button type="submit" :disabled="loading || otpCode.length < 6" class="sp-btn sp-btn-primary sp-btn-lg" style="width:100%;justify-content:center;">
-              <span v-if="loading" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
-              {{ loading ? 'Memverifikasi...' : 'Verifikasi OTP' }}
-            </button>
-            <button type="button" @click="resendOtp" :disabled="resendCooldown > 0 || loading" class="sp-btn sp-btn-secondary" style="width:100%;justify-content:center;">
-              {{ resendCooldown > 0 ? `Kirim ulang dalam ${resendCooldown}d` : 'Kirim Ulang OTP' }}
-            </button>
-          </form>
-          <div style="margin-top:1rem;text-align:center;">
-            <button @click="step = 1; error = null" style="background:none;border:none;cursor:pointer;font-size:.875rem;color:var(--primary);text-decoration:underline;">← Kembali ubah data</button>
+          <div v-if="error" class="sp-alert sp-alert-danger" role="alert">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            {{ error }}
           </div>
-        </template>
+          <button type="submit" :disabled="loading" class="sp-btn sp-btn-primary sp-btn-lg" style="width:100%;justify-content:center;margin-top:.25rem;">
+            <span v-if="loading" class="sp-spinner" style="width:18px;height:18px;border-width:2px;border-color:rgba(255,255,255,.4);border-top-color:#fff;"></span>
+            {{ loading ? 'Mendaftarkan...' : 'Daftar' }}
+          </button>
+        </form>
 
       </div>
 
@@ -125,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import logoImage from '../assets/logo-hydrangea.png'
@@ -133,14 +94,11 @@ import logoImage from '../assets/logo-hydrangea.png'
 const router   = useRouter()
 const authStore = useAuthStore()
 
-const step  = ref(1)
-const steps = ['Data Akun', 'Verifikasi OTP']
-const form  = ref({ name: '', email: '', whatsapp_number: '', password: '', password_confirmation: '' })
-const otpCode        = ref('')
+const form  = ref({ name: '', email: '', password: '', password_confirmation: '' })
+const showPassword = ref(false)
+const showPasswordConfirmation = ref(false)
 const loading        = ref(false)
 const error          = ref(null)
-const resendCooldown = ref(0)
-let cooldownInterval = null
 
 const handleRegister = async () => {
   error.value = null; loading.value = true
@@ -151,10 +109,8 @@ const handleRegister = async () => {
       email: form.value.email,
       password: form.value.password,
       password_confirmation: form.value.password_confirmation,
-      whatsapp_number: form.value.whatsapp_number || null
     }
-    const res = await authStore.register(payload)
-    if (res.success) { step.value = 2; startResendCooldown() }
+    await authStore.register(payload)
   } catch (err) {
     if (err.response?.data?.errors) {
       const msgs = []
@@ -166,40 +122,7 @@ const handleRegister = async () => {
   } finally { loading.value = false }
 }
 
-const handleVerifyOtp = async () => {
-  error.value = null; loading.value = true
-  try { await authStore.verifyOtp(form.value.email, otpCode.value) }
-  catch (err) { error.value = err.response?.data?.message || 'OTP tidak valid atau sudah kadaluarsa.' }
-  finally { loading.value = false }
-}
-
-const resendOtp = async () => {
-  if (resendCooldown.value > 0) return
-  error.value = null; loading.value = true
-  try {
-    const payload = {
-      name: form.value.name,
-      email: form.value.email,
-      password: form.value.password,
-      password_confirmation: form.value.password_confirmation,
-      whatsapp_number: form.value.whatsapp_number || null
-    }
-    await authStore.register(payload); startResendCooldown()
-  }
-  catch (err) { error.value = err.response?.data?.message || 'Gagal mengirim ulang OTP.' }
-  finally { loading.value = false }
-}
-
-const startResendCooldown = () => {
-  resendCooldown.value = 60
-  cooldownInterval = setInterval(() => {
-    resendCooldown.value--
-    if (resendCooldown.value <= 0) clearInterval(cooldownInterval)
-  }, 1000)
-}
-
 onMounted(() => { if (authStore.isAuthenticated) router.push('/') })
-onUnmounted(() => { if (cooldownInterval) clearInterval(cooldownInterval) })
 </script>
 
 <style scoped>

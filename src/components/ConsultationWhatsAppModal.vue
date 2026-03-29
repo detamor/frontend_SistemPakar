@@ -287,13 +287,13 @@ const handleSubmit = async () => {
 
     // Step 3: Send to WhatsApp dengan PDF
     try {
-      await consultationStore.sendWhatsApp(consultationId, form.value.message)
-      if (pdfFile.value) {
-        success.value = 'Konsultasi dan file PDF berhasil dikirim ke pakar via WhatsApp! Pakar akan menghubungi Anda.'
-      } else if (props.diagnosis?.id) {
-        success.value = 'Konsultasi berhasil dikirim! PDF laporan diagnosis juga telah dikirim secara otomatis. Pakar akan menghubungi Anda.'
+      const waRes = await consultationStore.sendWhatsApp(consultationId, form.value.message)
+      const waUrl = waRes?.whatsapp_url
+      if (waUrl) {
+        window.open(waUrl, '_blank', 'noopener,noreferrer')
+        success.value = 'WhatsApp siap dibuka. Jika pesan/PDF tidak terkirim otomatis, kirim manual lewat WhatsApp.'
       } else {
-        success.value = 'Konsultasi berhasil dikirim! Pakar akan menghubungi Anda via WhatsApp.'
+        success.value = 'Konsultasi berhasil diproses. Silakan hubungi pakar via WhatsApp.'
       }
     } catch (whatsappError) {
       console.error('WhatsApp send error:', whatsappError)

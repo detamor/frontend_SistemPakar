@@ -212,7 +212,7 @@
                 <img v-if="module.image" :src="module.image" class="module-thumb" />
                 <div class="module-info">
                   <h4 class="module-title">{{ module.title }}</h4>
-                  <span class="module-cat">{{ module.category }}</span>
+                  <span class="module-cat">{{ module.plant?.name || 'UMUM' }}</span>
                 </div>
               </RouterLink>
             </div>
@@ -254,7 +254,7 @@
               :class="{ 'is-primary': isTopTierPossibility(poss), 'cf-under-half': certaintyNum(poss.certainty_value) < 0.5 }"
             >
               <div class="rank">
-                #{{ i + 1 }}
+                #{{ possibilityRanks[i] }}
                 <span v-if="isTopTierPossibility(poss)" class="rank-tag">{{ hasTieAtTop ? 'CF tertinggi sama' : 'Utama' }}</span>
               </div>
               <div class="info">
@@ -484,6 +484,23 @@ const isTopTierPossibility = (poss) => {
   return Math.abs(certaintyNum(poss.certainty_value) - maxCf) < 0.0001
 }
 
+const possibilityRanks = computed(() => {
+  const arr = diagnosis.value?.all_possibilities || []
+  const ranks = []
+  let lastCf = null
+  let currentRank = 0
+  const eps = 1e-4
+  for (let i = 0; i < arr.length; i++) {
+    const cf = certaintyNum(arr[i]?.certainty_value)
+    if (lastCf === null || Math.abs(cf - lastCf) > eps) {
+      currentRank = i + 1
+      lastCf = cf
+    }
+    ranks[i] = currentRank
+  }
+  return ranks
+})
+
 const loadDetail = async () => {
   loading.value = true
   try {
@@ -496,9 +513,9 @@ const loadDetail = async () => {
         feedbackForm.value.comment = d.feedback.comment || ''
       }
       
-      const plantName = d.plant?.name
-      if (plantName) {
-        const eduRes = await educationStore.fetchModules(null, 1, plantName)
+      const plantId = d.plant?.id
+      if (plantId) {
+        const eduRes = await educationStore.fetchModules({ plantId, page: 1 })
         if (eduRes.success && eduRes.data?.data) {
           relevantModules.value = eduRes.data.data.slice(0, 3)
         }

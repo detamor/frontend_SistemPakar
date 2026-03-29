@@ -13,22 +13,22 @@
       <!-- Card -->
       <div class="sp-card auth-card">
         <h2 class="auth-title">Masuk ke Akun</h2>
-        <p class="auth-sub">Silakan masukkan email/nomor WhatsApp dan password Anda</p>
+        <p class="auth-sub">Silakan masukkan email dan password Anda</p>
 
         <form @submit.prevent="handleLogin" style="display:flex;flex-direction:column;gap:1.125rem;margin-top:1.5rem;">
           <div>
             <label for="email" class="sp-label">
-              Email atau Nomor WhatsApp <span style="color:#dc2626;">*</span>
+              Email <span style="color:#dc2626;">*</span>
             </label>
             <input
               id="email"
               v-model="form.email"
-              type="text"
-              placeholder="user@email.com atau 081234567890"
+              type="email"
+              placeholder="user@email.com"
               required
               :disabled="loading"
               class="glass-input"
-              autocomplete="username"
+              autocomplete="email"
             />
           </div>
 
@@ -36,16 +36,28 @@
             <label for="password" class="sp-label">
               Password <span style="color:#dc2626;">*</span>
             </label>
-            <input
-              id="password"
-              v-model="form.password"
-              type="password"
-              placeholder="Masukkan password"
-              required
-              :disabled="loading"
-              class="glass-input"
-              autocomplete="current-password"
-            />
+            <div style="position:relative;">
+              <input
+                id="password"
+                v-model="form.password"
+                :type="showPassword ? 'text' : 'password'"
+                placeholder="Masukkan password"
+                required
+                :disabled="loading"
+                class="glass-input"
+                autocomplete="current-password"
+                style="padding-right:2.75rem;"
+              />
+              <button type="button" @click="showPassword = !showPassword" :disabled="loading" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:var(--text-muted);">
+                <svg v-if="showPassword" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.477 10.48a3 3 0 104.243 4.243M9.88 5.08A9.955 9.955 0 0112 4c5.523 0 10 5 10 8 0 1.248-.77 2.832-2.1 4.29M6.228 6.228C3.99 7.77 2 10.04 2 12c0 3 4.477 8 10 8 1.647 0 3.174-.445 4.52-1.128" />
+                </svg>
+                <svg v-else width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </button>
+            </div>
           </div>
 
           <div v-if="error" class="sp-alert sp-alert-danger" role="alert">
@@ -85,6 +97,7 @@ const router = useRouter()
 const authStore = useAuthStore()
 
 const form    = ref({ email: '', password: '' })
+const showPassword = ref(false)
 const loading = ref(false)
 const error   = ref(null)
 

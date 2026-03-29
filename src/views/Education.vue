@@ -46,19 +46,13 @@
         </div>
       </div>
 
-      <!-- Category Pills -->
-      <div class="cat-scroll">
-        <button
-          v-for="cat in categoryStats"
-          :key="cat.name"
-          @click="selectedCategory = cat.name === 'Semua' ? null : cat.name"
-          class="cat-pill"
-          :class="{ 'cat-pill--active': (selectedCategory === null && cat.name === 'Semua') || selectedCategory === cat.name }"
-        >
-          <span class="cat-dot"></span>
-          {{ cat.name }}
-          <span class="cat-badge">{{ cat.count }}</span>
-        </button>
+      <!-- Plant Filter -->
+      <div class="plant-filter">
+        <label class="plant-filter-label">Filter Tanaman</label>
+        <select v-model="selectedPlantId" class="plant-filter-select">
+          <option value="">Semua Edukasi</option>
+          <option v-for="p in plants" :key="p.id" :value="String(p.id)">{{ p.name }}</option>
+        </select>
       </div>
 
       <!-- Toolbar -->
@@ -163,17 +157,22 @@
 
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useEducationStore } from '../stores/education'
+import axios from 'axios'
+import { useAuthStore } from '../stores/auth'
 
 const router         = useRouter()
+const route          = useRoute()
 const educationStore = useEducationStore()
+const authStore      = useAuthStore()
 
-const selectedCategory = ref(null)
 const currentPage      = ref(1)
 const viewMode         = ref('grid')
 const searchQuery      = ref('')
 const searchTimeout    = ref(null)
+const plants           = ref([])
+const selectedPlantId  = ref('')
 
 const loading = computed(() => educationStore.loading)
 const modules = computed(() => {
@@ -182,16 +181,19 @@ const modules = computed(() => {
   return Array.isArray(raw) ? raw : []
 })
 
-const allModules    = ref([])
-const categoryStats = computed(() => {
-  const stats = { 'Semua': allModules.value.length }
-  allModules.value.forEach(m => { if (m.category) stats[m.category] = (stats[m.category] || 0) + 1 })
-  return Object.entries(stats).map(([name, count]) => ({ name, count }))
-})
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
 const loadModules = async (page = 1) => {
-  try { await educationStore.fetchModules(selectedCategory.value, page, searchQuery.value) }
-  catch (err) { console.error(err) }
+  try {
+    const plantId = selectedPlantId.value ? parseInt(selectedPlantId.value, 10) : null
+    await educationStore.fetchModules({
+      plantId,
+      page,
+      search: searchQuery.value
+    })
+  } catch (err) {
+    console.error(err)
+  }
 }
 
 const handleSearch  = () => {
@@ -201,17 +203,23 @@ const handleSearch  = () => {
 const performSearch = () => { clearTimeout(searchTimeout.value); currentPage.value = 1; loadModules(1) }
 const clearSearch   = () => { searchQuery.value = ''; currentPage.value = 1; loadModules(1) }
 
-const loadAllModules = async () => {
+const loadPlants = async () => {
   try {
-    const r = await educationStore.fetchModules(null, 1)
-    allModules.value = r?.data?.data || []
-  } catch {}
+    const r = await axios.get(`${API_BASE_URL}/public/plants`)
+    plants.value = r?.data?.data || r?.data || []
+  } catch {
+    plants.value = []
+  }
 }
 
 const goToDetail   = (id) => router.push(`/education/${id}`)
 const truncateText = (t, l) => !t ? '' : t.length <= l ? t : t.substring(0, l) + '...'
 
 const toggleBookmark = async (module) => {
+  if (!authStore.isAuthenticated) {
+    router.push({ name: 'Login', query: { redirect: route.fullPath } })
+    return
+  }
   try {
     if (module.is_bookmarked) { await educationStore.unbookmark(module.id); module.is_bookmarked = false }
     else                      { await educationStore.bookmark(module.id);   module.is_bookmarked = true  }
@@ -232,9 +240,17 @@ const getImageUrl = (p) => {
 
 const handleImageError = (e) => { e.target.style.display = 'none' }
 
-watch(selectedCategory, () => { currentPage.value = 1; loadModules(1) })
+watch(selectedPlantId, () => { currentPage.value = 1; loadModules(1) })
 watch(searchQuery,      () => { if (!searchQuery.value) { currentPage.value = 1; loadModules(1) } })
-onMounted(async () => { await loadAllModules(); loadModules() })
+
+onMounted(async () => {
+  await loadPlants()
+  const queryPlantId = route.query?.plant_id
+  if (typeof queryPlantId === 'string' && queryPlantId.trim() !== '') {
+    selectedPlantId.value = queryPlantId.trim()
+  }
+  loadModules()
+})
 </script>
 
 <style scoped>
@@ -382,6 +398,38 @@ a { text-decoration: none; }
   transition: color .15s;
 }
 .search-clear:hover { color: #3a7a50; }
+
+.plant-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+  background: #fff;
+  border: 1.5px solid #d9e4d4;
+  border-radius: 14px;
+  padding: .75rem 1rem;
+}
+.plant-filter-label {
+  font-size: .8125rem;
+  font-weight: 800;
+  color: #1e3a2a;
+  white-space: nowrap;
+}
+.plant-filter-select {
+  flex: 1;
+  max-width: 420px;
+  padding: .65rem .85rem;
+  border-radius: 12px;
+  border: 1.5px solid #d9e4d4;
+  background: #f7fbf7;
+  color: #1e3a2a;
+  font-weight: 700;
+  outline: none;
+}
+.plant-filter-select:focus {
+  border-color: #3a7a50;
+  box-shadow: 0 0 0 3px rgba(58,122,80,.12);
+}
 
 /* ─── Category pills ─── */
 .cat-scroll {

@@ -31,32 +31,13 @@ export const useAuthStore = defineStore('auth', {
       localStorage.removeItem('auth_token')
     },
 
-    // Register - Step 1: Request OTP via Email
+    // Register (tanpa OTP)
     async register(data) {
       this.loading = true
       this.error = null
 
       try {
         const response = await api.post('/auth/register', data)
-        return response.data
-      } catch (error) {
-        this.error = error.response?.data || error.message
-        throw error
-      } finally {
-        this.loading = false
-      }
-    },
-
-    // Register - Step 2: Verify OTP via Email
-    async verifyOtp(email, otpCode) {
-      this.loading = true
-      this.error = null
-
-      try {
-        const response = await api.post('/auth/verify-otp', {
-          email: email,
-          otp_code: otpCode
-        })
 
         if (response.data.success) {
           this.setAuth(response.data.data.token, response.data.data.user)
@@ -128,6 +109,24 @@ export const useAuthStore = defineStore('auth', {
       try {
         const response = await api.post('/auth/password/reset', {
           email: email
+        })
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async verifyPasswordResetOtp(email, otpCode) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const response = await api.post('/auth/password/verify-otp', {
+          email: email,
+          otp_code: otpCode
         })
         return response.data
       } catch (error) {

@@ -32,22 +32,19 @@
                   <span class="info-label">Email</span>
                   <span class="info-value">{{ user.email }}</span>
                 </div>
-                <div class="info-row">
-                  <span class="info-label">Phone</span>
-                  <span class="info-value">{{ user.phone || '—' }}</span>
-                </div>
               </div>
             </div>
 
             <!-- Bio Section -->
             <div class="bio-section" v-if="user.bio">
-              <span class="bio-label">Bio</span>
+              <span class="bio-label">Tentang</span>
               <p class="bio-text">{{ user.bio }}</p>
             </div>
 
             <!-- Actions -->
             <div class="actions-row">
               <button @click="startEditing" class="btn btn-outline">Edit Profile</button>
+              <button @click="openEmailModal" class="btn btn-outline">Ubah Email</button>
               <button @click="showPasswordModal = true" class="btn btn-outline">Ubah Password</button>
             </div>
           </div>
@@ -81,21 +78,9 @@
                 <input v-model="form.name" type="text" class="form-input" />
               </div>
 
-              <!-- Email -->
-              <div class="form-group">
-                <label class="form-label">Email</label>
-                <input v-model="form.email" type="email" class="form-input" />
-              </div>
-
-              <!-- Phone -->
-              <div class="form-group">
-                <label class="form-label">Phone</label>
-                <input v-model="form.phone" type="text" class="form-input" />
-              </div>
-
               <!-- Bio -->
               <div class="form-group">
-                <label class="form-label">Bio</label>
+                <label class="form-label">Tentang</label>
                 <textarea v-model="form.bio" rows="4" class="form-input form-textarea"></textarea>
               </div>
 
@@ -123,22 +108,56 @@
 
     <!-- ==================== PASSWORD MODAL ==================== -->
     <transition name="fade">
-      <div v-if="showPasswordModal" class="modal-overlay" @click.self="showPasswordModal = false">
-        <div class="modal-card">
+      <div v-if="showPasswordModal" class="modal-overlay">
+        <div class="modal-card" @click.stop>
           <h3 class="modal-title">Ubah Password</h3>
 
           <form @submit.prevent="handleChangePassword">
             <div class="form-group">
               <label class="form-label">Password Lama</label>
-              <input v-model="passwordForm.current_password" type="password" class="form-input" required />
+              <div style="position:relative;">
+                <input v-model="passwordForm.current_password" :type="showCurrentPassword ? 'text' : 'password'" class="form-input" required style="padding-right:2.75rem;" autocomplete="current-password" />
+                <button type="button" @click="showCurrentPassword = !showCurrentPassword" :disabled="passwordLoading" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:#6b7280;">
+                  <svg v-if="showCurrentPassword" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.477 10.48a3 3 0 104.243 4.243M9.88 5.08A9.955 9.955 0 0112 4c5.523 0 10 5 10 8 0 1.248-.77 2.832-2.1 4.29M6.228 6.228C3.99 7.77 2 10.04 2 12c0 3 4.477 8 10 8 1.647 0 3.174-.445 4.52-1.128" />
+                  </svg>
+                  <svg v-else width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label">Password Baru</label>
-              <input v-model="passwordForm.password" type="password" class="form-input" required minlength="8" />
+              <div style="position:relative;">
+                <input v-model="passwordForm.password" :type="showNewPassword ? 'text' : 'password'" class="form-input" required minlength="8" style="padding-right:2.75rem;" autocomplete="new-password" placeholder="Minimal 8 karakter" />
+                <button type="button" @click="showNewPassword = !showNewPassword" :disabled="passwordLoading" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:#6b7280;">
+                  <svg v-if="showNewPassword" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.477 10.48a3 3 0 104.243 4.243M9.88 5.08A9.955 9.955 0 0112 4c5.523 0 10 5 10 8 0 1.248-.77 2.832-2.1 4.29M6.228 6.228C3.99 7.77 2 10.04 2 12c0 3 4.477 8 10 8 1.647 0 3.174-.445 4.52-1.128" />
+                  </svg>
+                  <svg v-else width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+              </div>
+              <div class="photo-hint" style="margin-top:6px;">Minimal 8 karakter, bebas kombinasi huruf/angka/simbol.</div>
             </div>
             <div class="form-group">
               <label class="form-label">Konfirmasi Password</label>
-              <input v-model="passwordForm.password_confirmation" type="password" class="form-input" required />
+              <div style="position:relative;">
+                <input v-model="passwordForm.password_confirmation" :type="showNewPasswordConfirmation ? 'text' : 'password'" class="form-input" required style="padding-right:2.75rem;" autocomplete="new-password" />
+                <button type="button" @click="showNewPasswordConfirmation = !showNewPasswordConfirmation" :disabled="passwordLoading" style="position:absolute;right:.75rem;top:50%;transform:translateY(-50%);background:none;border:none;padding:0;cursor:pointer;color:#6b7280;">
+                  <svg v-if="showNewPasswordConfirmation" width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3l18 18M10.477 10.48a3 3 0 104.243 4.243M9.88 5.08A9.955 9.955 0 0112 4c5.523 0 10 5 10 8 0 1.248-.77 2.832-2.1 4.29M6.228 6.228C3.99 7.77 2 10.04 2 12c0 3 4.477 8 10 8 1.647 0 3.174-.445 4.52-1.128" />
+                  </svg>
+                  <svg v-else width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <div v-if="passwordError" class="feedback feedback--error">{{ passwordError }}</div>
@@ -156,11 +175,58 @@
       </div>
     </transition>
 
+    <transition name="fade">
+      <div v-if="showEmailModal" class="modal-overlay">
+        <div class="modal-card" @click.stop>
+          <h3 class="modal-title">Ubah Email</h3>
+
+          <form v-if="emailStep === 1" @submit.prevent="handleRequestEmailOtp">
+            <div class="form-group">
+              <label class="form-label">Email Baru</label>
+              <input v-model="emailForm.new_email" type="email" class="form-input" required autocomplete="email" placeholder="contoh@email.com" />
+            </div>
+
+            <div v-if="emailError" class="feedback feedback--error">{{ emailError }}</div>
+            <div v-if="emailSuccess" class="feedback feedback--success">{{ emailSuccess }}</div>
+
+            <div class="actions-row">
+              <button type="submit" :disabled="emailLoading" class="btn btn-primary">
+                <div v-if="emailLoading" class="spinner spinner--sm"></div>
+                Kirim OTP
+              </button>
+              <button type="button" @click="closeEmailModal" class="btn btn-outline">Batal</button>
+            </div>
+          </form>
+
+          <form v-else @submit.prevent="handleVerifyEmailOtp">
+            <div class="form-group">
+              <label class="form-label">Kode OTP (6 digit)</label>
+              <input v-model="emailForm.otp_code" type="text" maxlength="6" class="form-input" required inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code" @input="emailForm.otp_code = emailForm.otp_code.replace(/\\D/g, '')" placeholder="000000" />
+            </div>
+
+            <div v-if="emailError" class="feedback feedback--error">{{ emailError }}</div>
+            <div v-if="emailSuccess" class="feedback feedback--success">{{ emailSuccess }}</div>
+
+            <div class="actions-row">
+              <button type="submit" :disabled="emailLoading || emailForm.otp_code.length < 6" class="btn btn-primary">
+                <div v-if="emailLoading" class="spinner spinner--sm"></div>
+                Verifikasi & Simpan
+              </button>
+              <button type="button" @click="handleResendEmailOtp" :disabled="emailResendCooldown > 0 || emailLoading" class="btn btn-outline">
+                {{ emailResendCooldown > 0 ? `Kirim ulang ${emailResendCooldown}s` : 'Kirim Ulang OTP' }}
+              </button>
+              <button type="button" @click="emailStep = 1" :disabled="emailLoading" class="btn btn-outline">Kembali</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </transition>
+
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, computed, reactive } from 'vue'
+import { ref, onMounted, computed, reactive, onUnmounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useProfileStore } from '../stores/profile'
 
@@ -179,12 +245,23 @@ const photoError      = ref(null)
 const photoPreview    = ref(null)
 const selectedPhoto   = ref(null)
 const showPasswordModal = ref(false)
+const showEmailModal = ref(false)
 const photoLoadError    = ref(false)
 const editPhotoLoadError = ref(false)
 
 const user         = computed(() => authStore.user)
-const form         = reactive({ name: '', email: '', phone: '', bio: '' })
+const form         = reactive({ name: '', bio: '' })
 const passwordForm = reactive({ current_password: '', password: '', password_confirmation: '' })
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showNewPasswordConfirmation = ref(false)
+const emailStep = ref(1)
+const emailForm = reactive({ new_email: '', otp_code: '' })
+const emailLoading = ref(false)
+const emailError = ref(null)
+const emailSuccess = ref(null)
+const emailResendCooldown = ref(0)
+let emailCooldownInterval = null
 
 const getPhotoUrl = (p) => {
   if (!p) return null
@@ -212,9 +289,105 @@ const cancelEditing = () => {
 
 const resetForm = () => {
   form.name = user.value?.name || ''
-  form.email = user.value?.email || ''
-  form.phone = user.value?.phone || ''
   form.bio = user.value?.bio || ''
+}
+
+const openEmailModal = () => {
+  emailError.value = null
+  emailSuccess.value = null
+  emailStep.value = 1
+  emailForm.new_email = ''
+  emailForm.otp_code = ''
+  showEmailModal.value = true
+}
+
+const closeEmailModal = () => {
+  showEmailModal.value = false
+  emailError.value = null
+  emailSuccess.value = null
+  emailStep.value = 1
+  emailForm.new_email = ''
+  emailForm.otp_code = ''
+  if (emailCooldownInterval) clearInterval(emailCooldownInterval)
+  emailCooldownInterval = null
+  emailResendCooldown.value = 0
+}
+
+const startEmailResendCooldown = () => {
+  emailResendCooldown.value = 60
+  if (emailCooldownInterval) clearInterval(emailCooldownInterval)
+  emailCooldownInterval = setInterval(() => {
+    emailResendCooldown.value--
+    if (emailResendCooldown.value <= 0) {
+      clearInterval(emailCooldownInterval)
+      emailCooldownInterval = null
+    }
+  }, 1000)
+}
+
+const handleRequestEmailOtp = async () => {
+  emailError.value = null
+  emailSuccess.value = null
+  emailLoading.value = true
+  try {
+    const r = await profileStore.requestEmailChangeOtp(emailForm.new_email)
+    if (r.success) {
+      emailStep.value = 2
+      startEmailResendCooldown()
+    }
+  } catch (err) {
+    if (err.response?.data?.errors) {
+      emailError.value = Object.values(err.response.data.errors).flat().join(', ')
+    } else {
+      emailError.value = err.response?.data?.message || 'Gagal mengirim OTP'
+    }
+  } finally {
+    emailLoading.value = false
+  }
+}
+
+const handleResendEmailOtp = async () => {
+  if (emailResendCooldown.value > 0) return
+  emailError.value = null
+  emailSuccess.value = null
+  emailLoading.value = true
+  try {
+    const r = await profileStore.requestEmailChangeOtp(emailForm.new_email)
+    if (r.success) {
+      startEmailResendCooldown()
+    }
+  } catch (err) {
+    if (err.response?.data?.errors) {
+      emailError.value = Object.values(err.response.data.errors).flat().join(', ')
+    } else {
+      emailError.value = err.response?.data?.message || 'Gagal mengirim ulang OTP'
+    }
+  } finally {
+    emailLoading.value = false
+  }
+}
+
+const handleVerifyEmailOtp = async () => {
+  emailError.value = null
+  emailSuccess.value = null
+  emailLoading.value = true
+  try {
+    const r = await profileStore.verifyEmailChangeOtp(emailForm.new_email, emailForm.otp_code)
+    if (r.success) {
+      emailSuccess.value = 'Email berhasil diubah'
+      setTimeout(() => {
+        closeEmailModal()
+      }, 1500)
+    }
+  } catch (err) {
+    if (err.response?.data?.errors) {
+      emailError.value = Object.values(err.response.data.errors).flat().join(', ')
+    } else {
+      emailError.value = err.response?.data?.message || 'Gagal verifikasi OTP'
+    }
+  } finally {
+    emailLoading.value = false
+  }
 }
 
 const handlePhotoChange = (event) => {
@@ -285,6 +458,10 @@ const handleChangePassword = async () => {
 
 onMounted(() => {
   if (user.value) resetForm()
+})
+
+onUnmounted(() => {
+  if (emailCooldownInterval) clearInterval(emailCooldownInterval)
 })
 </script>
 

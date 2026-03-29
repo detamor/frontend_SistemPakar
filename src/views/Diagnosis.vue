@@ -180,6 +180,43 @@
           </p>
         </div>
       </form>
+
+      <div
+        v-if="!isAuthenticated && guestResult"
+        class="sp-card"
+        style="margin-top:1.25rem;padding:1.75rem 1.5rem;"
+      >
+        <h2 style="margin:0 0 .5rem;font-size:1.125rem;font-weight:800;color:#1e3a2a;">Hasil Diagnosis (tanpa login)</h2>
+        <p style="margin:0 0 1rem;color:var(--text-muted);font-size:.875rem;">
+          Hasil ini tidak disimpan ke riwayat. Login untuk menyimpan riwayat, unduh PDF, dan konsultasi pakar.
+        </p>
+
+        <div style="display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-bottom:1rem;">
+          <div style="font-weight:800;color:#1e3a2a;">
+            {{ guestResult.disease?.name || 'Tidak ada hipotesis penyakit' }}
+          </div>
+          <div class="sp-badge" style="background:#e8f5ee;color:#1a3a2a;border:1px solid #cce8d8;">
+            {{ (certaintyNum(guestResult.certainty_value) * 100).toFixed(1) }}%
+          </div>
+          <div style="font-size:.8125rem;color:var(--text-muted);">
+            {{ guestResult.matched_symptoms_count || 0 }} gejala cocok
+          </div>
+        </div>
+
+        <div v-if="Array.isArray(guestResult.all_possibilities) && guestResult.all_possibilities.length" style="margin-top:.75rem;">
+          <div style="font-size:.875rem;font-weight:800;color:#1e3a2a;margin-bottom:.5rem;">Peringkat Hipotesis</div>
+          <ol style="margin:0;padding-left:1.1rem;color:#1e3a2a;">
+            <li v-for="(p, idx) in guestResult.all_possibilities.slice(0, 5)" :key="p.disease_id + '-' + idx" style="margin:.25rem 0;">
+              {{ p.disease_name }} ({{ (certaintyNum(p.certainty_value) * 100).toFixed(1) }}%)
+            </li>
+          </ol>
+        </div>
+
+        <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem;">
+          <RouterLink to="/login" class="sp-btn sp-btn-primary">Login</RouterLink>
+          <RouterLink to="/register" class="sp-btn sp-btn-secondary">Daftar</RouterLink>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -190,8 +227,10 @@ import { useDiagnosisStore } from '../stores/diagnosis'
 import { getSpecificErrorMessage } from '../utils/errorHandler'
 import { validateDiagnosisForm } from '../utils/validation'
 import axios from 'axios'
+import { useAuthStore } from '../stores/auth'
 
 const diagnosisStore = useDiagnosisStore()
+const authStore = useAuthStore()
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
 
 const form = ref({ plant_id: '', user_notes: '' })
@@ -206,6 +245,12 @@ const symptoms = ref([])
 const cfLevels = ref([])
 
 const defaultCFLevel = computed(() => cfLevels.value.find(l => l.value === 0.6) || cfLevels.value[2] || { value: 0.6 })
+const isAuthenticated = computed(() => authStore.isAuthenticated)
+const guestResult = computed(() => (diagnosisStore.currentDiagnosis ? diagnosisStore.currentDiagnosis : null))
+const certaintyNum = (v) => {
+  const n = typeof v === 'number' ? v : parseFloat(v)
+  return Number.isFinite(n) ? n : 0
+}
 
 const clearErrors  = () => { error.value = null; submitError.value = null; validationErrors.value = [] }
 const resetForm    = () => { selectedSymptoms.value = []; symptomCFs.value = {}; clearErrors() }

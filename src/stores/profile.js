@@ -21,8 +21,6 @@ export const useProfileStore = defineStore('profile', {
         const formData = new FormData()
         
         formData.append('name', data.name || '')
-        formData.append('email', data.email || '')
-        formData.append('phone', data.phone || '')
         formData.append('bio', data.bio || '')
         if (data.photo) formData.append('photo', data.photo)
 
@@ -39,6 +37,62 @@ export const useProfileStore = defineStore('profile', {
 
         if (response.data.success) {
           // Update auth store user data
+          const authStore = useAuthStore()
+          authStore.user = response.data.data
+        }
+
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async requestEmailChangeOtp(newEmail) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.post(
+          `${API_BASE_URL}/profile/email/request-otp`,
+          { new_email: newEmail },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+        return response.data
+      } catch (error) {
+        this.error = error.response?.data || error.message
+        throw error
+      } finally {
+        this.loading = false
+      }
+    },
+
+    async verifyEmailChangeOtp(newEmail, otpCode) {
+      this.loading = true
+      this.error = null
+
+      try {
+        const token = localStorage.getItem('auth_token')
+        const response = await axios.post(
+          `${API_BASE_URL}/profile/email/verify-otp`,
+          { new_email: newEmail, otp_code: otpCode },
+          {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+
+        if (response.data.success) {
           const authStore = useAuthStore()
           authStore.user = response.data.data
         }
