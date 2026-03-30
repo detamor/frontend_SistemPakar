@@ -61,6 +61,7 @@ export const useEducationStore = defineStore('education', {
         const token = localStorage.getItem('auth_token')
         const params = { page: options.page || 1 }
         if (options.plantId) params.plant_id = options.plantId
+        if (options.includeGeneral === false) params.include_general = 0
         if (options.search && String(options.search).trim()) params.search = String(options.search).trim()
 
         const response = await axios.get(

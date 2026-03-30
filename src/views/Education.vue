@@ -188,6 +188,7 @@ const loadModules = async (page = 1) => {
     const plantId = selectedPlantId.value ? parseInt(selectedPlantId.value, 10) : null
     await educationStore.fetchModules({
       plantId,
+      includeGeneral: !plantId,
       page,
       search: searchQuery.value
     })

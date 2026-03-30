@@ -197,22 +197,20 @@
           </div>
 
           <!-- Relevant Education (Up-selling knowledge) -->
-          <div v-if="relevantModules.length > 0" class="sp-card sidebar-card relevant-knowledge">
+          <div v-if="diagnosis?.plant?.id" class="sp-card sidebar-card relevant-knowledge">
             <header class="card-head mini">
               <span class="head-icon icon-amber">📚</span>
               <h2 class="head-title">Modul Rekomendasi</h2>
             </header>
-            <p class="sidebar-help-text">Daftar panduan yang relevan untuk tanaman Anda:</p>
+            <p class="sidebar-help-text">Arahkan ke edukasi sesuai tanaman diagnosis:</p>
             <div class="mini-modules-list">
-              <RouterLink 
-                v-for="module in relevantModules" :key="module.id" 
-                :to="'/education/' + module.id"
+              <RouterLink
+                :to="{ path: '/education', query: { plant_id: String(diagnosis.plant.id) } }"
                 class="mini-module-link"
               >
-                <img v-if="module.image" :src="module.image" class="module-thumb" />
                 <div class="module-info">
-                  <h4 class="module-title">{{ module.title }}</h4>
-                  <span class="module-cat">{{ module.plant?.name || 'UMUM' }}</span>
+                  <h4 class="module-title">Optimalisasi {{ diagnosis.plant?.name || 'Tanaman' }}</h4>
+                  <span class="module-cat">{{ recommendedEducationSubtext }}</span>
                 </div>
               </RouterLink>
             </div>
@@ -404,7 +402,7 @@ const submittingFeedback = ref(false)
 const feedbackError = ref(null)
 const feedbackSuccess = ref(false)
 const feedbackForm = ref({ accuracy: null, comment: '' })
-const relevantModules = ref([])
+const recommendedModuleCount = ref(null)
 const showNotesModal = ref(false)
 const notesForm = ref({ user_notes: '' })
 const notesError = ref(null)
@@ -501,6 +499,14 @@ const possibilityRanks = computed(() => {
   return ranks
 })
 
+const recommendedEducationSubtext = computed(() => {
+  const plantName = diagnosis.value?.plant?.name
+  if (typeof plantName !== 'string' || plantName.trim() === '') return 'Pilih tanaman untuk melihat edukasi'
+  if (recommendedModuleCount.value === null) return 'Memuat modul...'
+  if (recommendedModuleCount.value <= 0) return `Belum ada modul untuk ${plantName}`
+  return `${recommendedModuleCount.value} modul untuk ${plantName}`
+})
+
 const loadDetail = async () => {
   loading.value = true
   try {
@@ -515,9 +521,10 @@ const loadDetail = async () => {
       
       const plantId = d.plant?.id
       if (plantId) {
-        const eduRes = await educationStore.fetchModules({ plantId, page: 1 })
+        const eduRes = await educationStore.fetchModules({ plantId, page: 1, includeGeneral: false })
         if (eduRes.success && eduRes.data?.data) {
-          relevantModules.value = eduRes.data.data.slice(0, 3)
+          const total = eduRes.data?.total
+          recommendedModuleCount.value = typeof total === 'number' ? total : (eduRes.data.data?.length || 0)
         }
       }
     }

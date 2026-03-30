@@ -198,6 +198,9 @@
           <div class="sp-badge" style="background:#e8f5ee;color:#1a3a2a;border:1px solid #cce8d8;">
             {{ (certaintyNum(guestResult.certainty_value) * 100).toFixed(1) }}%
           </div>
+          <div class="sp-badge" :style="getCFBadgeStyle(guestResult.certainty_value)">
+            {{ getCFLabel(guestResult.certainty_value) }}
+          </div>
           <div style="font-size:.8125rem;color:var(--text-muted);">
             {{ guestResult.matched_symptoms_count || 0 }} gejala cocok
           </div>
@@ -207,14 +210,80 @@
           <div style="font-size:.875rem;font-weight:800;color:#1e3a2a;margin-bottom:.5rem;">Peringkat Hipotesis</div>
           <ol style="margin:0;padding-left:1.1rem;color:#1e3a2a;">
             <li v-for="(p, idx) in guestResult.all_possibilities.slice(0, 5)" :key="p.disease_id + '-' + idx" style="margin:.25rem 0;">
-              {{ p.disease_name }} ({{ (certaintyNum(p.certainty_value) * 100).toFixed(1) }}%)
+              {{ p.disease_name }} ({{ (certaintyNum(p.certainty_value) * 100).toFixed(1) }}% — {{ getCFLabel(p.certainty_value) }})
             </li>
           </ol>
         </div>
 
+        <div v-if="Array.isArray(guestResult.high_confidence_diseases) && guestResult.high_confidence_diseases.length" style="margin-top:1.25rem;">
+          <div style="font-size:.875rem;font-weight:800;color:#1e3a2a;margin-bottom:.5rem;">Detail Hasil (≥ 70%)</div>
+          <div style="display:flex;flex-direction:column;gap:.75rem;">
+            <div
+              v-for="d in guestResult.high_confidence_diseases"
+              :key="`hc-${d.id}`"
+              class="sp-card"
+              style="padding:1rem;border:1px solid #d9e4d4;background:#fff;"
+            >
+              <div style="display:flex;flex-wrap:wrap;gap:.75rem;align-items:center;margin-bottom:.5rem;">
+                <div style="font-weight:900;color:#1e3a2a;">{{ d.name }}</div>
+                <div class="sp-badge" style="background:#e8f5ee;color:#1a3a2a;border:1px solid #cce8d8;">
+                  {{ (certaintyNum(d.certainty_value) * 100).toFixed(1) }}%
+                </div>
+                <div class="sp-badge" :style="getCFBadgeStyle(d.certainty_value)">
+                  {{ getCFLabel(d.certainty_value) }}
+                </div>
+                <div style="font-size:.8125rem;color:var(--text-muted);">
+                  {{ d.matched_symptoms_count || 0 }} gejala cocok
+                </div>
+              </div>
+
+              <div v-if="d.description" style="margin-top:.35rem;">
+                <div style="font-size:.8125rem;font-weight:900;color:#1e3a2a;margin-bottom:.25rem;">Deskripsi</div>
+                <div style="font-size:.875rem;color:#1f2937;line-height:1.6;">{{ d.description }}</div>
+              </div>
+              <div v-if="d.cause" style="margin-top:.5rem;">
+                <div style="font-size:.8125rem;font-weight:900;color:#1e3a2a;margin-bottom:.25rem;">Penyebab</div>
+                <div style="font-size:.875rem;color:#1f2937;line-height:1.6;">{{ d.cause }}</div>
+              </div>
+              <div v-if="d.solution" style="margin-top:.5rem;">
+                <div style="font-size:.8125rem;font-weight:900;color:#1e3a2a;margin-bottom:.25rem;">Solusi</div>
+                <div style="font-size:.875rem;color:#1f2937;line-height:1.6;">{{ d.solution }}</div>
+              </div>
+              <div v-if="d.prevention" style="margin-top:.5rem;">
+                <div style="font-size:.8125rem;font-weight:900;color:#1e3a2a;margin-bottom:.25rem;">Pencegahan</div>
+                <div style="font-size:.875rem;color:#1f2937;line-height:1.6;">{{ d.prevention }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="guestResult.plant?.id" class="sp-card" style="padding:1rem;border:1px solid #d9e4d4;background:#fff;margin-top:1.25rem;">
+          <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.25rem;">
+            <div style="font-weight:900;color:#1e3a2a;">Modul Rekomendasi</div>
+          </div>
+          <div style="font-size:.875rem;color:var(--text-muted);margin-bottom:.75rem;">Arahkan ke edukasi sesuai tanaman diagnosis:</div>
+          <RouterLink
+            :to="{ path: '/education', query: { plant_id: String(guestResult.plant.id) } }"
+            class="mini-module-link"
+            style="display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem;border-radius:14px;border:1px solid #edf2ed;background:#f8faf9;"
+          >
+            <div>
+              <div style="font-weight:900;color:#1e3a2a;">Optimalisasi {{ guestResult.plant?.name || 'Tanaman' }}</div>
+              <div style="font-size:.75rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:#8aa29b;margin-top:.25rem;">
+                {{ guestRecommendedSubtext }}
+              </div>
+            </div>
+            <div style="font-weight:900;color:#1e3a2a;">→</div>
+          </RouterLink>
+        </div>
+
         <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.25rem;">
-          <RouterLink to="/login" class="sp-btn sp-btn-primary">Login</RouterLink>
-          <RouterLink to="/register" class="sp-btn sp-btn-secondary">Daftar</RouterLink>
+          <button type="button" class="sp-btn sp-btn-primary" :disabled="guestActionLoading" @click="downloadGuestPdf">
+            {{ guestActionLoading ? 'Memproses...' : 'Unduh PDF' }}
+          </button>
+          <button type="button" class="sp-btn sp-btn-secondary" :disabled="guestActionLoading" @click="openGuestWhatsApp">
+            Chat ke Pakar
+          </button>
         </div>
       </div>
     </div>
@@ -246,10 +315,160 @@ const cfLevels = ref([])
 
 const defaultCFLevel = computed(() => cfLevels.value.find(l => l.value === 0.6) || cfLevels.value[2] || { value: 0.6 })
 const isAuthenticated = computed(() => authStore.isAuthenticated)
+// guestResult terisi hanya ketika endpoint /api/diagnosis dipanggil tanpa login (is_guest=true).
+// Untuk user login, store biasanya redirect ke halaman detail (/diagnosis/:id) dan currentDiagnosis dipakai berbeda.
 const guestResult = computed(() => (diagnosisStore.currentDiagnosis ? diagnosisStore.currentDiagnosis : null))
 const certaintyNum = (v) => {
   const n = typeof v === 'number' ? v : parseFloat(v)
   return Number.isFinite(n) ? n : 0
+}
+const getCFLabel = (v) => {
+  const x = certaintyNum(v)
+  return x >= 0.7 ? 'Kepastian Tinggi' : x >= 0.5 ? 'Kepastian Sedang' : x >= 0.4 ? 'Cukup Rendah' : 'Kepastian Rendah'
+}
+const getCFBadgeStyle = (v) => {
+  const x = certaintyNum(v)
+  if (x >= 0.7) return 'background:#dcfce7;color:#15803d;border:1px solid #bbf7d0;'
+  if (x >= 0.5) return 'background:#ffedd5;color:#9a3412;border:1px solid #fed7aa;'
+  return 'background:#fef2f2;color:#991b1b;border:1px solid #fecaca;'
+}
+const guestActionLoading = ref(false)
+const lastGuestPayload = ref(null)
+const guestRecommendedCount = ref(null)
+
+const guestRecommendedSubtext = computed(() => {
+  const plantName = guestResult.value?.plant?.name
+  if (typeof plantName !== 'string' || plantName.trim() === '') return 'Pilih tanaman'
+  if (guestRecommendedCount.value === null) return 'Memuat modul...'
+  if (guestRecommendedCount.value <= 0) return `Belum ada modul untuk ${plantName}`
+  return `${guestRecommendedCount.value} modul untuk ${plantName}`
+})
+
+watch(
+  () => guestResult.value?.plant?.id,
+  async (plantId) => {
+    if (!plantId) {
+      guestRecommendedCount.value = null
+      return
+    }
+    guestRecommendedCount.value = null
+    try {
+      const res = await axios.get(`${API_BASE_URL}/education`, {
+        params: { plant_id: plantId, include_general: 0, page: 1 }
+      })
+      const total = res.data?.data?.total
+      if (typeof total === 'number') {
+        guestRecommendedCount.value = total
+        return
+      }
+      const arr = res.data?.data?.data
+      guestRecommendedCount.value = Array.isArray(arr) ? arr.length : 0
+    } catch {
+      guestRecommendedCount.value = 0
+    }
+  },
+  { immediate: true }
+)
+
+const buildDiagnosisPayload = () => {
+  const normalizedNotes = normalizeUserNotes(form.value.user_notes)
+  return {
+    plant_id: form.value.plant_id ? parseInt(form.value.plant_id, 10) : null,
+    symptoms: selectedSymptoms.value.map((id) => ({
+      symptom_id: id,
+      user_cf: parseFloat(symptomCFs.value[id]) || 0.5
+    })),
+    user_notes: normalizedNotes
+  }
+}
+
+const downloadGuestPdf = async () => {
+  guestActionLoading.value = true
+  try {
+    const guest = guestResult.value
+    // Jika ada guestResult, gunakan endpoint pdf-simple agar tidak tergantung Python engine.
+    const payload = guest
+      ? {
+          plant_name: guest?.plant?.name || null,
+          disease_name: guest?.disease?.name || null,
+          certainty_value: certaintyNum(guest?.certainty_value),
+          matched_symptoms_count: guest?.matched_symptoms_count || 0,
+          all_possibilities: Array.isArray(guest?.all_possibilities) ? guest.all_possibilities.slice(0, 10).map((p) => ({
+            disease_name: p?.disease_name,
+            certainty_value: certaintyNum(p?.certainty_value)
+          })) : [],
+          high_confidence_diseases: Array.isArray(guest?.high_confidence_diseases) ? guest.high_confidence_diseases.slice(0, 10).map((d) => ({
+            name: d?.name,
+            certainty_value: certaintyNum(d?.certainty_value),
+            matched_symptoms_count: d?.matched_symptoms_count || 0,
+            description: d?.description || null,
+            cause: d?.cause || null,
+            solution: d?.solution || null,
+            prevention: d?.prevention || null
+          })) : [],
+          user_notes: guest?.diagnosis?.user_notes || guest?.user_notes || null
+        }
+      : lastGuestPayload.value || buildDiagnosisPayload()
+
+    const urlPath = guest ? '/diagnosis/guest/pdf-simple' : '/diagnosis/guest/pdf'
+    const res = await axios.post(`${API_BASE_URL}${urlPath}`, payload, { responseType: 'blob' })
+    const blob = new Blob([res.data], { type: 'application/pdf' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `diagnosis-guest-${new Date().toISOString().slice(0, 10)}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    window.URL.revokeObjectURL(url)
+  } catch (err) {
+    let msg = null
+    const blob = err.response?.data
+    if (blob && typeof blob === 'object' && typeof blob.text === 'function') {
+      try {
+        const text = await blob.text()
+        const json = JSON.parse(text)
+        msg = json?.message || null
+      } catch {}
+    }
+    alert(msg || err.response?.data?.message || 'Gagal mengunduh PDF. Pastikan server backend & engine Python berjalan.')
+  } finally {
+    guestActionLoading.value = false
+  }
+}
+
+const openGuestWhatsApp = async () => {
+  guestActionLoading.value = true
+  try {
+    const guest = guestResult.value
+    const payload = guest?.plant?.id && Array.isArray(guest?.symptoms) && guest.symptoms.length
+      ? {
+          plant_id: guest.plant.id,
+          symptoms: guest.symptoms.map((s) => ({
+            symptom_id: s?.id,
+            user_cf: certaintyNum(s?.user_cf)
+          })).filter((x) => x.symptom_id),
+          user_notes: guest?.diagnosis?.user_notes || guest?.user_notes || null
+        }
+      : lastGuestPayload.value || buildDiagnosisPayload()
+
+    const res = await axios.post(`${API_BASE_URL}/diagnosis/guest/whatsapp-link`, payload)
+    const waUrl = res.data?.whatsapp_url
+    if (waUrl) {
+      window.open(waUrl, '_blank', 'noopener,noreferrer')
+      return
+    }
+    alert('Gagal membuat link WhatsApp.')
+  } catch (err) {
+    const status = err.response?.status
+    if (status === 422) {
+      alert('Data diagnosis belum lengkap. Silakan lakukan diagnosis terlebih dahulu (pilih gejala), lalu coba lagi.')
+      return
+    }
+    alert(err.response?.data?.message || 'Gagal membuka WhatsApp. Pastikan nomor pakar sudah diset di server.')
+  } finally {
+    guestActionLoading.value = false
+  }
 }
 
 const clearErrors  = () => { error.value = null; submitError.value = null; validationErrors.value = [] }
@@ -326,6 +545,11 @@ const handleDiagnosis = async () => {
   try {
     const normalizedNotes = normalizeUserNotes(form.value.user_notes)
     const symptomsData = selectedSymptoms.value.map(id => ({ symptom_id: id, user_cf: parseFloat(symptomCFs.value[id]) || 0.5 }))
+    lastGuestPayload.value = {
+      plant_id: parseInt(form.value.plant_id),
+      symptoms: symptomsData,
+      user_notes: normalizedNotes
+    }
     await diagnosisStore.diagnose({
       plant_id: parseInt(form.value.plant_id),
       symptoms: symptomsData,
