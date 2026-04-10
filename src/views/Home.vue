@@ -2,6 +2,8 @@
   <div>
     <!-- Hero -->
     <section class="hero-section">
+      <div class="hero-bg-leaf">🌿</div>
+      <div class="hero-bg-leaf hero-bg-leaf--2">🍃</div>
       <div class="page-container">
         <div class="hero-grid">
           <div class="hero-content animate-fade-in">
@@ -139,15 +141,35 @@ a { text-decoration: none; }
 
 /* Hero */
 .hero-section {
-  padding: 3.5rem 0 3rem;
-  background: var(--bg-surface);
-  border-bottom: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+  padding: 5rem 0 4.5rem;
+  background: linear-gradient(135deg, #1a3a2a 0%, #2d5a3d 60%, #3a7a50 100%);
+  color: white;
 }
+
+.hero-bg-leaf {
+  position: absolute;
+  font-size: 8rem;
+  opacity: .08;
+  top: -1rem; right: -1rem;
+  transform: rotate(20deg);
+  pointer-events: none;
+  user-select: none;
+}
+.hero-bg-leaf--2 {
+  font-size: 5rem;
+  top: auto; bottom: -1.5rem; left: -1rem; right: auto;
+  transform: rotate(-30deg);
+}
+
 .hero-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 2.5rem;
   align-items: center;
+  position: relative;
+  z-index: 10;
 }
 .hero-content { display: flex; flex-direction: column; gap: 1.25rem; max-width: 640px; }
 
@@ -156,9 +178,9 @@ a { text-decoration: none; }
   align-items: center;
   gap: .5rem;
   padding: .35rem .875rem;
-  background: var(--primary-50);
-  color: var(--primary-700);
-  border: 1px solid var(--primary-200);
+  background: rgba(255, 255, 255, 0.15);
+  color: #a7f3c0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 9999px;
   font-size: .8125rem;
   font-weight: 600;
@@ -167,25 +189,26 @@ a { text-decoration: none; }
 .badge-dot {
   width: 7px; height: 7px;
   border-radius: 50%;
-  background: var(--primary);
+  background: #22c55e;
   flex-shrink: 0;
 }
 
 .hero-title {
-  font-size: clamp(1.75rem, 4vw, 2.5rem);
-  font-weight: 800;
-  line-height: 1.2;
-  color: var(--gray-900);
-  letter-spacing: -.025em;
+  font-family: 'DM Serif Display', serif;
+  font-size: clamp(2.25rem, 5vw, 3.5rem);
+  font-weight: 400;
+  line-height: 1.1;
+  color: #fff;
+  letter-spacing: -0.01em;
   margin: 0;
 }
-.hero-title-accent { color: var(--primary); }
+.hero-title-accent { color: #a7f3c0; }
 
 .hero-desc {
-  font-size: 1rem;
-  color: var(--text-muted);
-  line-height: 1.7;
-  max-width: 500px;
+  font-size: 1.125rem;
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  max-width: 540px;
   margin: 0;
 }
 
@@ -201,9 +224,9 @@ a { text-decoration: none; }
   gap: .75rem;
 }
 .hero-tag {
-  font-size: .8125rem;
+  font-size: .875rem;
   font-weight: 500;
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.7);
 }
 
 /* Sections */
