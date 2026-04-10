@@ -49,64 +49,7 @@
           </div>
         </div>
 
-        <!-- PDF Upload Section -->
-        <div class="form-group">
-          <label for="pdfFile" class="form-label">
-            <span class="label-icon">📎</span>
-            Lampirkan File PDF Hasil Diagnosis (Opsional)
-          </label>
-          <div class="file-upload-area" :class="{ 'has-file': pdfFile, 'dragover': isDragging }"
-               @dragover.prevent="isDragging = true"
-               @dragleave.prevent="isDragging = false"
-               @drop.prevent="handleFileDrop"
-               @click="() => pdfFileInput?.click()">
-            <input
-              type="file"
-              id="pdfFile"
-              ref="pdfFileInput"
-              accept=".pdf"
-              @change="handleFileSelect"
-              class="file-input"
-              :disabled="loading"
-            />
-            <div v-if="!pdfFile" class="upload-placeholder">
-              <div class="upload-icon">📄</div>
-              <p class="upload-text">
-                <strong>Klik untuk memilih file PDF</strong> atau drag & drop file PDF di sini
-              </p>
-              <p class="upload-hint">Format: PDF | Maksimal: 10MB</p>
-              <p v-if="canIncludePdf" class="upload-tip">
-                💡 PDF akan otomatis dibuat dari diagnosis, atau upload file PDF manual yang sudah Anda download
-              </p>
-            </div>
-            <div v-else class="file-preview">
-              <div class="file-info">
-                <div class="file-icon">📄</div>
-                <div class="file-details">
-                  <p class="file-name">{{ pdfFile.name }}</p>
-                  <p class="file-size">{{ formatFileSize(pdfFile.size) }}</p>
-                </div>
-                <button
-                  type="button"
-                  @click.stop="removeFile"
-                  class="remove-file-btn"
-                  :disabled="loading"
-                >
-                  ✕
-                </button>
-              </div>
-            </div>
-          </div>
-          <p v-if="pdfFile" class="form-hint success-hint">
-            ✓ File PDF siap dilampirkan. PDF ini akan dikirim ke pakar via WhatsApp bersama dengan pesan chat Anda.
-          </p>
-          <p v-else-if="canIncludePdf" class="form-hint">
-            💡 PDF akan otomatis dibuat dari diagnosis, atau upload file PDF manual yang sudah Anda download
-          </p>
-          <p v-else class="form-hint">
-            💡 Upload file PDF hasil diagnosis yang telah Anda download untuk dilampirkan ke chat WhatsApp pakar
-          </p>
-        </div>
+
 
         <!-- Error Message -->
         <ErrorMessage
@@ -173,85 +116,27 @@ const emit = defineEmits(['close', 'success'])
 const consultationStore = useConsultationStore()
 
 const form = ref({
-  message: '',
-  includePdf: true
+  message: ''
 })
 
 const loading = ref(false)
 const error = ref(null)
 const success = ref(null)
-const pdfFile = ref(null)
-const pdfFileInput = ref(null)
-const isDragging = ref(false)
 
-const canIncludePdf = computed(() => {
-  return props.diagnosis && props.diagnosis.id
-})
 
 // Reset form when modal closes
 watch(() => props.show, (newVal) => {
   if (!newVal) {
-    form.value = { message: '', includePdf: true }
+    form.value = { message: '' }
     error.value = null
     success.value = null
-    pdfFile.value = null
-    isDragging.value = false
-    if (pdfFileInput.value) {
-      pdfFileInput.value.value = ''
-    }
   } else if (props.diagnosis) {
     // Pre-fill message with diagnosis info
     form.value.message = `Halo Pakar,\n\nSaya ingin berkonsultasi tentang hasil diagnosis berikut:\n\nTanaman: ${props.diagnosis.plant?.name || '-'}\nHasil Diagnosis: ${props.diagnosis.disease?.name || 'Belum ada hasil'}\nTingkat Kepastian: ${props.diagnosis.certainty_value ? (props.diagnosis.certainty_value * 100).toFixed(1) + '%' : '-'}\n\n`
   }
 })
 
-const handleFileSelect = (event) => {
-  const file = event.target.files[0]
-  if (file) {
-    if (file.type !== 'application/pdf') {
-      error.value = 'File harus berformat PDF'
-      return
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      error.value = 'Ukuran file maksimal 10MB'
-      return
-    }
-    pdfFile.value = file
-    error.value = null
-  }
-}
 
-const handleFileDrop = (event) => {
-  isDragging.value = false
-  const file = event.dataTransfer.files[0]
-  if (file) {
-    if (file.type !== 'application/pdf') {
-      error.value = 'File harus berformat PDF'
-      return
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      error.value = 'Ukuran file maksimal 10MB'
-      return
-    }
-    pdfFile.value = file
-    error.value = null
-  }
-}
-
-const removeFile = () => {
-  pdfFile.value = null
-  if (pdfFileInput.value) {
-    pdfFileInput.value.value = ''
-  }
-}
-
-const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes'
-  const k = 1024
-  const sizes = ['Bytes', 'KB', 'MB']
-  const i = Math.floor(Math.log(bytes) / Math.log(k))
-  return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i]
-}
 
 const handleSubmit = async () => {
   error.value = null
@@ -273,17 +158,6 @@ const handleSubmit = async () => {
 
     const consultationId = createResponse.data.id
 
-    // Step 2: Upload PDF manual jika ada
-    if (pdfFile.value) {
-      try {
-        await consultationStore.uploadPdf(consultationId, pdfFile.value)
-        console.log('PDF berhasil diupload')
-      } catch (uploadError) {
-        console.error('PDF upload error:', uploadError)
-        // Continue even if PDF upload fails
-        error.value = 'Konsultasi berhasil dibuat, namun upload PDF gagal: ' + (uploadError.response?.data?.message || uploadError.message)
-      }
-    }
 
     // Step 3: Send to WhatsApp dengan PDF
     try {
@@ -588,158 +462,7 @@ const handleSubmit = async () => {
   transform: none;
 }
 
-.label-icon {
-  font-size: 1.125rem;
-}
 
-.file-upload-area {
-  border: 2px dashed #d1d5db;
-  border-radius: 0.5rem;
-  padding: 1.5rem;
-  text-align: center;
-  transition: all 0.3s ease;
-  background: #f9fafb;
-  cursor: pointer;
-  position: relative;
-}
-
-.file-upload-area:hover {
-  border-color: #25D366;
-  background: #f0fdf4;
-}
-
-.file-upload-area.dragover {
-  border-color: #25D366;
-  background: #dcfce7;
-  border-style: solid;
-}
-
-.file-upload-area.has-file {
-  border-color: #25D366;
-  background: #f0fdf4;
-  border-style: solid;
-}
-
-.file-input {
-  position: absolute;
-  width: 0;
-  height: 0;
-  opacity: 0;
-  overflow: hidden;
-  z-index: -1;
-}
-
-.upload-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.upload-icon {
-  font-size: 3rem;
-}
-
-.upload-text {
-  margin: 0;
-  color: #374151;
-  font-size: 0.9375rem;
-}
-
-.upload-hint {
-  margin: 0;
-  font-size: 0.8125rem;
-  color: #6b7280;
-}
-
-.upload-tip {
-  margin-top: 0.75rem;
-  font-size: 0.8125rem;
-  color: #3b82f6;
-  font-weight: 500;
-  padding: 0.5rem;
-  background: #eff6ff;
-  border-radius: 0.5rem;
-  border-left: 3px solid #3b82f6;
-}
-
-.file-preview {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 0.5rem;
-  border: 1px solid #d1d5db;
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  flex: 1;
-}
-
-.file-icon {
-  font-size: 2rem;
-  flex-shrink: 0;
-}
-
-.file-details {
-  flex: 1;
-  text-align: left;
-}
-
-.file-name {
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 0.25rem 0;
-  font-size: 0.875rem;
-}
-
-.file-size {
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin: 0;
-}
-
-.remove-file-btn {
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 50%;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-
-.remove-file-btn:hover:not(:disabled) {
-  background: #dc2626;
-  transform: scale(1.1);
-}
-
-.remove-file-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.form-hint {
-  margin-top: 0.5rem;
-  font-size: 0.8125rem;
-  color: #6b7280;
-  line-height: 1.5;
-}
-
-.success-hint {
-  color: #059669;
-  font-weight: 500;
-}
 </style>
 
 

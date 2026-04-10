@@ -63,6 +63,57 @@
         </div>
       </section>
 
+      <!-- Profil Pakar -->
+      <section class="info-card expert-section">
+        <div class="expert-layout">
+          <div class="expert-image-container">
+            <img :src="pakTisImage" alt="Bpk. Tis Sutisna" class="expert-image" />
+            <div class="expert-badge">Pakar Utama</div>
+          </div>
+          <div class="expert-details">
+            <header class="card-head">
+              <span class="head-icon">👨‍🌾</span>
+              <h2 class="head-title">Profil Pakar</h2>
+            </header>
+            <h3 class="expert-name">Bpk. TIS SUTISNA</h3>
+            <div class="expert-education">
+              <div class="edu-item">
+                <span class="edu-icon">📜</span>
+                <div class="edu-text">
+                  <span class="edu-level">S1 Sarjana - Agroteknologi</span>
+                  <span class="edu-univ">Universitas Ekasakti</span>
+                  <span class="edu-nim">NIM: 004033</span>
+                </div>
+              </div>
+              <div class="edu-item">
+                <span class="edu-icon">📜</span>
+                <div class="edu-text">
+                  <span class="edu-level">S2 Magister - Agronomi</span>
+                  <span class="edu-univ">Universitas Padjadjaran</span>
+                  <span class="edu-nim">NIM: 150920060002</span>
+                </div>
+              </div>
+            </div>
+            <p class="expert-bio">
+              Beliau adalah seorang pakar botani yang telah mendedikasikan lebih dari <strong>10 tahun</strong> 
+              pengalamannya dalam budidaya dan penanganan penyakit tanaman mawar. Dedikasinya memastikan 
+              bahwa setiap diagnosis dalam sistem ini memiliki basis pengetahuan yang akurat dan terpercaya.
+            </p>
+            <div class="expert-stats">
+              <div class="stat-pill">
+                <span class="stat-val">10+</span>
+                <span class="stat-label">Tahun Pengalaman</span>
+              </div>
+              <div class="stat-pill">
+                <span class="stat-val">🌹</span>
+                <span class="stat-label">Spesialis Mawar</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
       <!-- Mawar Holland Feature -->
       <section class="info-card feature-rose">
         <div class="rose-layout">
@@ -164,6 +215,8 @@
 import { computed } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import logoImage from '../assets/logo-hydrangea.png'
+import pakTisImage from '../assets/pak tis tutisna.png'
+
 
 const authStore = useAuthStore()
 const isAuthenticated = computed(() => authStore.isAuthenticated)
@@ -408,6 +461,157 @@ const roseChars = [
   opacity: .1;
   filter: grayscale(1);
 }
+
+/* --- Expert Profile Section --- */
+.expert-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 3.5rem;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .expert-layout {
+    grid-template-columns: 1fr;
+    gap: 2.5rem;
+  }
+  .expert-image-container {
+    max-width: 320px;
+    margin: 0 auto;
+  }
+}
+
+.expert-image-container {
+  position: relative;
+  border-radius: 24px;
+  overflow: hidden;
+  aspect-ratio: 4/5;
+  box-shadow: 0 20px 40px rgba(30,58,42,0.12);
+  border: 4px solid #fff;
+}
+
+.expert-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.expert-image-container:hover .expert-image {
+  transform: scale(1.05);
+}
+
+.expert-badge {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 58, 42, 0.9);
+  backdrop-filter: blur(8px);
+  color: white;
+  padding: 0.5rem 1.25rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.expert-name {
+  font-family: 'DM Serif Display', serif;
+  font-size: 2.5rem;
+  color: #1a3a2a;
+  margin: 0 0 1.5rem;
+  line-height: 1;
+}
+
+.expert-education {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.edu-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.edu-icon {
+  font-size: 1.25rem;
+  background: #f0fdf4;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.edu-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.edu-level {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: #1a3a2a;
+}
+
+.edu-univ {
+  font-size: 0.875rem;
+  color: #6a8a72;
+}
+
+.edu-nim {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #9cb6a2;
+  letter-spacing: 0.02em;
+}
+
+.expert-bio {
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  color: #4b6a55;
+  margin-bottom: 2.5rem;
+}
+
+.expert-stats {
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #f8fbf9;
+  padding: 0.75rem 1.25rem;
+  border-radius: 14px;
+  border: 1px solid #edf2ed;
+}
+
+.stat-val {
+  font-size: 1.125rem;
+  font-weight: 900;
+  color: #1a3a2a;
+}
+
+.stat-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #6a8a72;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
 
 /* --- Dual Grid --- */
 .content-dual-grid {

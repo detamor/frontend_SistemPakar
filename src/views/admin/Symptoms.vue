@@ -145,7 +145,10 @@ const fetchSymptoms = async () => {
       headers: { 'Authorization': `Bearer ${getToken()}` }
     })
     if (response.data.success) {
-      symptoms.value = response.data.data
+      const list = response.data.data || []
+      symptoms.value = list.slice().sort((a, b) => 
+        String(a.code || '').localeCompare(String(b.code || ''), undefined, { numeric: true, sensitivity: 'base' })
+      )
     }
   } catch (error) {
     console.error('Error fetching symptoms:', error)

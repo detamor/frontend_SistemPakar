@@ -652,7 +652,7 @@ const fetchSymptomsCrud = async () => {
     if (response.data.success) {
       const list = response.data.data || []
       symptomsCrud.value = Array.isArray(list)
-        ? list.slice().sort((a, b) => String(a.code || '').localeCompare(String(b.code || '')))
+        ? list.slice().sort((a, b) => String(a.code || '').localeCompare(String(b.code || ''), undefined, { numeric: true, sensitivity: 'base' }))
         : []
     } else {
       symptomsCrud.value = []
@@ -677,7 +677,7 @@ const fetchDiseasesCrud = async () => {
     if (response.data.success) {
       const list = response.data.data || []
       diseasesCrud.value = Array.isArray(list)
-        ? list.slice().sort((a, b) => String(a.code || '').localeCompare(String(b.code || '')))
+        ? list.slice().sort((a, b) => String(a.code || '').localeCompare(String(b.code || ''), undefined, { numeric: true, sensitivity: 'base' }))
         : []
     } else {
       diseasesCrud.value = []
